@@ -69,7 +69,7 @@ export default function SignupForm() {
 
           <button
             onClick={() => setIsSignIn(!isSignIn)}
-            className="text-white font-bold ml-1 hover:underline"
+            className="text-white font-bold ml-1 cursor-pointer hover:underline"
           >
             {isSignIn ? "Sign Up" : "Sign In"}
           </button>
@@ -86,7 +86,7 @@ export default function SignupForm() {
             <input
               type="text"
               name="email"
-              placeholder="Email or Phone"
+              placeholder="Email ID or Phone"
               value={formData.email}
               onChange={handleChange}
               className="
@@ -95,7 +95,7 @@ export default function SignupForm() {
                 border border-white 
                 rounded-full 
                 placeholder-white
-                focus:ring-2 focus:ring-blue-400 outline-none
+                focus:ring-2 focus:ring-[#895C40] outline-none
                 text-sm sm:text-base
               "
             />
@@ -112,7 +112,7 @@ export default function SignupForm() {
                 border border-white 
                 rounded-full 
                 placeholder-white
-                focus:ring-2 focus:ring-blue-400 outline-none
+                focus:ring-2 focus:ring-[#895C40] outline-none
                 text-sm sm:text-base
               "
             />
@@ -150,8 +150,7 @@ export default function SignupForm() {
     grid-cols-1          /* Mobile = 1 column */
     md:grid-cols-2       /* Desktop = 2 columns */
     gap-4 sm:gap-5 md:gap-6 
-    text-white
-  "
+    text-white"
 >
   <input
     type="text"

@@ -11,18 +11,23 @@ import MenuCarousel from "./MenuCarousal";
 import { useNavigate } from "react-router-dom";
 import TestimonialsSection from "./Testimonials";
 
-
-
 const HeroSection = () => {
-  const cloudinaryImages = { 
-     Sandwitch: "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765276783/Sandwitch_zyfnbq.jpg",
-     Juice : "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765279455/Juice_ercm00.jpg",
-     Salad: "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765347810/Salad3_guopxm.webp"
-  }
-  
-  const images = [cloudinaryImages.Salad, cloudinaryImages.Sandwitch, cloudinaryImages.Juice];
+  const cloudinaryImages = {
+    Sandwitch:
+      "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765276783/Sandwitch_zyfnbq.jpg",
+    Juice:
+      "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765279455/Juice_ercm00.jpg",
+    Salad:
+      "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765347810/Salad3_guopxm.webp",
+  };
+
+  const images = [
+    cloudinaryImages.Salad,
+    cloudinaryImages.Sandwitch,
+    cloudinaryImages.Juice,
+  ];
   const sliderRef = useRef(null);
- const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const settings = {
     dots: false,
@@ -37,38 +42,34 @@ const HeroSection = () => {
     arrows: false,
   };
 
+  // Animation variants
+  const containerVariant = {
+    hidden: { opacity: 0, y: 40 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut" },
+    },
+  };
 
+  const imageVariant = {
+    hidden: { opacity: 0, x: -50, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      scale: 1,
+      transition: { duration: 0.9, ease: "easeOut" },
+    },
+  };
 
-// Animation variants
-const containerVariant = {
-hidden: { opacity: 0, y: 40 },
-visible: {
-opacity: 1,
-y: 0,
-transition: { duration: 0.8, ease: "easeOut" }
-}
-};
-
-
-const imageVariant = {
-hidden: { opacity: 0, x: -50, scale: 0.95 },
-visible: {
-opacity: 1,
-x: 0,
-scale: 1,
-transition: { duration: 0.9, ease: "easeOut" }
-}
-};
-
-
-const textVariant = {
-hidden: { opacity: 0, x: 50 },
-visible: {
-opacity: 1,
-x: 0,
-transition: { duration: 0.9, ease: "easeOut", delay: 0.2 }
-}
-};
+  const textVariant = {
+    hidden: { opacity: 0, x: 50 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.9, ease: "easeOut", delay: 0.2 },
+    },
+  };
 
   return (
     <>
@@ -78,43 +79,43 @@ transition: { duration: 0.9, ease: "easeOut", delay: 0.2 }
           initial={{ x: -120, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="relative flex md:flex-row flex-col md:items-center h-[90vh] md:justify-center overflow-hidden"
+          className="relative flex md:flex-row flex-col md:items-center min-h-auto lg:h-[90vh] md:justify-center overflow-hidden"
         >
           <img
             src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765279187/RasBerrie_xxk64h.png"
             alt="texture background"
-            className="absolute bottom-[-10px] left-0 md:w-[500px] w-[200px] md:h-[300px] h-[200px] object-contain opacity-70 pointer-events-none select-none"
+            className="absolute bottom-[-10px] left-0 md:w-[500px] w-[200px] md:h-[300px] h-[120px] object-contain opacity-70 pointer-events-none select-none"
           />{" "}
           <img
             src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765279304/berries_k9vjje.png"
             alt="berries decoration"
-            className="absolute top-[40px] right-[-10px] md:w-[300px] w-[150px] md:h-[250px] h-[150px] object-contain opacity-90 pointer-events-none select-none"
+            className="absolute top-[10px] right-[-2px] md:w-[300px] w-[150px] md:h-[250px] h-[120px] object-contain opacity-90 pointer-events-none select-none"
           />
-          <div className="relative p-14 md:pl-80">
-            <h1 className="text-3xl md:text-6xl font-bold uppercase font-cinzel text-[#4b3b2a] leading-tight mb-6">
+          <div className="relative pt-30 sm:pt-0 p-14 md:pl-80">
+            <h1 className="text-2xl md:text-6xl font-bold uppercase font-cinzel text-[#4b3b2a] leading-tight mb-6">
               Welcome <br /> to{" "}
               <span className="text-[#243E36]">Ryvive Roots</span>
             </h1>
-            <p className="text-gray-600 text-lg font-merriweather mb-8 max-w-lg">
+            <p className="text-gray-600 text-sm md:text-lg font-merriweather mb-8 max-w-lg">
               Explore a menu crafted for balance, freshness, and flavour.
               Simple, honest food made to make you feel good.
             </p>
-             <motion.button
-      whileHover={{
-        scale: 1.05,
-        y: -2,
-        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.20)",
-      }}
-      whileTap={{ scale: 0.97 }}
-      transition={{
-        duration: 0.15,   // ⚡ super quick animation
-        ease: "easeOut",
-      }}
-      onClick={() => navigate("/our-story")}
-      className="bg-[#895C40] cursor-pointer text-white px-8 py-3 transition-all"
-    >
-      Our Story
-    </motion.button>
+            <motion.button
+              whileHover={{
+                scale: 1.05,
+                y: -2,
+                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.20)",
+              }}
+              whileTap={{ scale: 0.97 }}
+              transition={{
+                duration: 0.15, // ⚡ super quick animation
+                ease: "easeOut",
+              }}
+              onClick={() => navigate("/our-story")}
+              className="bg-[#895C40] cursor-pointer text-white px-8 py-3 mb-16 md:mb-0 transition-all"
+            >
+              Our Story
+            </motion.button>
           </div>
         </motion.div>
 
@@ -123,12 +124,15 @@ transition: { duration: 0.9, ease: "easeOut", delay: 0.2 }
           initial={{ x: 150, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="relative w-full lg:w-[40%] h-[80vh] lg:h-[90vh]"
+          className="relative w-full lg:w-[40%] h-[50vh] lg:h-[90vh]"
         >
           <Slider ref={sliderRef} {...settings}>
             {images.map((img, i) => (
-              <div key={i} className="w-full h-[80vh] lg:h-[90vh]">
-                <img src={img} className="w-full h-full object-cover object-top-left" />
+              <div key={i} className="w-full h-[50vh] lg:h-[90vh]">
+                <img
+                  src={img}
+                  className="w-full h-full object-cover object-top-left"
+                />
               </div>
             ))}
           </Slider>
@@ -161,7 +165,7 @@ transition: { duration: 0.9, ease: "easeOut", delay: 0.2 }
         />
         <div className="absolute inset-0 bg-black/10"></div>
       </section> */}
-        <section
+      <section
         className="relative bg-fixed bg-center bg-cover bg-top h-[30vh] md:h-[40vh]"
         style={{ backgroundImage: `url(${Para})` }}
       >
@@ -173,7 +177,7 @@ transition: { duration: 0.9, ease: "easeOut", delay: 0.2 }
       </section>
 
       {/* PROMO SECTION - ANIMATED LEFT + RIGHT */}
-    {/* <motion.section
+      {/* <motion.section
 initial="hidden"
 whileInView="visible"
 viewport={{ once: true, amount: 0.25 }}
@@ -220,51 +224,56 @@ Book a Consultation
 </motion.div>
 </div>
 </motion.section> */}
-  <motion.section
-initial="hidden"
-whileInView="visible"
-viewport={{ once: true, amount: 0.25 }}
-variants={containerVariant}
-className="relative flex flex-col lg:flex-row items-center justify-center bg-white px-8 overflow-visible"
->
-<div className="relative w-full flex flex-col lg:flex-row items-center lg:items-start gap-0 md:gap-10 justify-center">
-<motion.img
- src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765360072/sustainable_r2gifi.png"
-alt="Subscription"
-variants={imageVariant}
-className="relative -top-20 translate-x-0 shadow-2xl lg:translate-x-40 w-[500px] lg:w-[550px] h-[300px] lg:h-[400px] object-cover"
-/>
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.25 }}
+        variants={containerVariant}
+        className="relative flex flex-col lg:flex-row items-center justify-center bg-white px-8 overflow-visible"
+      >
+        <div className="relative w-full flex flex-col lg:flex-row items-center lg:items-start gap-0 md:gap-10 justify-center">
+          <motion.img
+            src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765360072/sustainable_r2gifi.png"
+            alt="Subscription"
+            variants={imageVariant}
+            className="relative -top-20 translate-x-0 shadow-2xl lg:translate-x-40 w-[500px] lg:w-[550px] h-[300px] lg:h-[400px] object-cover"
+          />
 
+          <motion.div
+            variants={textVariant}
+            className="w-full font-manrope lg:w-1/2 md: py-8 text-center lg:text-left lg:ml-16 lg:pl-20"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold font-cinzel uppercase text-[#4b3b2a] mb-8">
+              SUSTAINABLE PACKAGING
+            </h2>
 
-<motion.div
-variants={textVariant}
-className="w-full font-manrope lg:w-1/2 md: py-8 text-center lg:text-left lg:ml-16 lg:pl-20"
->
-<h2 className="text-3xl md:text-4xl font-bold font-cinzel uppercase text-[#4b3b2a] mb-8">
-SUSTAINABLE PACKAGING 
-</h2>
+            <h3 className="text-xl md:text-2xl font-semibold font-manrop  text-[#4b3b2a] mb-8">
+              Healthy for You & the Planet
+            </h3>
 
- <h3 className="text-xl md:text-2xl font-semibold font-manrop  text-[#4b3b2a] mb-8">Healthy for You & the Planet</h3>
+            <p className="text-base max-w-xl pb-8 text-gray-800">
+              {" "}
+              Explore a menu crafted for balance, freshness and flavour.
+              Eco-friendly packaging made from sustainable materials. Because
+              wellness isn’t complete without caring for the earth.
+            </p>
 
-  <p className="text-base max-w-xl pb-8 text-gray-800"> Explore a menu crafted for balance, freshness and flavour. Eco-friendly packaging made from sustainable materials. Because wellness isn’t complete without caring for the earth.</p>
-
-
-<motion.button
-whileHover={{
-scale: 1.07,
-y: -3,
-boxShadow: "0px 6px 16px rgba(0, 0, 0, 0.25)",
-}}
-whileTap={{ scale: 0.97 }}
-transition={{ duration: 0.15, ease: "easeOut" }}
-  onClick={() => navigate("/subscription")}
-className="bg-[#895C40] cursor-pointer text-white px-8 py-3 tracking-wide font-semibold"
->
- Subscription
-</motion.button>
-</motion.div>
-</div>
-</motion.section>
+            <motion.button
+              whileHover={{
+                scale: 1.07,
+                y: -3,
+                boxShadow: "0px 6px 16px rgba(0, 0, 0, 0.25)",
+              }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              onClick={() => navigate("/subscription")}
+              className="bg-[#895C40] cursor-pointer text-white px-8 py-3 tracking-wide font-semibold"
+            >
+              Subscription
+            </motion.button>
+          </motion.div>
+        </div>
+      </motion.section>
 
       <ScrollingText />
 
@@ -288,13 +297,9 @@ className="bg-[#895C40] cursor-pointer text-white px-8 py-3 tracking-wide font-s
         </motion.div>
       </section>
 
-        {/* PARALLAX SECTION */}
-    
-      
-     
- 
- <TestimonialsSection />
-      
+      {/* PARALLAX SECTION */}
+
+      <TestimonialsSection />
     </>
   );
 };
