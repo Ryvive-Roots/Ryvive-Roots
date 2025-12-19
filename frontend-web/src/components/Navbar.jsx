@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import Logo from "../assets/logo.png";
 import { RiMenuUnfold4Fill } from "react-icons/ri";
 import { motion } from "framer-motion";
+import { IoPersonOutline } from "react-icons/io5"; 
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -79,8 +80,9 @@ const Navbar = () => {
         ease: "easeOut",
       }}
      href="/sign-up"
-      className="bg-[#895C40] cursor- rounded-full text-white px-8 py-3 transition-all"
+      className="bg-[#895C40] flex items-center justify-center gap-2 cursor- rounded-full text-white px-8 py-3 transition-all"
     >
+      <IoPersonOutline className="" />
      Sign In / Sign Up
     </motion.a>
         </div>

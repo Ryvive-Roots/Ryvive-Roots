@@ -7,7 +7,7 @@ const SubscriptionTypes = () => {
    const navigate = useNavigate();
   const plans = [
     {
-      title: "Ryvive Start",
+      title: "Ryvive Silver",
       id: "subscription/start",
       price: "₹79.00",
       oldPrice: "₹249.00",
@@ -22,7 +22,7 @@ const SubscriptionTypes = () => {
       ],
     },
     {
-      title: "Ryvive Flow",
+      title: "Ryvive Gold",
       id: "subscription/flow",
       price: "₹149.00",
       oldPrice: "₹399.00",
@@ -37,7 +37,7 @@ const SubscriptionTypes = () => {
       ],
     },
     {
-      title: "Ryvive Prime",
+      title: "Ryvive Platinum",
       id: "subscription/prime",
       price: "₹249.00",
       oldPrice: "₹599.00",
