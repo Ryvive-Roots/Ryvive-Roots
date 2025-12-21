@@ -84,12 +84,12 @@ const HeroSection = () => {
           <img
             src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765279187/RasBerrie_xxk64h.png"
             alt="texture background"
-            className="absolute bottom-[-10px] left-0 md:w-[500px] w-[200px] md:h-[300px] h-[120px] object-contain opacity-70 pointer-events-none select-none"
+            className="absolute bottom-[-10px] left-0  md:w-[300px] w-[200px] md:h-[300px] h-[120px] object-contain opacity-70 pointer-events-none select-none"
           />{" "}
           <img
             src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765279304/berries_k9vjje.png"
             alt="berries decoration"
-            className="absolute top-[10px] right-[-2px] md:w-[300px] w-[150px] md:h-[250px] h-[120px] object-contain opacity-90 pointer-events-none select-none"
+            className="absolute top-[10px] right-[-2px] md:w-[200px] w-[150px] md:h-[250px] h-[120px] object-contain opacity-90 pointer-events-none select-none"
           />
           <div className="relative pt-30 sm:pt-0 p-14 md:pl-80">
             <h1 className="text-2xl md:text-6xl font-bold uppercase font-cinzel text-[#4b3b2a] leading-tight mb-6">
