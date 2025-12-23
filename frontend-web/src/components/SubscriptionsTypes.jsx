@@ -8,48 +8,21 @@ const SubscriptionTypes = () => {
   const plans = [
     {
       title: "Ryvive Silver",
-      id: "subscription/start",
-      price: "₹79.00",
-      oldPrice: "₹249.00",
-      discount: "68% OFF",
-      desc: "For healthy individuals who want to elevate their everyday eating habits.",
-      features: [
-        "Daily Energy Boost",
-        "Improve Digestion",
-        "Zero Prep Needed",
-        "Supports Clean Eating ",
-        "Support 9 AM to 11 PM"
-      ],
+   
+      desc: "Thoughtfully curated healthy meals designed for everyday refined living.",
+     
     },
     {
       title: "Ryvive Gold",
-      id: "subscription/flow",
-      price: "₹149.00",
-      oldPrice: "₹399.00",
-      discount: "72% OFF",
-      desc: "Designed to support fat loss, lean gain, and a balanced body composition.",
-      features: [
-        "Goal-Driven Nutrition",
-        "Lean Gain Focused ",
-        "Science-Backed Eating",
-        "Lifestyle Friendly",
-        "Support 9 AM to 11 PM"
-      ],
+    
+      desc: "An elevated monthly selection offering greater variety and enhanced value.",
+      
     },
     {
       title: "Ryvive Platinum",
-      id: "subscription/prime",
-      price: "₹249.00",
-      oldPrice: "₹599.00",
-      discount: "60% OFF",
-      desc: `Targeted nutrition for diabetes, thyroid, PCOS, and more.`,
-      features: [
-        "Blood Sugar–Balanced Meals",
-        "Boost Immunity, Naturally",
-        "Safe & Sustainable Health Shifts",
-        "Doctor-Recommended Meals",
-        "Support 9 AM to 11 PM"
-      ],
+     
+      desc: `A distinguished wellness experience with exclusive selections and premium privileges.`,
+      
     },
   ];
 

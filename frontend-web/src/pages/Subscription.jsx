@@ -28,7 +28,7 @@ const Subscription = () => {
              top-1/2 left-[4%] 
              transform -translate-y-1/2 
              text-[#243E36] font-cinzel 
-             px-4 space-y-10 w-[90%] md:w-[50%] text-left"
+             px-4 space-y-10 w-[90%] md:w-[40%] text-left"
   initial={{ x: -150, y: -150, opacity: 0 }}
   animate={{ x: 0, y: 0, opacity: 1 }}
   transition={{ duration: 1.2, ease: "easeOut" }}
@@ -59,18 +59,7 @@ const Subscription = () => {
  Start Your Plan
 </button>
 
- <button
-  className="relative px-8 py-3 uppercase rounded-full cursor-pointer border-2 border-[#243E36] text-[#243E36] text-lg 
-  font-medium
-  hover:bg-[#243E36] hover:text-white hover:font-semibold
-  transition
-  before:rounded-full
-  before:absolute before:inset-0 before:-m-2 
-  before:border-2 before:border-[#243E36] before:content-['']
-  hover:before:-m-3 hover:before:border-[1px]"
->
-  Try 3-Day Trial
-</button>
+
 
 
   </div>

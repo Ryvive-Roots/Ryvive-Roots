@@ -6,10 +6,10 @@ import Step4 from "../assets/step4.png";
 
 export default function HowItWorks() {
   const steps = [
-    { image: Step1, title: "Choose your Goal", desc: "Start / Flow / Prime" },
+    { image: Step1, title: "Choose your Plan", desc: "Silver / Gold / Platinum" },
     { image: Step2, title: "Select Your Plan", desc: "4 combos per plan" },
     { image: Step3, title: "Pick Delivery Time Slot", desc: "Morning / Evening / Both" },
-    { image: Step4, title: "Choose Your Week Menu", desc: "Fresh food daily" },
+   
      { image: Step4, title: "Meals delivered fresh daily", desc: "Fresh food daily" },
 
   ];
@@ -27,7 +27,7 @@ export default function HowItWorks() {
       </motion.h3>
      
 
-      <div className="md:px-20 mx-auto relative px-4 flex flex-col md:flex-row items-center md:justify-between gap-12 md:gap-0">
+      <div className="md:px-30 mx-auto relative px-4 flex flex-col md:flex-row items-center md:justify-between gap-4 md:gap-0">
 
         {/* Desktop Base Line */}
         <div className="hidden md:block absolute top-1/2 left-0 w-full h-[3px] bg-gray-300 -z-10"></div>
@@ -59,7 +59,7 @@ export default function HowItWorks() {
               <motion.div
                 className="hidden md:block absolute top-1/2 left-full w-16 h-[3px] bg-[#243E36]"
                 initial={{ width: 0, opacity: 0 }}
-                whileInView={{ width: "4rem", opacity: 1 }}
+                whileInView={{ width: "8rem", opacity: 1 }}
                 transition={{ delay: index * 0.3 + 0.4, duration: 0.4 }}
                 viewport={{ once: true }}
               />
