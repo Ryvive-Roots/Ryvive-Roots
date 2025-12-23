@@ -124,7 +124,7 @@ Wholesome food made to nourish your body and make you feel good every day.
             variants={containerVariants}
           >
             {[
-              { name: "Privacy Policy", path: "/" },
+              { name: "Privacy Policy", path: "/privacy-policy" },
               { name: "Terms & Conditions", path: "/our-story" },
               { name: "Cancellation & Refund Policy", path: "/menu" },
               { name: "Shipping & Delivery Policy", path: "/subscription" },

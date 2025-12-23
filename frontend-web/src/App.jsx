@@ -14,6 +14,7 @@ import RyviveFlow from "./pages/RyviveFlow"
 import RyviveStart from "./pages/RyviveStart"
 import RyvivePrime from "./pages/RyvivePrime"
 import SignupForm from "./components/SignUp"
+import PrivacyPolicy from "./components/PrivacyPolicy"
 
 
 
@@ -37,6 +38,7 @@ function App() {
           <Route path="subscription/flow" element={<RyviveFlow />} />
           <Route path="subscription/prime" element={<RyvivePrime />} />
           <Route path="/sign-up" element={<SignupForm />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         </Routes>
       </main>
 
