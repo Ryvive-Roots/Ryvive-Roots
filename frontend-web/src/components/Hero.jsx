@@ -92,7 +92,7 @@ const HeroSection = () => {
             className="absolute top-[10px] right-[-2px] md:w-[200px] w-[150px] md:h-[250px] h-[120px] object-contain opacity-90 pointer-events-none select-none"
           />
           <div className="relative pt-30 sm:pt-0 p-14 md:pl-80">
-            <h1 className="text-2xl md:text-6xl font-bold uppercase font-cinzel text-[#4b3b2a] leading-tight mb-6">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold uppercase font-cinzel text-[#4b3b2a] leading-tight mb-6">
               Welcome <br /> to{" "}
               <span className="text-[#243E36]">Ryvive Roots</span>
             </h1>

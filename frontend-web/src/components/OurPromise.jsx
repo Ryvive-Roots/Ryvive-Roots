@@ -106,7 +106,7 @@ export default function AboutPromise() {
   />
 
   <h3
-    className="text-lg md:text-xl font-cinzel uppercase font-semibold 
+    className="text-lg md:text-base font-cinzel uppercase font-semibold 
                text-black font-raleway md:whitespace-nowrap
                group-hover:text-[#253E36] transition-all duration-300"
   >

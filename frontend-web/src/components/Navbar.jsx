@@ -82,8 +82,8 @@ const Navbar = () => {
      href="/sign-up"
       className="bg-[#895C40] flex items-center justify-center gap-2 cursor- rounded-full text-white px-8 py-3 transition-all"
     >
-      <IoPersonOutline className="" />
-     Sign In / Sign Up
+      <IoPersonOutline className=" font-semibold text-xl" />
+     login
     </motion.a>
         </div>
 

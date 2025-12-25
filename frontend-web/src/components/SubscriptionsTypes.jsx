@@ -8,19 +8,19 @@ const SubscriptionTypes = () => {
   const plans = [
     {
       title: "Ryvive Silver",
-   
+      id: "subscription/silver",
       desc: "Thoughtfully curated healthy meals designed for everyday refined living.",
      
     },
     {
       title: "Ryvive Gold",
-    
+        id: "subscription/gold",
       desc: "An elevated monthly selection offering greater variety and enhanced value.",
       
     },
     {
       title: "Ryvive Platinum",
-     
+      id: "subscription/platinum",
       desc: `A distinguished wellness experience with exclusive selections and premium privileges.`,
       
     },
@@ -33,7 +33,7 @@ const SubscriptionTypes = () => {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         viewport={{ once: false, amount: 0.3 }}
-        className="text-4xl text-center font-cinzel uppercase font-semibold text-[#243E36] pb-10"
+        className="md:text-3xl text-2xl  text-center font-cinzel uppercase font-semibold text-[#243E36] pb-10"
       >
       Subscription Pricing
       </motion.h3>

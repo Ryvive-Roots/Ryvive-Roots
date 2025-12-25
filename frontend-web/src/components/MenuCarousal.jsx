@@ -91,7 +91,7 @@ const MenuCarousel = () => {
                 <img
                   src={card.img}
                   alt={card.title}
-                  className="w-full h-72 md:h-80 object-cover transition-all duration-500 group-hover:scale-110"
+                  className="w-full h-72 md:h-52 xl:h-52 object-cover transition-all duration-500 group-hover:scale-110"
                 />
 
                 {/* Title at top-left */}

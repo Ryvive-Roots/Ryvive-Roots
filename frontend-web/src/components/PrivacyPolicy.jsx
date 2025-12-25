@@ -2,15 +2,15 @@ import React from "react";
 
 const PrivacyPolicy = () => {
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-8 sm:p-12">
         
         {/* Title */}
-        <h1 className="text-3xl sm:text-4xl font-bold text-green-700 mb-6 text-center">
+        <h1 className="md:text-3xl text-2xl text-center font-cinzel uppercase font-semibold text-[#243E36] mb-12 text-center">
           Privacy Policy
         </h1>
 
-        <p className="text-gray-600 mb-8 leading-relaxed">
+        <p className="text-gray-600 font-manrope mb-8 leading-relaxed">
           At <span className="font-semibold">RYVIVE ROOTS</span>, we value your privacy
           and are committed to protecting your personal information. This Privacy
           Policy explains how we collect, use, and safeguard your data when you visit
@@ -18,7 +18,7 @@ const PrivacyPolicy = () => {
         </p>
 
         {/* Section */}
-        <section className="mb-8">
+        <section className="mb-8 font-manrope">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Information We Collect
           </h2>
@@ -31,7 +31,7 @@ const PrivacyPolicy = () => {
         </section>
 
         {/* Section */}
-        <section className="mb-8">
+        <section className="mb-8 font-manrope">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             How We Use Your Information
           </h2>
@@ -44,7 +44,7 @@ const PrivacyPolicy = () => {
         </section>
 
         {/* Section */}
-        <section className="mb-8">
+        <section className="mb-8 font-manrope">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Payment Security
           </h2>
@@ -56,7 +56,7 @@ const PrivacyPolicy = () => {
         </section>
 
         {/* Section */}
-        <section className="mb-8">
+        <section className="mb-8 font-manrope">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Data Protection
           </h2>
@@ -67,7 +67,7 @@ const PrivacyPolicy = () => {
         </section>
 
         {/* Section */}
-        <section className="mb-8">
+        <section className="mb-8 font-manrope">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Third-Party Sharing
           </h2>
@@ -78,7 +78,7 @@ const PrivacyPolicy = () => {
         </section>
 
         {/* Section */}
-        <section className="mb-8">
+        <section className="mb-8 font-manrope">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Changes to This Policy
           </h2>
@@ -89,7 +89,7 @@ const PrivacyPolicy = () => {
         </section>
 
         {/* Contact */}
-        <section className="border-t pt-6">
+        <section className="border-t pt-6 font-manrope">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Contact Us
           </h2>

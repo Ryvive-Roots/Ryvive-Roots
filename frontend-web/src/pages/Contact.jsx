@@ -56,30 +56,31 @@ const Contact = () => {
             <div className="bg-[#FEF7F0] rounded-xl p-7 flex flex-col items-center shadow-md">
               <FaPhoneAlt  size={30} className="text-[#895C40]" />
               <h3 className="font-semibold mt-3">Phone</h3>
-              <p className="text-sm text-gray-600 mt-3">207-8767-452</p>
+              <p className="text-sm text-gray-600 mt-3">+91 9076000468</p>
             </div>
 
             {/* WhatsApp */}
             <div className="bg-[#FEF7F0] rounded-xl p-7 flex flex-col items-center shadow-md">
               <RiWhatsappFill size={30} className="text-[#895C40]" />
               <h3 className="font-semibold mt-3">Whatsapp</h3>
-              <p className="text-sm text-gray-600 mt-3">082-123-234-345</p>
+              <p className="text-sm text-gray-600 mt-3">97656 00701</p>
             </div>
 
             {/* Email */}
             <div className="bg-[#FEF7F0] rounded-xl p-7 flex flex-col items-center shadow-md">
               <MdEmail size={30} className="text-[#895C40]" />
               <h3 className="font-semibold mt-2">Email</h3>
-              <p className="text-sm text-gray-600 mt-3">support@yoursite.com</p>
+              <p className="text-sm text-gray-600 mt-3">contact@ryviveroots.com</p>
             </div>
 
             {/* Shop */}
             <div className="bg-[#FEF7F0] rounded-xl p-7 flex flex-col items-center shadow-md">
               <FaStore size={30} className="text-[#895C40]" />
               <h3 className="font-semibold mt-3">Our Shop</h3>
-              <p className="text-sm text-gray-600 text-center mt-3">
-                2483 Oak Ridge Omaha, CA 45056
-              </p>
+               <div className="text-black/75 font-semibold">
+               
+                <p className=' text-center'>Dombivli (East), Maharashtra 421201.</p>
+              </div>
             </div>
 
           </div>

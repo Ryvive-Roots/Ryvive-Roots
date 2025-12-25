@@ -105,12 +105,12 @@ for everyone. We aim to create a future where good health is a lifestyle, not a 
 
   <div className="w-full flex flex-col md:flex-row items-start justify-center gap-10 xl:px-24 lg:px-16 px-4 py-20 ">
     <div className="w-full md:w-1/2">
-      <h1 className="md:text-4xl text-2xl  font-cinzel uppercase font-semibold text-[#895C40]">
+      <h1 className="md:text-2xl lg:text-3xl text-xl  font-cinzel uppercase font-semibold text-[#895C40]">
         Our Story
       </h1>
 
       {visibleParagraphs.map((text, index) => (
-        <p key={index} className="md:text-lg text-base font-manrope py-2">
+        <p key={index} className=" text-base font-manrope py-2">
           {text}
         </p>
       ))}

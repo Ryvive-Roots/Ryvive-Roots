@@ -21,7 +21,7 @@ export default function HowItWorks() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         viewport={{ once: false, amount: 0.3 }}
-        className="text-2xl md:text-4xl text-center font-cinzel uppercase font-semibold text-[#243E36] pb-10"
+        className="text-2xl md:text-3xl text-center font-cinzel uppercase font-semibold text-[#243E36] pb-10"
       >
        How It Works
       </motion.h3>
@@ -59,7 +59,7 @@ export default function HowItWorks() {
               <motion.div
                 className="hidden md:block absolute top-1/2 left-full w-16 h-[3px] bg-[#243E36]"
                 initial={{ width: 0, opacity: 0 }}
-                whileInView={{ width: "8rem", opacity: 1 }}
+                whileInView={{ width: "2rem", opacity: 1 }}
                 transition={{ delay: index * 0.3 + 0.4, duration: 0.4 }}
                 viewport={{ once: true }}
               />

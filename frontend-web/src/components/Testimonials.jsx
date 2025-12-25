@@ -68,7 +68,7 @@ export default function TestimonialsSection() {
     autoplay: true,
     autoplaySpeed: 2200,
     speed: 900,
-    slidesToShow: 3,
+    slidesToShow: 2,
     slidesToScroll: 1,
     centerMode: true,
     centerPadding: "0px",
