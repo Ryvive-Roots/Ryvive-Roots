@@ -18,8 +18,8 @@ import Menu14 from "../assets/Menu14.jpg";
 
 const Menu = () => {
   const images = [
-  Menu1, 
-  Menu2,
+  "https://res.cloudinary.com/dinb2vv9u/image/upload/f_auto,q_auto/v1766744173/Menu1_lqkn6g.jpg", 
+ "https://res.cloudinary.com/dinb2vv9u/image/upload/f_auto,q_auto/v1766744330/Menu2_poaffq.jpg",
   Menu3,
    Menu4,
     Menu5, Menu6,  Menu6,  Menu7,  Menu8,  Menu9,  Menu10,  Menu11,  Menu12,  Menu13,  Menu14

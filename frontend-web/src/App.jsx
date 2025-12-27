@@ -18,6 +18,7 @@ import RyviveGold from "./pages/RyviveGold"
 import RyvivePlatinum from "./pages/RyvivePlatinum"
 import SubscriptionsForm from "./components/SubscriptionsForm"
 import ScrollToTop from "./components/ScrollToTop"
+import Terms from "./components/Terms"
 
 
 
@@ -42,6 +43,7 @@ function App() {
           <Route path="subscription/platinum" element={<RyvivePlatinum />} />
           <Route path="/sign-up" element={<SignupForm />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-conditions" element={<Terms />} />
            <Route path="/subscription-form" element={<SubscriptionsForm />} />
         </Routes>
       </main>

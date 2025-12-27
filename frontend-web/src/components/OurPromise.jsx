@@ -95,7 +95,7 @@ export default function AboutPromise() {
                 transition={{ type: "spring", stiffness: 200, damping: 10 }}
                 className="group bg-white/70 border border-white/60 rounded-2xl p-8 
                            shadow-md hover:shadow-[0_8px_30px_rgba(137,92,64,0.35)]
-                           transition-all"
+                           transition-all  " 
               >
                <div className="flex items-center gap-3 mb-3">
   <img src={Icon}

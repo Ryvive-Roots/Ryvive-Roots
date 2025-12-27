@@ -46,7 +46,7 @@ const Subscription = () => {
           </h1>
 
           <p className="text-base md:text-xl max-w-[70%] text-black">
-          Your Healthy Routine Starts Here.
+          24 Days of clean, nourishing meals, curated by Revive Roots and delivered across Dombivli - so you can eat better without the daily stress.
           </p>
 
           {/* Button */}
@@ -54,7 +54,7 @@ const Subscription = () => {
             onClick={handleScroll}  // 👈 attach scroll
            className="relative px-8 py-3 uppercase rounded-full cursor-pointer border-2 border-[#243E36] text-[#243E36] text-lg font-medium hover:bg-[#243E36] hover:text-white hover:font-semibold transition before:rounded-full before:absolute before:inset-0 before:-m-2 before:border-2 before:border-[#243E36] before:content-[''] hover:before:-m-3 hover:before:border-[1px]"
           >
-            Start Your Plan
+           Start My 24-Day Journey
           </button>
         </motion.div>
       </div>

@@ -23,8 +23,8 @@ const PrivacyPolicy = () => {
             Information We Collect
           </h2>
           <ul className="list-disc list-inside text-gray-600 space-y-2">
-            <li>Name, email address, phone number</li>
-            <li>Delivery address</li>
+            <li>Name, Email Id, Phone Number, DoB</li>
+            <li>Delivery address and Delivery Slot</li>
             <li>Payment details (processed securely via Razorpay)</li>
             <li>Subscription preferences and order history</li>
           </ul>
