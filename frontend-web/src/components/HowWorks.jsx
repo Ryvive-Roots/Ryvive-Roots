@@ -1,14 +1,14 @@
 import { motion } from "framer-motion";
 import Step1 from "../assets/subscription.png";
-import Step2 from "../assets/step2.png";
+
 import Step3 from "../assets/step3.png";
 import Step4 from "../assets/step4.png";
 
 export default function HowItWorks() {
   const steps = [
     { image: Step1, title: "Choose your Plan", desc: "Silver / Gold / Platinum" },
-    { image: Step2, title: "Select Your Plan", desc: "4 combos per plan" },
-    { image: Step3, title: "Pick Delivery Time Slot", desc: "Morning / Evening / Both" },
+    
+    { image: Step3, title: "Pick Delivery Time Slot", desc: "Morning or Evening" },
    
      { image: Step4, title: "Meals delivered fresh daily", desc: "Fresh food daily" },
 

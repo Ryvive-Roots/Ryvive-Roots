@@ -54,11 +54,7 @@ const reasons = [
     title: "Flexible Swap + Pause Benefit",
     desc: "You choose what you eat — up to 3 swaps/week + 7 days pause/month.",
   },
-   {
-    icon: Rotate,
-    title: "30-Day Rotating Menu",
-    desc: "No Repeat Boredom. New meals every week so you stay excited about eating clean.",
-  },
+ 
 ];
 
 // Animation Variants
@@ -84,7 +80,7 @@ const cardVariants = {
 export default function WhySubscribe() {
   return (
     <section className="w-full bg-[#FEF7F0] py-4 md:py-16">
-      <div className="px-6 md:px-20 py-6">
+      <div className="px-6 md:px-36 py-6">
 
         {/* Title */}
    <motion.h3
@@ -127,7 +123,7 @@ export default function WhySubscribe() {
   />
 
   <h3
-    className="text-lg md:text-xl font-cinzel uppercase font-semibold 
+    className="text-base md:text-base font-cinzel uppercase font-semibold 
                text-black font-raleway
                group-hover:text-[#253E36] transition-all duration-300"
   >

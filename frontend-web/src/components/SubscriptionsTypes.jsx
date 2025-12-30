@@ -2,82 +2,97 @@ import React from "react";
 import Icon from "../assets/icon.png";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import BgImage from "../assets/subsBg.jpg"
+import PricingCard from "./PricingCard";
 
 const SubscriptionTypes = () => {
-   const navigate = useNavigate();
+  const navigate = useNavigate();
   const plans = [
+    {
+      title: "Ryvive ",
+      titleName: "Silver",
+      price: "₹4,999",
+      color: "#bbda7c",
+      btnColor: "#bbda7c",
+      features: [
+        { text: "Lorem Ipsum Dolor Sit", check: true },
+        { text: "Lorem Ipsum Dolor Sit", check: true },
+        { text: "Lorem Ipsum Dolor Sit", check: true },
+        { text: "Lorem Ipsum Dolor Sit", check: false },
+        { text: "Lorem Ipsum Dolor Sit", check: false },
+      ],
+    },
+    {
+      title: "Ryvive",
+      titleName: "Gold",
+      price: "₹5,999",
+      color: "#156935",
+      btnColor: "#156935",
+      features: [
+        { text: "Lorem Ipsum Dolor Sit", check: true },
+        { text: "Lorem Ipsum Dolor Sit", check: true },
+        { text: "Lorem Ipsum Dolor Sit", check: true },
+        { text: "Lorem Ipsum Dolor Sit", check: true },
+        { text: "Lorem Ipsum Dolor Sit", check: false },
+      ],
+    },
+    {
+      title: "Ryvive",
+       titleName: "Platinum",
+      price: "₹6,999",
+      color: "#203d36",
+      btnColor: "#203d36",
+      features: [
+        { text: "Lorem Ipsum Dolor Sit", check: true },
+        { text: "Lorem Ipsum Dolor Sit", check: true },
+        { text: "Lorem Ipsum Dolor Sit", check: true },
+        { text: "Lorem Ipsum Dolor Sit", check: true },
+        { text: "Lorem Ipsum Dolor Sit", check: true },
+      ],
+    },
+  ];
+
+  const plansS = [
     {
       title: "Ryvive Silver",
       id: "subscription/silver",
       desc: "Thoughtfully curated healthy meals designed for everyday refined living.",
-     
     },
     {
       title: "Ryvive Gold",
-        id: "subscription/gold",
+      id: "subscription/gold",
       desc: "An elevated monthly selection offering greater variety and enhanced value.",
-      
     },
     {
       title: "Ryvive Platinum",
       id: "subscription/platinum",
       desc: `A distinguished wellness experience with exclusive selections and premium privileges.`,
-      
     },
   ];
 
   return (
-    <div className="w-full bg-[#FEF7F0] py-14 flex flex-col items-center">
+    <div className="relative w-full h-[120vh] shadow-2xl py-10 flex flex-col items-center justify-center ">
+
+      {/* Background Image */}
+      <img
+        src={BgImage}  // <-- replace with your image path
+        alt="background"
+        className="absolute inset-0 w-full h-full object-cover opacity-50  -z-10"
+      />
+
       <motion.h3
-        initial={{ opacity: 0, y: 80 }}   // comes from lower bottom
+        initial={{ opacity: 0, y: 80 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         viewport={{ once: false, amount: 0.3 }}
-        className="md:text-3xl text-2xl  text-center font-cinzel uppercase font-semibold text-[#243E36] pb-10"
+        className="md:text-3xl text-2xl text-center font-cinzel uppercase font-semibold text-[#243E36] pb-10"
       >
-      Subscription Pricing
+        
       </motion.h3>
-     
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 w-full  px-6 max-w-7xl">
-        {plans.map((plan, i) => (
-          <div
-            key={i}
-            className="relative p-7 flex flex-col items-center justify-center bg-white border rounded-3xl shadow-sm hover:shadow-md hover:scale-105 transition-all"
-          >
-            <h3 className="text-xl font-semibold mb-1 text-center font-cinzel uppercase py-5">{plan.title}</h3>
-            <p className="text-gray-700  text-base mb-4 text-center font-manrope pb-4">{plan.desc}</p>
-
-          
-
-            {/* Button */}
-            <button
-            onClick={() => navigate(`/${plan.id}`)}
-            className="relative px-8 py-3 uppercase rounded-full cursor-pointer border-2 border-[#243E36] text-[#243E36] text-lg 
-  font-medium
-  hover:bg-[#243E36] hover:text-white hover:font-semibold
-  transition
-  before:rounded-full
-  before:absolute before:inset-0 before:-m-2 
-  before:border-2 before:border-[#243E36] before:content-['']
-  hover:before:-m-3 hover:before:border-[1px]"
-
-            >
-              Start Your Plan
-            </button>
-
-            <hr className="mt-6 border-t border-gray-200" />
-
-            {/* Features */}
-            {/* <ul className="mt-6 space-y-2 font-manrope text-base">
-              {plan.features.map((feature, index) => (
-                <li key={index} className="flex gap-2 items-start">
-                  <img src={Icon} className="h-5 w-5" alt="" />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul> */}
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-20 w-full px-6 md:px-30">
+         {plans.map((plan, index) => (
+          <PricingCard key={index} {...plan} />
         ))}
       </div>
     </div>

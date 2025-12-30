@@ -10,8 +10,8 @@ const Contact = () => {
   return (
     <div> <div className="relative">
   <img
-    src={Banner}
-    alt="Our Story Banner"
+    src="https://res.cloudinary.com/dvugjpjoj/image/upload/v1767086692/Gemini_Generated_Image_ge3zz0ge3zz0ge3z_zwlqft.png"
+    alt="Contact Us" 
     className="w-full h-[50vh] md:h-[60vh] object-cover"
   />
 

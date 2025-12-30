@@ -24,12 +24,12 @@ const Subscription = () => {
       {/* Banner Section */}
       <div className="relative mt-24">
         <img
-          src={Banner}
+          src="https://res.cloudinary.com/dvugjpjoj/image/upload/v1767089824/bgImage_zgzldf.png"
           alt="Subscription Banner"
-          className="w-full h-[95vh] md:h-[75vh] object-cover object-top-left"
+          className="w-full h-[95vh] md:h-[65vh] object-cover object-top"
         />
 
-        <div className="absolute inset-0 bg-[#FEF7F0]/60"></div>
+        <div className="absolute inset-0 bg-[#FEF7F0]/40"></div>
 
         {/* Animated Text */}
         <motion.div
@@ -41,25 +41,25 @@ const Subscription = () => {
           animate={{ x: 0, y: 0, opacity: 1 }}
           transition={{ duration: 1.2, ease: "easeOut" }}
         >
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold uppercase">
+          <h1 className="text-2xl md:text-3xl lg:text-3xl font-semibold uppercase">
           Fresh. Clean. Delivered.
           </h1>
 
-          <p className="text-base md:text-xl max-w-[70%] text-black">
+          <p className="text-base font-semibold  md:text-base max-w-[70%] text-black">
           24 Days of clean, nourishing meals, curated by Revive Roots and delivered across Dombivli - so you can eat better without the daily stress.
           </p>
 
           {/* Button */}
           <button
             onClick={handleScroll}  // 👈 attach scroll
-           className="relative px-8 py-3 uppercase rounded-full cursor-pointer border-2 border-[#243E36] text-[#243E36] text-lg font-medium hover:bg-[#243E36] hover:text-white hover:font-semibold transition before:rounded-full before:absolute before:inset-0 before:-m-2 before:border-2 before:border-[#243E36] before:content-[''] hover:before:-m-3 hover:before:border-[1px]"
+           className="relative px-8 py-3 bg-[#FEF7F0] uppercase rounded-full cursor-pointer border-2 border-[#243E36] text-[#243E36] text-lg font-medium hover:bg-[#243E36] hover:text-white hover:font-semibold transition before:rounded-full before:absolute before:inset-0 before:-m-2 before:border-2 before:border-[#243E36] before:content-[''] hover:before:-m-3 hover:before:border-[1px]"
           >
            Start My 24-Day Journey
           </button>
         </motion.div>
       </div>
 
-      <FeatureCarousel />
+     
       <WhySubscribe />
       <HowItWorks />
 
