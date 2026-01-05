@@ -1,45 +1,64 @@
 import React from "react";
 
 const PricingCard = ({
-  title,
   titleName,
   price,
   color,
   features,
   btnColor,
+  pageLink,
+  image,
+  titleColor,
+   titleImage,
 }) => {
   return (
-    <div className="relative md:w-[270px] mx-auto w-full">
+    <div className="relative font-source-sans md:w-[270px] mx-auto w-full">
 
-      {/* 🔵 TOP COLORED CIRCLE (VISIBLE OUTSIDE CARD) */}
+      {/* 🔵 TOP CIRCLE */}
       <div
-        className="absolute font-merriweather cursor-pointer 
-        -top-26 left-1/2 -translate-x-1/2 
-        w-38 h-38 rounded-full flex flex-col items-center justify-center 
-        text-center  text-white font-semibold text-2xl shadow-2xl
-         z-20"
-        style={{ backgroundColor: color }}
+        className="absolute -top-26 left-1/2 -translate-x-1/2 
+        w-38 h-38 rounded-full overflow-hidden
+        flex items-center justify-center  z-20 animate-spin-slow"
+         style={{
+    transform: "translateX(-50%) perspective(600px) rotateX(8deg)",
+  }}
       >
-        <h3>{title}</h3>
-        <h4>{titleName}</h4>
+        <img
+          src={image}
+          alt={titleName}
+          className="w-full h-full object-cover"
+           style={{
+      transform: "scale(1.08)", // slight zoom for 3D feel
+    }}
+        />
       </div>
 
-      {/* 🟦 CARD BODY */}
-      <div className="relative bg-[#293e43] text-white rounded-3xl shadow-xl pt-20 pb-6">
+      {/* 🟦 CARD BODY — now dynamic */}
+      <div
+        className="relative text-white rounded-3xl shadow-xl pt-20 pb-6"
+        style={{ backgroundColor: color }}
+      >
 
-        {/* 🔒 CLIPPING WRAPPER (BLACK CIRCLE WILL BE HIDDEN) */}
-        <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
-
-          {/* ⚫ BLACK CIRCLE (CLIPPED) */}
-          <div
-            className="absolute -top-30 left-1/2 -translate-x-1/2 
-            w-44 h-44 rounded-full bg-[#15121a] z-0"
-          ></div>
-
-        </div>
+       {/* 🔒 CLIPPING WRAPPER (BLACK CIRCLE WILL BE HIDDEN) */} <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none"> {/* ⚫ BLACK CIRCLE (CLIPPED) */} <div className="absolute -top-30 left-1/2 -translate-x-1/2 w-44 h-44 rounded-full bg-[#15121a] z-0" ></div> </div>
 
         {/* 💰 PRICE */}
-        <div className="relative text-center  z-10">
+        <div className="relative text-center z-10">
+       {/* TITLE AS IMAGE — POPPY EFFECT */}
+<h2
+  className="text-4xl font-semibold mb-5 uppercase font-cinzel"
+  style={{
+    color: titleColor,
+    textShadow: `
+      0 0 8px ${titleColor}55,
+      0 0 15px ${titleColor}40
+    `,
+  }}
+>
+  {titleName}
+</h2>
+
+
+
           <h2 className="text-4xl font-bold">{price}</h2>
           <p className="text-sm mt-1">Per User / Month</p>
         </div>
@@ -60,22 +79,44 @@ const PricingCard = ({
           ))}
         </ul>
 
-        {/* 📖 READ MORE */}
-        <div className="relative flex justify-center mt-6 z-10">
-          <button className="px-4 py-2 border border-gray-500 rounded-lg text-xs">
-            READ MORE
-          </button>
-        </div>
+       
+       
 
-        {/* 🟢 SIGN UP */}
-        <div className="relative flex justify-center mt-4 z-10">
-          <button
-            className="px-6 py-2 rounded-lg font-semibold text-sm text-white"
-            style={{ backgroundColor: btnColor }}
-          >
-            SIGN UP
-          </button>
-        </div>
+        {/* SIGN UP */}
+<div className="relative flex justify-center mt-4 z-10">
+  <a href={pageLink}>
+    <button
+      className="
+        relative overflow-hidden cursor-pointer
+        px-7 py-3
+        rounded-xl
+        font-fredoka font-semibold text-base text-white
+        border-2 border-white/20
+        transition-all duration-300 ease-out
+        hover:-translate-y-1 hover:shadow-2xl
+        active:translate-y-0
+        group
+      "
+      style={{ backgroundColor: btnColor }}
+    >
+      {/* Shine Effect */}
+      <span
+        className="
+          absolute top-0 left-[-100%]
+          w-full h-full
+          bg-gradient-to-r from-transparent via-white/40 to-transparent
+          transition-all duration-700
+          group-hover:left-[100%]
+        "
+      />
+
+      {/* Button Text */}
+      <span className="relative z-10">
+        Start Your Plan
+      </span>
+    </button>
+  </a>
+</div>
 
       </div>
     </div>

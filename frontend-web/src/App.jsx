@@ -25,10 +25,10 @@ import Terms from "./components/Terms"
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col overflow-x-hidden ">
       <Navbar />
      <ScrollToTop />
-      <main className="flex-1 ">
+      <main className="flex-1 overflow-hidden">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/our-story" element={<OurStory />} />

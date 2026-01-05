@@ -47,14 +47,7 @@ Wholesome food made to nourish your body and make you feel good every day.
             className="flex gap-4 my-6 text-2xl"
             variants={containerVariants}
           >
-            <motion.a
-              href="https://x.com/lorinzazenix"
-              target="_blank"
-              className="cursor-pointer hover:text-[#895C40] transition-colors duration-200 text-black"
-              variants={itemVariants}
-            >
-              <FaXTwitter />
-            </motion.a>
+          
 
             <motion.a
               href="https://www.instagram.com/lorinzazenix_digital.agency"

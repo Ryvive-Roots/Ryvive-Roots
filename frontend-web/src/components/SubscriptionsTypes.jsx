@@ -4,50 +4,67 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import BgImage from "../assets/subsBg.jpg"
 import PricingCard from "./PricingCard";
+import Silver from "../assets/SilverF.png"
+import Gold from "../assets/GoldF.png"
+import Plat from "../assets/PlatF.png"
+
+
 
 const SubscriptionTypes = () => {
   const navigate = useNavigate();
   const plans = [
     {
-      title: "Ryvive ",
+     
       titleName: "Silver",
       price: "₹4,999",
       color: "#bbda7c",
       btnColor: "#bbda7c",
+      link: "/subscription/silver",
+      image: Silver,
+        titleColor: "#d7d8dd    ", 
       features: [
-        { text: "Lorem Ipsum Dolor Sit", check: true },
-        { text: "Lorem Ipsum Dolor Sit", check: true },
-        { text: "Lorem Ipsum Dolor Sit", check: true },
-        { text: "Lorem Ipsum Dolor Sit", check: false },
-        { text: "Lorem Ipsum Dolor Sit", check: false },
+        { text: "Clean Meals", check: true },
+        { text: "Easy Digestion", check: true },
+        { text: "Weekly Variety", check: true },
+        { text: "Functional Juices", check: true },
+        { text: "No Calorie Tracking", check: true },
+          { text: "Ideal Beginners", check: true },
       ],
     },
     {
-      title: "Ryvive",
+     
       titleName: "Gold",
       price: "₹5,999",
       color: "#156935",
       btnColor: "#156935",
+      image: Gold,
+      link: "/subscription/gold",
+        titleColor: "#ebc62d    ", 
       features: [
-        { text: "Lorem Ipsum Dolor Sit", check: true },
-        { text: "Lorem Ipsum Dolor Sit", check: true },
-        { text: "Lorem Ipsum Dolor Sit", check: true },
-        { text: "Lorem Ipsum Dolor Sit", check: true },
-        { text: "Lorem Ipsum Dolor Sit", check: false },
+        { text: "Everything Silver", check: true },
+        { text: "Higher Protein", check: true },
+        { text: "Pasta & Zoodles", check: true },
+        { text: "Advanced Juices", check: true },
+        { text: "2 Pauses", check: true },
+         { text: "2 Swaps", check: true },
       ],
     },
     {
-      title: "Ryvive",
+     
        titleName: "Platinum",
       price: "₹6,999",
       color: "#203d36",
       btnColor: "#203d36",
+      image: Plat,
+      link: "/subscription/platinum",
+        titleColor: "#676767 ", 
       features: [
-        { text: "Lorem Ipsum Dolor Sit", check: true },
-        { text: "Lorem Ipsum Dolor Sit", check: true },
-        { text: "Lorem Ipsum Dolor Sit", check: true },
-        { text: "Lorem Ipsum Dolor Sit", check: true },
-        { text: "Lorem Ipsum Dolor Sit", check: true },
+        { text: "Everything Gold", check: true },
+        { text: "Premium Ingredients", check: true },
+        { text: "Maximum Protein", check: true },
+        { text: "Meal + Juice", check: true },
+        { text: "3 Pauses", check: true },
+          { text: "3 Swaps", check: true },
       ],
     },
   ];
@@ -92,9 +109,10 @@ const SubscriptionTypes = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-20 w-full px-6 md:px-30">
          {plans.map((plan, index) => (
-          <PricingCard key={index} {...plan} />
+          <PricingCard key={index} {...plan} pageLink={plan.link} />
         ))}
       </div>
+     
     </div>
   );
 };

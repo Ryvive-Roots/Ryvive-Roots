@@ -92,10 +92,11 @@ const Career = () => {
                   required
                 >
                   <option value="">Select a role</option>
+                   <option>Graphic designer</option>
                   <option>Management</option>
                   <option>Sales Executive</option>
                   <option>Head Chef</option>
-                  <option>Waiter / Waitress</option>
+                  <option>server </option>
                   <option>Cashier</option>
                   <option>Restaurant Manager</option>
                   <option>Delivery Executive</option>

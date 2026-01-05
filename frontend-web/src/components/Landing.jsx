@@ -57,7 +57,7 @@ const getRandomX = (index, total) => {
 
 
   return (
-    <div className="relative md:h-screen h-[75vh] w-full bg-white overflow-hidden pt-[80px]">
+    <div className="relative md:h-screen h-[75vh] overflow-y-hidden w-full bg-white overflow-hidden pt-[80px]">
       {/* Bowl tossing animation */}
       <div className="absolute inset-0 bg-[#EFF9F0] p-96">
       <img
