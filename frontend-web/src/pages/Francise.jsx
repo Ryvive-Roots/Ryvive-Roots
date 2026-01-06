@@ -40,7 +40,7 @@ const Franchise = () => {
           Big Announcement
         </h2>
 
-        <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-[#243E36] font-merriweather mb-6">
+        <h1 className="text-2xl font-fredoka font sm:text-4xl md:text-5xl font-extrabold text-[#243E36]  mb-6">
           Franchise Opportunity
         </h1>
 
