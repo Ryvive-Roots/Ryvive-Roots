@@ -59,12 +59,12 @@ const PricingCard = ({
 
 
 
-          <h2 className="text-4xl font-bold">{price}</h2>
+          <h2 className="text-2xl font-semibold">{price}</h2>
           <p className="text-sm mt-1">Per User / Month</p>
         </div>
 
         {/* 📋 FEATURES */}
-        <ul className="relative mt-6 space-y-3 px-8 text-sm z-10">
+        <ul className="relative mt-6 space-y-3 px-8 text-base z-10">
           {features.map((item, index) => (
             <li key={index} className="flex items-center gap-2">
               <span

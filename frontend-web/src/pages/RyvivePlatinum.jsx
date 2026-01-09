@@ -7,25 +7,15 @@ const RyvivePlatinum = () => {
         <h1 className="md:text-3xl text-2xl text-center font-cinzel uppercase font-semibold text-[#243E36] mb-6 text-center">Ryvive Platinum </h1>
        <h2 className=' font-semibold text-xl font-manrope mb-5'>Complete nutrition for a consistent, healthy lifestyle.  </h2>
         <p className="text-gray-600 mb-6 font-manrope">
-       Ryvive Platinum is designed for those who are deeply committed to their health and 
-everyday choices. Every meal is carefully curated to deliver higher nutritional value, 
-balanced energy, and long-term benefits, without compromising on taste or variety.  
+     Ryvive Platinum is crafted for those who demand excellence in every choice—where food is not just fuel, but a foundation for a vibrant, purposeful lifestyle.
         </p>
 
-        <div className="space-y-4 text-gray-600 font-manrope">
-          <p>
-           This plan includes higher protein meals, premium ingredients, and thoughtfully paired 
-combinations that support energy, recovery, and overall vitality. With diverse flavours and 
-functional nutrition built into every meal, Ryvive Platinum makes consistent healthy eating 
-effortless and sustainable. 
-          </p>
-          <p>
-         Ryvive Platinum is ideal for individuals who see food as a foundation for their lifestyle and 
-goals. It doesn’t just support healthy eating, it helps you maintain it at a higher standard, 
-every single day. 
-          </p>
-         
-        </div>
+
+    <p className="text-gray-600 mb-6 font-manrope">
+   This plan features high-protein meals, premium ingredients, and thoughtfully paired combinations designed to support energy, recovery, and holistic vitality.
+        </p>
+       
+       
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-gray-100 rounded-xl p-6">
@@ -33,12 +23,13 @@ every single day.
               What’s Included
             </h2>
             <ul className="list-disc font-manrope list-inside text-gray-600 space-y-2">
-              <li>High-protein gourmet salads with paneer, avocado, broccoli, mushrooms, and 
-legumes</li>
-              <li>Premium wrap and pasta combinations paired with functional juices  </li>
-              <li>Advanced juice blends supporting metabolism, recovery, skin, and energy </li>
-              <li>Thoughtfully balanced chaat options made clean </li>
-              <li>The widest and most diverse weekly menu</li>
+              <li>Exquisite high-protein salads with paneer, creamy avocado, tender broccoli, earthy mushrooms, and wholesome legumes, crafted to delight the senses</li>
+              <li>Artisan wrap and pasta creations, paired with functional juices designed to nourish and sustain </li>
+              <li>Signature functional juice blends to support metabolism, recovery, radiant skin, and sustained energy, made from the finest ingredients </li>
+              <li>Refined chaat options, carefully balanced for flavor, freshness, and clean indulgence</li>
+              <li>A meticulously curated weekly menu, offering unmatched variety and culinary sophistication
+
+</li>
             </ul>
           </div>
 
@@ -68,7 +59,7 @@ legumes</li>
          <div className="text-center mt-10">
       <a
             href="/subscription-form"
-        className="px-8 py-3 cursor-pointer bg-[#B38E6A] text-white rounded-xl font-medium hover:bg-[#B38E6A] transition"
+        className="px-8 py-3 cursor-pointer bg-[#895C40] text-white rounded-xl font-medium hover:bg-[#B38E6A] transition"
       >
         Start Your Wellness  Plan
       </a>

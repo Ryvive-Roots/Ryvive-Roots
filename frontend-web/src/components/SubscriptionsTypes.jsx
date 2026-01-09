@@ -64,7 +64,7 @@ const SubscriptionTypes = () => {
         { text: "Maximum Protein", check: true },
         { text: "Meal + Juice", check: true },
         { text: "3 Pauses", check: true },
-          { text: "3 Swaps", check: true },
+        { text: "3 Swaps", check: true },
       ],
     },
   ];

@@ -19,6 +19,7 @@ import RyvivePlatinum from "./pages/RyvivePlatinum"
 import SubscriptionsForm from "./components/SubscriptionsForm"
 import ScrollToTop from "./components/ScrollToTop"
 import Terms from "./components/Terms"
+import WhatsAppButton from "./components/What'sApp"
 
 
 
@@ -28,6 +29,7 @@ function App() {
     <div className="min-h-screen flex flex-col overflow-x-hidden ">
       <Navbar />
      <ScrollToTop />
+     <WhatsAppButton />
       <main className="flex-1 overflow-hidden">
         <Routes>
           <Route path="/" element={<Home />} />

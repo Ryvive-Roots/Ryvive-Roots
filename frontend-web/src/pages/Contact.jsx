@@ -1,12 +1,89 @@
-import React from 'react'
+import React, { useRef } from "react";
 import { motion } from "framer-motion";
-import Banner from "../assets/AbouttBg.jpg";
-import { FiPhone, FiMail } from "react-icons/fi";
-import { FaWhatsapp, FaStore, FaPhoneAlt } from "react-icons/fa";
+import emailjs from "@emailjs/browser";
+import { FaStore, FaPhoneAlt } from "react-icons/fa";
 import { RiWhatsappFill } from 'react-icons/ri';
 import { MdEmail } from 'react-icons/md';
 
 const Contact = () => {
+  const formRef = useRef();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(formRef.current);
+
+    // 📅 Date & Time
+    const now = new Date();
+
+    const submissionDate = now.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+
+    const submissionTime = now.toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+
+    // Append date & time to SheetDB
+    formData.append("data[Date]", submissionDate);
+    formData.append("data[Time]", submissionTime);
+
+    try {
+      // 1️⃣ Send to SheetDB
+      const response = await fetch("https://sheetdb.io/api/v1/81mxcr1k0ouf7", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        alert("Submission to SheetDB failed. Please try again.");
+        return;
+      }
+
+      // 2️⃣ Send Email via EmailJS
+      const emailParams = {
+        name: formData.get("data[Name]"),
+        email: formData.get("data[Email]"),
+        subject: formData.get("data[Subject]"),
+        message: formData.get("data[Message]"),
+        date: submissionDate,
+        time: submissionTime,
+      };
+
+      await emailjs.send(
+        "service_oo5t5wf",
+        "template_sorwe7i",
+        emailParams,
+        "3AfFnBmZMg4f0Kq0I"
+      );
+
+      alert(
+        `Thank you ${emailParams.name}, your inquiry has been submitted successfully!`
+      );
+
+      await emailjs.send(
+  "service_oo5t5wf",
+  "template_j0bsfe4", // Auto-reply template
+  {
+    name: emailParams.name,
+    email: emailParams.email,
+    message: emailParams.message,
+  },
+  "3AfFnBmZMg4f0Kq0I"
+);
+
+
+      formRef.current.reset();
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("Something went wrong. Please try again later.");
+    }
+  };
+
   return (
     <div> <div className="relative">
   <img
@@ -110,12 +187,15 @@ your first step toward feeling amazing.
 Whether you prefer a quick chat or detailed guidance, we’ve got you covered.
           </p>
 
-         <form className="space-y-6 font-manrope">
+
+  <form  ref={formRef}
+              onSubmit={handleSubmit} className="space-y-6 font-manrope">
 
   {/* Name */}
   <div className="flex flex-col space-y-1">
     <label className="text-sm font-semibold text-gray-700">Name</label>
     <input
+      name="data[Name]"
       type="text"
       placeholder="Enter your name"
       className="w-full p-3 border border-slate-300 rounded-xl focus:outline-none focus:border-[#895C40]"
@@ -127,6 +207,7 @@ Whether you prefer a quick chat or detailed guidance, we’ve got you covered.
     <label className="text-sm font-semibold text-gray-700">Email</label>
     <input
       type="email"
+       name="data[Email]"
       placeholder="Enter your email"
       className="w-full p-3 border border-slate-300 rounded-xl focus:outline-none focus:border-[#895C40]"
     />
@@ -137,6 +218,7 @@ Whether you prefer a quick chat or detailed guidance, we’ve got you covered.
     <label className="text-sm font-semibold text-gray-700">Subject</label>
     <input
       type="text"
+      name="data[Subject]"
       placeholder="Enter subject"
       className="w-full p-3 border border-slate-300 rounded-xl focus:outline-none focus:border-[#895C40]"
     />
@@ -146,6 +228,7 @@ Whether you prefer a quick chat or detailed guidance, we’ve got you covered.
   <div className="flex flex-col space-y-1">
     <label className="text-sm font-semibold text-gray-700">Message</label>
     <textarea
+      name="data[Message]"
       rows="5"
       placeholder="Write your message here..."
       className="w-full p-3 border border-slate-300 rounded-xl focus:outline-none focus:border-[#895C40]"

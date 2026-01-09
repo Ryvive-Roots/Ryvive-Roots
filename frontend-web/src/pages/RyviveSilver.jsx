@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import saladIcon from "../assets/bowl1.png";
-import wrapIcon from "../assets/Wraps.png";
-import juiceIcon from "../assets/subscription.png";
-import chaatIcon from "../assets/subscription.png";
+import wrapIcon from "../assets/wraps.avif/";
+import juiceIcon from "../assets/juices.png";
+import chaatIcon from "../assets/chat.png";
 
 
 
@@ -35,7 +35,7 @@ Perfect for beginners, busy professionals, and anyone starting their wellness jo
 
 
 
-        <div className="mt-8 grid grid-cols-1  gap-6">
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2  gap-6">
           <div className="bg-gray-100 rounded-xl p-6">
             <h2 className="text-xl font-manrope font-semibold text-gray-800 mb-3">
               What’s Included
@@ -63,9 +63,9 @@ Perfect for beginners, busy professionals, and anyone starting their wellness jo
                   <img
                     src={item.icon}
                     alt={item.name}
-                    className="w-12 h-12 object-contain"
+                    className="w-14 h-14- object-contain"
                   />
-                  <span className=" font-roboto" >{item.name}</span>
+                  <span className=" font-roboto font-bold" >{item.name}</span>
                 </div>
               ))}
             </div>
@@ -75,7 +75,7 @@ Perfect for beginners, busy professionals, and anyone starting their wellness jo
         <div className="text-center mt-10">
           <a
             href="/subscription-form"
-            className="px-8 py-3 cursor-pointer bg-[#B38E6A] text-white rounded-xl font-medium hover:bg-[#B38E6A] transition"
+            className="px-8 py-3 cursor-pointer bg-[#895C40] text-white rounded-xl font-medium hover:bg-[#B38E6A] transition"
           >
             Start Your Wellness  Plan
           </a>

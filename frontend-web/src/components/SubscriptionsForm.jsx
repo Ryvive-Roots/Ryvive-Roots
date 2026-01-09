@@ -191,7 +191,7 @@ const SubscriptionsForm = () => {
             type="submit"
             className="
               md:col-span-2 cursor-pointer mt-6 font-fredoka
-              bg-gradient-to-r from-[#B38E6A] to-[#8C6848]
+            bg-[#895C40]
               text-white py-4 rounded-2xl
                text-lg
               shadow-lg hover:shadow-2xl

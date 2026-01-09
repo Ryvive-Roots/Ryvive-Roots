@@ -11,7 +11,7 @@ const Career = () => {
 
     emailjs
       .sendForm(
-        "service_eo2vdqs", 
+        "service_oo5t5wf", 
         "Ytemplate_v2pver5", 
         form.current,
         "3AfFnBmZMg4f0Kq0I"
