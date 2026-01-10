@@ -19,13 +19,13 @@ const RyviveSilver = () => {
     <div className="min-h-screen mt-24 bg-gray-50 flex items-center justify-center p-6">
       <div className="max-w-4xl w-full bg-white rounded-2xl shadow-lg p-8">
         <h1 className="md:text-3xl text-2xl text-center font-cinzel uppercase font-semibold text-[#243E36] mb-6">Ryvive Silver</h1>
-        <p className="text-gray-600 mb-6 font-manrope">
+        <p className="text-gray-600 mb-6 font-roboto">
           Ryvive Silver is the ideal starting point for healthier eating—without drastic lifestyle changes. Designed to be simple and stress-free, it offers light, nourishing meals that support energy and digestion.
         </p>
 
-        <p className="text-gray-600 mb-6 font-manrope">
+        <p className="text-gray-600 mb-6 font-roboto">
 
-           <p className="text-gray-600 mb-6 font-manrope">
+           <p className="text-gray-600 mb-6 font-roboto">
 With fresh salads, protein-balanced wraps, functional juices, and clean chaat options, this plan helps you gradually replace unhealthy choices with better ones.
 Perfect for beginners, busy professionals, and anyone starting their wellness journey.
 
