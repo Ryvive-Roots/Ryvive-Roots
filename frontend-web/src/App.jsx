@@ -11,7 +11,7 @@ import Career from "./pages/Career"
 import Contact from "./pages/Contact"
 import Footer from "./components/Footer"
 
-import SignupForm from "./components/SignUp"
+
 import PrivacyPolicy from "./components/PrivacyPolicy"
 import RyviveSilver from "./pages/RyviveSilver"
 import RyviveGold from "./pages/RyviveGold"
@@ -24,6 +24,7 @@ import WhatsAppButton from "./components/What'sApp"
 import SilversubForm from "./components/SubSilverForm"
 import GoldsubForm from "./components/SubGoldForm"
 import PlatinumsubForm from "./components/SubPlatinumForm"
+import UserDashboard from "./components/UserDashboard"
 
 
 
@@ -47,12 +48,13 @@ function App() {
           <Route path="subscription/silver" element={<RyviveSilver />} />
           <Route path="subscription/gold" element={<RyviveGold />} />
           <Route path="subscription/platinum" element={<RyvivePlatinum />} />
-          <Route path="/sign-up" element={<SignupForm />} />
+
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-conditions" element={<Terms />} />
           <Route path="/subscription-silver" element={<SilversubForm />} />
           <Route path="/subscription-gold" element={<GoldsubForm />} />
           <Route path="/subscription-platinum" element={<PlatinumsubForm />} />
+          <Route path="/dashboard" element={<UserDashboard />} />
         </Routes>
       </main>
 

@@ -5,6 +5,8 @@ import connectDB from "./config/mongodb.js";
 import connectCloudinary from "./config/cloudinary.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 // DB Connection
 connectDB();
@@ -23,6 +25,8 @@ app.use(cors());
 // Routes
 app.use("/api/orders", orderRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/auth", authRoutes);
 
 // Test API
 app.get("/", (req, res) => {

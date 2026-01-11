@@ -1,18 +1,17 @@
 import mongoose from "mongoose";
 
-const orderSchema = new mongoose.Schema({
-  firstName: String,
-  lastName: String,
-  email: String,
-  phone: String,
+const UserSchema = new mongoose.Schema(
+  {
+    firstName: String,
+    lastName: String,
 
-  membershipId: String,
-  password: String, // 🔐 hashed later
+    email: { type: String, unique: true },
+    phone: { type: String, unique: true },
 
-  createdAt: {
-    type: Date,
-    default: Date.now,
+    password: String,
+    isPasswordCreated: { type: Boolean, default: false },
   },
-});
+  { timestamps: true }
+);
 
-export default mongoose.model("Order", orderSchema);
+export default mongoose.model("User", UserSchema);

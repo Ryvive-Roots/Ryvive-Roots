@@ -1,13 +1,18 @@
 import mongoose from "mongoose";
 
-const orderSchema = new mongoose.Schema(
+const OrderSchema = new mongoose.Schema(
   {
+    membershipId: {
+      type: String,
+      unique: true,
+      required: true,
+    },
+
     user: {
       firstName: String,
       lastName: String,
       phone: String,
       email: String,
-      dob: String,
     },
 
     address: {
@@ -15,20 +20,53 @@ const orderSchema = new mongoose.Schema(
       house: String,
       street: String,
       landmark: String,
+      city: { type: String, default: "Dombivli" },
+      state: { type: String, default: "Maharashtra" },
     },
 
-    slot: String,
+    // ✅ DELIVERY SLOT (FIXED)
+    deliverySlot: {
+      type: String,
+      required: true,
+    },
 
-    amount: Number,
+    subscription: {
+      plan: {
+        type: String,
+        enum: ["SILVER", "GOLD", "PLATINUM"],
+        required: true,
+      },
+      amount: {
+        type: Number,
+        required: true,
+      },
+      duration: {
+        type: Number,
+        default: 30,
+      },
+      startDate: {
+        type: Date,
+        default: Date.now,
+      },
+      endDate: {
+        type: Date,
+        required: true,
+      },
+      status: {
+        type: String,
+        enum: ["ACTIVE", "PAUSED", "CANCELLED", "EXPIRED"],
+        default: "ACTIVE",
+      },
+    },
 
     paymentStatus: {
       type: String,
-      default: "PENDING",
+      enum: ["PENDING", "PAID"],
+      default: "PAID",
     },
-
-    membershipId: String,
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Order", orderSchema);
+// ✅ SAFE EXPORT (CORRECT)
+export default mongoose.models.Order || mongoose.model("Order", OrderSchema);

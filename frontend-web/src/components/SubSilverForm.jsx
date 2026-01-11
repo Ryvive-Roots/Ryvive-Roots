@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronDown, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
-import { useEffect } from "react";
+
 
 
 
@@ -29,10 +29,20 @@ const steps = [
   "Delivery Slot",
   "Delivery Address",
   "Review & Place Order",
+  "Payment Successful",
+  "Create Password",
 ];
+
+
 
 const SilversubForm = () => {
   const [step, setStep] = useState(0);
+  const [membershipId, setMembershipId] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loadingOrder, setLoadingOrder] = useState(false);
+
+
   // DELIVERY SLOT STATE
   const [deliverySlot, setDeliverySlot] = useState(() => {
     return (
@@ -94,7 +104,9 @@ const SilversubForm = () => {
       );
     }
     if (step === 1) return true;
-    if (step === 2) return !!formData.slot;
+ if (step === 2)
+   return typeof formData.slot === "string" && formData.slot.length > 0;
+
 
     if (step === 3) {
       return formData.pincode && formData.house && formData.street;
@@ -170,26 +182,83 @@ const SilversubForm = () => {
       alert("Something went wrong");
     }
   };
-  const placeFinalOrder = async () => {
-    const res = await fetch("http://localhost:4000/api/orders/place-order", {
+
+
+ const placeFinalOrder = async () => {
+   try {
+     console.log("Placing order...");
+
+     const res = await fetch("http://localhost:4000/api/orders/place-order", {
+       method: "POST",
+       headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({
+         formData,
+         plan: "SILVER",
+       }),
+     });
+
+     const data = await res.json();
+     console.log("Order response:", data);
+
+     if (!data.success) {
+       alert(data.message || "Order failed");
+       return;
+     }
+
+     // ✅ SAVE MEMBERSHIP
+     localStorage.setItem("membershipId", data.membershipId);
+
+     // ✅ UPDATE STATE
+     setMembershipId(data.membershipId);
+     setStep(5); // 🔥 THIS WILL MOVE TO PAYMENT SUCCESS
+
+     // ✅ CLEAR TEMP DATA
+     localStorage.removeItem("subscriptionFormData");
+     localStorage.removeItem("subscriptionDeliverySlot");
+   } catch (error) {
+     console.error("Order error:", error);
+     alert("Something went wrong while placing order");
+   }
+  };
+  
+
+const createPasswordAndLogin = async () => {
+  try {
+    const res = await fetch("http://localhost:4000/api/auth/create-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ formData }),
+      body: JSON.stringify({
+        membershipId,
+        password,
+      }),
     });
 
     const data = await res.json();
 
-   if (data.success) {
-     alert(
-       `🎉 Subscription Successful!\n\nMembership ID: ${data.membershipId}\nPassword: ${data.password}`
-     );
+    if (!data.success) {
+      alert(data.message);
+     return res.json({
+       success: true,
+       token,
+     });
 
-     localStorage.removeItem("subscriptionFormData");
-     localStorage.removeItem("subscriptionDeliverySlot");
-   } else {
-     alert("Order saving failed");
-   }
-  };
+    }
+
+    // ✅ Save JWT
+    localStorage.setItem("token", data.token);
+
+    // ✅ Redirect to dashboard
+    window.location.replace("/dashboard");
+  } catch (error) {
+    console.error(error);
+    alert("Something went wrong");
+  }
+};
+
+
+
+
+
 
   return (
     <div className="max-w-7xl mx-auto my-30 px-4">
@@ -309,8 +378,12 @@ const SilversubForm = () => {
                     }
                     onChange={(e) => {
                       const slotValue = e.target.value;
-                      setDeliverySlot({ type: "morning", time: slotValue }); // or "evening"
-                      setFormData({ ...formData, slot: slotValue }); // store in formData too
+                      setDeliverySlot({ type: "morning", time: slotValue });
+
+                      setFormData({
+                        ...formData,
+                        slot: `Morning - ${slotValue}`,
+                      });
                     }}
                   >
                     <option value="">Morning Slot</option>
@@ -339,8 +412,12 @@ const SilversubForm = () => {
                     }
                     onChange={(e) => {
                       const slotValue = e.target.value;
-                      setDeliverySlot({ type: "evening", time: slotValue }); // or "evening"
-                      setFormData({ ...formData, slot: slotValue }); // store in formData too
+                      setDeliverySlot({ type: "evening", time: slotValue });
+
+                      setFormData({
+                        ...formData,
+                        slot: `Evening - ${slotValue}`,
+                      });
                     }}
                   >
                     <option value="">Evening Slot</option>
@@ -413,7 +490,6 @@ const SilversubForm = () => {
               </div>
             )}
 
-            {/* STEP 5 */}
             {/* STEP 5 — REVIEW & PLACE ORDER */}
             {step === 4 && (
               <div className="space-y-6">
@@ -437,7 +513,7 @@ const SilversubForm = () => {
                   </h4>
 
                   <div className="flex justify-between text-sm">
-                    <span>Wellness Subscription Plan</span>
+                    <span>Silver Subscription Plan</span>
                     <span>₹ 4,999.00</span>
                   </div>
 
@@ -458,24 +534,101 @@ const SilversubForm = () => {
 
                 {/* Place Order Button */}
                 <button
-                  onClick={() => {
+                  disabled={loadingOrder}
+                  onClick={async () => {
+                    setLoadingOrder(true);
+
                     if (PAYMENT_ENABLED) {
-                      handlePayment();
+                      await handlePayment();
                     } else {
-                      placeFinalOrder(); // bypass payment
+                      await placeFinalOrder();
                     }
+
+                    setLoadingOrder(false);
                   }}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl"
+                  className={`w-full py-4 rounded-xl text-white
+    ${loadingOrder ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"}`}
                 >
-                  {PAYMENT_ENABLED
-                    ? "PAY ₹4,999 & PLACE ORDER"
-                    : "PLACE ORDER (DEV MODE)"}
+                  {loadingOrder ? "PLACING ORDER..." : "PLACE ORDER"}
                 </button>
 
                 {/* Trust Note */}
                 <p className="text-center text-xs text-gray-500">
                   🔒 Secure checkout • Your information is protected
                 </p>
+              </div>
+            )}
+
+            {step === 5 && (
+              <div className="text-center space-y-6">
+                <CheckCircle
+                  size={80}
+                  className="mx-auto text-green-500 animate-bounce"
+                />
+
+                <h2 className="text-3xl font-semibold">
+                  Payment Successful 🎉
+                </h2>
+
+                <p className="text-gray-600">
+                  Your membership has been created successfully.
+                </p>
+
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                  <p className="text-sm text-gray-500">Your Membership ID</p>
+                  <p className="text-2xl font-bold text-green-700">
+                    {membershipId}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setStep(6)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl"
+                >
+                  CREATE PASSWORD & LOGIN
+                </button>
+              </div>
+            )}
+            {step === 6 && (
+              <div className="space-y-6 max-w-md mx-auto">
+                <h2 className="text-2xl font-semibold text-center">
+                  Create Your Password 🔐
+                </h2>
+
+                <input
+                  value={membershipId}
+                  readOnly
+                  className={`${inputStyle} bg-gray-100`}
+                />
+
+                <input
+                  type="password"
+                  placeholder="Create Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={inputStyle}
+                />
+
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={inputStyle}
+                />
+
+                <button
+                  disabled={!password || password !== confirmPassword}
+                  onClick={createPasswordAndLogin}
+                  className={`w-full py-3 rounded-xl text-white
+    ${
+      password && password === confirmPassword
+        ? "bg-green-600 hover:bg-green-700"
+        : "bg-gray-300 cursor-not-allowed"
+    }`}
+                >
+                  CREATE PASSWORD & LOGIN
+                </button>
               </div>
             )}
 
@@ -489,16 +642,16 @@ const SilversubForm = () => {
                 <ArrowLeft size={16} /> Back
               </button>
 
-              {step < steps.length - 1 && (
+              {step < 4 && (
                 <button
                   disabled={!isStepValid()}
                   onClick={() => isStepValid() && setStep(step + 1)}
                   className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-medium
-                    ${
-                      isStepValid()
-                        ? "bg-green-600 hover:bg-green-700 text-white"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
+      ${
+        isStepValid()
+          ? "bg-green-600 hover:bg-green-700 text-white"
+          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+      }`}
                 >
                   Next <ArrowRight size={16} />
                 </button>
