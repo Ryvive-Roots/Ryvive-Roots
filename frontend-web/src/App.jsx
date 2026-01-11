@@ -16,10 +16,14 @@ import PrivacyPolicy from "./components/PrivacyPolicy"
 import RyviveSilver from "./pages/RyviveSilver"
 import RyviveGold from "./pages/RyviveGold"
 import RyvivePlatinum from "./pages/RyvivePlatinum"
-import SubscriptionsForm from "./components/SubscriptionsForm"
+
 import ScrollToTop from "./components/ScrollToTop"
 import Terms from "./components/Terms"
 import WhatsAppButton from "./components/What'sApp"
+
+import SilversubForm from "./components/SubSilverForm"
+import GoldsubForm from "./components/SubGoldForm"
+import PlatinumsubForm from "./components/SubPlatinumForm"
 
 
 
@@ -28,8 +32,8 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden ">
       <Navbar />
-     <ScrollToTop />
-     <WhatsAppButton />
+      <ScrollToTop />
+      <WhatsAppButton />
       <main className="flex-1 overflow-hidden">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -46,7 +50,9 @@ function App() {
           <Route path="/sign-up" element={<SignupForm />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-conditions" element={<Terms />} />
-           <Route path="/subscription-form" element={<SubscriptionsForm />} />
+          <Route path="/subscription-silver" element={<SilversubForm />} />
+          <Route path="/subscription-gold" element={<GoldsubForm />} />
+          <Route path="/subscription-platinum" element={<PlatinumsubForm />} />
         </Routes>
       </main>
 

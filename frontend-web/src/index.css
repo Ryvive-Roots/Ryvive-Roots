@@ -18,6 +18,11 @@
   animation: spin-slow 12s linear infinite;
 }
 
+select option:checked {
+  background-color: #16a34a; /* green-600 */
+  color: white;
+}
+
 
 @theme {
   --font-roboto: "Roboto", sans-serif;
