@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+
+
+import React, { useState, useEffect } from "react";
 import { ChevronDown, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
-import { useEffect } from "react";
+
+
+
 
 const allowedPincodes = [
   { code: "421201", area: "Dombivli East – Thakurli, Ramnagar, Tilaknagar" },
@@ -27,10 +31,19 @@ const steps = [
   "Delivery Slot",
   "Delivery Address",
   "Review & Place Order",
+  "Payment Successful",
+  "Create Password",
 ];
+
+
 
 const GoldsubForm = () => {
   const [step, setStep] = useState(0);
+  const [membershipId, setMembershipId] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loadingOrder, setLoadingOrder] = useState(false);
+
   // DELIVERY SLOT STATE
   const [deliverySlot, setDeliverySlot] = useState(() => {
     return (
@@ -40,6 +53,7 @@ const GoldsubForm = () => {
       }
     );
   });
+  const PAYMENT_ENABLED = false; // 🔴 set true when Razorpay is ready
 
   // Save delivery slot to localStorage whenever it changes
   useEffect(() => {
@@ -91,12 +105,154 @@ const GoldsubForm = () => {
       );
     }
     if (step === 1) return true;
-    if (step === 2) return !!formData.slot;
+    if (step === 2)
+      return typeof formData.slot === "string" && formData.slot.length > 0;
 
     if (step === 3) {
       return formData.pincode && formData.house && formData.street;
     }
     return true;
+  };
+
+  const handlePayment = async () => {
+    try {
+      // 1️⃣ Create Razorpay Order (Backend)
+      const orderRes = await fetch(
+        "http://localhost:4000/api/payment/create-order",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: 4999 }),
+        }
+      );
+
+      const orderData = await orderRes.json();
+
+      if (!orderData.success) {
+        alert("Payment order creation failed");
+        return;
+      }
+
+      // 2️⃣ Razorpay Checkout Options
+      const options = {
+        key: "YOUR_RAZORPAY_KEY_ID", // TEST KEY ONLY
+        amount: orderData.order.amount,
+        currency: "INR",
+        name: "Ryvive Roots",
+        description: "Wellness Subscription",
+        order_id: orderData.order.id,
+
+        handler: async function (response) {
+          // 3️⃣ Verify Payment
+          const verifyRes = await fetch(
+            "http://localhost:4000/api/payment/verify",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(response),
+            }
+          );
+
+          const verifyData = await verifyRes.json();
+
+          if (verifyData.success) {
+            // 4️⃣ Payment verified → Place order
+            await placeFinalOrder();
+          } else {
+            alert("Payment verification failed");
+          }
+        },
+
+        prefill: {
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          contact: formData.phone,
+        },
+
+        theme: {
+          color: "#16a34a",
+        },
+      };
+
+      // Open Razorpay
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong");
+    }
+  };
+
+  const placeFinalOrder = async () => {
+    try {
+      console.log("Placing order...");
+
+      const res = await fetch("http://localhost:4000/api/orders/place-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          formData,
+          plan: "SILVER",
+        }),
+      });
+
+      const data = await res.json();
+      console.log("Order response:", data);
+
+      if (!data.success) {
+        alert(data.message || "Order failed");
+        return;
+      }
+
+      // ✅ SAVE MEMBERSHIP
+      localStorage.setItem("membershipId", data.membershipId);
+
+      // ✅ UPDATE STATE
+      setMembershipId(data.membershipId);
+      setStep(5); // 🔥 THIS WILL MOVE TO PAYMENT SUCCESS
+
+      // ✅ CLEAR TEMP DATA
+      localStorage.removeItem("subscriptionFormData");
+      localStorage.removeItem("subscriptionDeliverySlot");
+    } catch (error) {
+      console.error("Order error:", error);
+      alert("Something went wrong while placing order");
+    }
+  };
+
+  const createPasswordAndLogin = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost:4000/api/auth/create-password",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            membershipId,
+            password,
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!data.success) {
+        alert(data.message);
+        return res.json({
+          success: true,
+          token,
+        });
+      }
+
+      // ✅ Save JWT
+      localStorage.setItem("token", data.token);
+
+      // ✅ Redirect to dashboard
+      window.location.replace("/dashboard");
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong");
+    }
   };
 
   return (
@@ -217,8 +373,12 @@ const GoldsubForm = () => {
                     }
                     onChange={(e) => {
                       const slotValue = e.target.value;
-                      setDeliverySlot({ type: "morning", time: slotValue }); // or "evening"
-                      setFormData({ ...formData, slot: slotValue }); // store in formData too
+                      setDeliverySlot({ type: "morning", time: slotValue });
+
+                      setFormData({
+                        ...formData,
+                        slot: `Morning - ${slotValue}`,
+                      });
                     }}
                   >
                     <option value="">Morning Slot</option>
@@ -247,8 +407,12 @@ const GoldsubForm = () => {
                     }
                     onChange={(e) => {
                       const slotValue = e.target.value;
-                      setDeliverySlot({ type: "evening", time: slotValue }); // or "evening"
-                      setFormData({ ...formData, slot: slotValue }); // store in formData too
+                      setDeliverySlot({ type: "evening", time: slotValue });
+
+                      setFormData({
+                        ...formData,
+                        slot: `Evening - ${slotValue}`,
+                      });
                     }}
                   >
                     <option value="">Evening Slot</option>
@@ -321,7 +485,6 @@ const GoldsubForm = () => {
               </div>
             )}
 
-            {/* STEP 5 */}
             {/* STEP 5 — REVIEW & PLACE ORDER */}
             {step === 4 && (
               <div className="space-y-6">
@@ -345,8 +508,8 @@ const GoldsubForm = () => {
                   </h4>
 
                   <div className="flex justify-between text-sm">
-                    <span>Wellness Subscription Plan</span>
-                    <span>₹ 4,999.00</span>
+                    <span>Gold Subscription Plan</span>
+                    <span>₹ 5,999.00</span>
                   </div>
 
                   <div className="flex justify-between text-sm text-green-600">
@@ -356,7 +519,7 @@ const GoldsubForm = () => {
 
                   <div className="border-t pt-3 flex justify-between font-semibold text-lg">
                     <span>Total Payable</span>
-                    <span>₹ 4,999.00</span>
+                    <span>₹ 5,999.00</span>
                   </div>
 
                   <p className="text-xs text-gray-500 mt-2">
@@ -365,14 +528,102 @@ const GoldsubForm = () => {
                 </div>
 
                 {/* Place Order Button */}
-                <button className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl text-sm font-semibold tracking-wide transition">
-                  PLACE ORDER — ₹ 4,999
+                <button
+                  disabled={loadingOrder}
+                  onClick={async () => {
+                    setLoadingOrder(true);
+
+                    if (PAYMENT_ENABLED) {
+                      await handlePayment();
+                    } else {
+                      await placeFinalOrder();
+                    }
+
+                    setLoadingOrder(false);
+                  }}
+                  className={`w-full py-4 rounded-xl text-white
+    ${loadingOrder ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"}`}
+                >
+                  {loadingOrder ? "PLACING ORDER..." : "PLACE ORDER"}
                 </button>
 
                 {/* Trust Note */}
                 <p className="text-center text-xs text-gray-500">
                   🔒 Secure checkout • Your information is protected
                 </p>
+              </div>
+            )}
+
+            {step === 5 && (
+              <div className="text-center space-y-6">
+                <CheckCircle
+                  size={80}
+                  className="mx-auto text-green-500 animate-bounce"
+                />
+
+                <h2 className="text-3xl font-semibold">
+                  Payment Successful 🎉
+                </h2>
+
+                <p className="text-gray-600">
+                  Your membership has been created successfully.
+                </p>
+
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                  <p className="text-sm text-gray-500">Your Membership ID</p>
+                  <p className="text-2xl font-bold text-green-700">
+                    {membershipId}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setStep(6)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl"
+                >
+                  CREATE PASSWORD & LOGIN
+                </button>
+              </div>
+            )}
+            {step === 6 && (
+              <div className="space-y-6 max-w-md mx-auto">
+                <h2 className="text-2xl font-semibold text-center">
+                  Create Your Password 🔐
+                </h2>
+
+                <input
+                  value={membershipId}
+                  readOnly
+                  className={`${inputStyle} bg-gray-100`}
+                />
+
+                <input
+                  type="password"
+                  placeholder="Create Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={inputStyle}
+                />
+
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={inputStyle}
+                />
+
+                <button
+                  disabled={!password || password !== confirmPassword}
+                  onClick={createPasswordAndLogin}
+                  className={`w-full py-3 rounded-xl text-white
+    ${
+      password && password === confirmPassword
+        ? "bg-green-600 hover:bg-green-700"
+        : "bg-gray-300 cursor-not-allowed"
+    }`}
+                >
+                  CREATE PASSWORD & LOGIN
+                </button>
               </div>
             )}
 
@@ -386,16 +637,16 @@ const GoldsubForm = () => {
                 <ArrowLeft size={16} /> Back
               </button>
 
-              {step < steps.length - 1 && (
+              {step < 4 && (
                 <button
                   disabled={!isStepValid()}
                   onClick={() => isStepValid() && setStep(step + 1)}
                   className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-medium
-                    ${
-                      isStepValid()
-                        ? "bg-green-600 hover:bg-green-700 text-white"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
+      ${
+        isStepValid()
+          ? "bg-green-600 hover:bg-green-700 text-white"
+          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+      }`}
                 >
                   Next <ArrowRight size={16} />
                 </button>
@@ -415,3 +666,4 @@ const GoldsubForm = () => {
 };
 
 export default GoldsubForm;
+

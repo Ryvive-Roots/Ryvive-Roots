@@ -9,6 +9,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation(); // 👈 Get current route
+    const isLoggedIn = !!localStorage.getItem("token");
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -28,105 +29,115 @@ const Navbar = () => {
 
   return (
     <>
-   
+      <header
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+          scrolled ? "bg-white-30 backdrop-blur-3xl shadow-md" : "bg-[#FEF7F0]"
+        }`}
+      >
+        <div className="flex items-center justify-between px-6 md:px-20 py-6">
+          {/* LEFT SIDE: Logo + Nav Links */}
+          <div className="flex items-center gap-12">
+            {/* Logo */}
+            <a href="/" className="flex items-center">
+              <img
+                src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765350869/logo_mfyxgl.png"
+                alt="Logo"
+                className="w-48 object-contain"
+              />
+            </a>
 
-    <header
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? "bg-white-30 backdrop-blur-3xl shadow-md" : "bg-[#FEF7F0]"
-      }`}
-    >
-       
-      <div className="flex items-center justify-between px-6 md:px-20 py-6">
-        {/* LEFT SIDE: Logo + Nav Links */}
-        <div className="flex items-center gap-12">
-          {/* Logo */}
-          <a href="/" className="flex items-center">
-            <img src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765350869/logo_mfyxgl.png" alt="Logo" className="w-48 object-contain" />
-          </a>
+            {/* Nav Links */}
+            <nav className="hidden lg:flex items-center gap-8 font-manrope text-3xl font-semibold text-[#243E36]">
+              {navItems.map((item, index) => {
+                const isActive = location.pathname === item.href; // 👈 Check active link
+                return (
+                  <a
+                    key={index}
+                    href={item.href}
+                    className={`text-lg transition-colors duration-200 ${
+                      isActive
+                        ? "text-[#895C40] font-bold" // Active color
+                        : "text-[#243E36] font-bold hover:text-[#895C40]"
+                    }`}
+                  >
+                    {item.label}
+                  </a>
+                );
+              })}
+            </nav>
+          </div>
 
-          {/* Nav Links */}
-          <nav className="hidden lg:flex items-center gap-8 font-manrope text-3xl font-semibold text-[#243E36]">
+          {/* RIGHT SIDE: Button */}
+          <div className="hidden lg:flex items-center gap-6">
+            {!isLoggedIn ? (
+              /* 🔓 NOT LOGGED IN → SHOW LOGIN BUTTON */
+              <motion.a
+                whileHover={{
+                  scale: 1.05,
+                  y: -2,
+                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.20)",
+                }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+                href="/login"
+                className="bg-[#895C40] flex items-center gap-2 rounded-full text-white px-8 py-3"
+              >
+                <IoPersonOutline className="text-xl" />
+                login
+              </motion.a>
+            ) : (
+              /* 🔐 LOGGED IN → SHOW ONLY ICON */
+              <motion.a
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                href="/dashboard"
+                className="w-12 h-12 flex items-center justify-center rounded-full bg-[#895C40] text-white"
+              >
+                <IoPersonOutline className="text-2xl" />
+              </motion.a>
+            )}
+          </div>
+
+          {/* MOBILE MENU BUTTON */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="lg:hidden block"
+          >
+            <RiMenuUnfold4Fill className="w-7 h-7 mr-4 object-contain" />
+          </button>
+        </div>
+
+        {/* MOBILE MENU */}
+        {menuOpen && (
+          <div className="lg:hidden bg-[#FEF7F0] px-6 py-4 shadow-md space-y-4">
             {navItems.map((item, index) => {
-              const isActive = location.pathname === item.href; // 👈 Check active link
+              const isActive = location.pathname === item.href;
               return (
                 <a
                   key={index}
                   href={item.href}
-                  className={`text-lg transition-colors duration-200 ${
+                  onClick={() => setMenuOpen(false)}
+                  className={`block font-semibold transition-colors duration-200 ${
                     isActive
-                      ? "text-[#895C40] font-bold" // Active color
-                      : "text-[#243E36] font-bold hover:text-[#895C40]"
+                      ? "text-[#C9A666]"
+                      : "text-[#3A3222] hover:text-[#C9A666]"
                   }`}
                 >
                   {item.label}
                 </a>
               );
             })}
-          </nav>
-        </div>
 
-        {/* RIGHT SIDE: Button */}
-        <div className="hidden lg:flex items-center gap-6">
-       
- <motion.a
-      whileHover={{
-        scale: 1.05,
-        y: -2,
-        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.20)",
-      }}
-      whileTap={{ scale: 0.97 }}
-      transition={{
-        duration: 0.15,   // ⚡ super quick animation
-        ease: "easeOut",
-      }}
-     href="/sign-up"
-      className="bg-[#895C40] flex items-center justify-center gap-2 cursor- rounded-full text-white px-8 py-3 transition-all"
-    >
-      <IoPersonOutline className=" font-semibold text-xl" />
-     login
-    </motion.a>
-        </div>
-
-        {/* MOBILE MENU BUTTON */}
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="lg:hidden block"
-        >
-         <RiMenuUnfold4Fill  className="w-7 h-7 mr-4 object-contain" />
-        </button>
-      </div>
-
-      {/* MOBILE MENU */}
-      {menuOpen && (
-        <div className="lg:hidden bg-[#FEF7F0] px-6 py-4 shadow-md space-y-4">
-          {navItems.map((item, index) => {
-            const isActive = location.pathname === item.href;
-            return (
-              <a
-                key={index}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className={`block font-semibold transition-colors duration-200 ${
-                  isActive
-                    ? "text-[#C9A666]"
-                    : "text-[#3A3222] hover:text-[#C9A666]"
-                }`}
-              >
-                {item.label}
-              </a>
-            );
-          })}
-
-          <a
-            href="/subscription"
-            onClick={() => setMenuOpen(false)}
-            className="block bg-[#B38E6A] text-white text-center py-2 rounded-full font-semibold"
-          >
-           Start Your Plan
-          </a>
-        </div>
-      )}
-    </header>
+            <a
+              href="/subscription"
+              onClick={() => setMenuOpen(false)}
+              className="block bg-[#B38E6A] text-white text-center py-2 rounded-full font-semibold"
+            >
+              Start Your Plan
+            </a>
+          </div>
+        )}
+      </header>
     </>
   );
 };

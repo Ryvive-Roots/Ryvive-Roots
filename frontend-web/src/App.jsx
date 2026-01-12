@@ -25,6 +25,7 @@ import SilversubForm from "./components/SubSilverForm"
 import GoldsubForm from "./components/SubGoldForm"
 import PlatinumsubForm from "./components/SubPlatinumForm"
 import UserDashboard from "./components/UserDashboard"
+import Login from "./components/Login"
 
 
 
@@ -48,7 +49,7 @@ function App() {
           <Route path="subscription/silver" element={<RyviveSilver />} />
           <Route path="subscription/gold" element={<RyviveGold />} />
           <Route path="subscription/platinum" element={<RyvivePlatinum />} />
-
+          <Route path="/login" element={<Login />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-conditions" element={<Terms />} />
           <Route path="/subscription-silver" element={<SilversubForm />} />
