@@ -2,6 +2,9 @@ import Order from "../models/Order.js";
 import User from "../models/User.js";
 import { PLANS } from "../utils/planConfig.js";
 import generateMembershipId from "../utils/generateMembershipId.js";
+import sendEmail from "../utils/sendEmail.js";
+import generateInvoice from "../utils/generateInvoice.js";
+
 
 
 
@@ -11,7 +14,7 @@ export const placeOrder = async (req, res) => {
     const { formData, plan } = req.body;
 
     console.log("📦 ORDER DATA:", formData, plan);
-    console.log("✅ /place-order HIT");
+
     console.log(req.body);
 
     // ❌ Validate input
@@ -86,6 +89,31 @@ export const placeOrder = async (req, res) => {
     });
 
     console.log("✅ ORDER SAVED:", order._id);
+
+    // 7️⃣ Generate Invoice PDF
+    const invoicePath = await generateInvoice(order);
+
+    // 8️⃣ Send Welcome Email (Hostinger mail)
+    await sendEmail({
+      to: order.user.email,
+      subject: "Welcome to Ryvive Roots 🌱",
+      html: `
+        <h2>Welcome ${order.user.firstName} 🌿</h2>
+        <p>Your subscription has been successfully activated.</p>
+        <p><b>Membership ID:</b> ${order.membershipId}</p>
+        <p><b>Plan:</b> ${order.subscription.plan}</p>
+        <p><b>Amount Paid:</b> ₹${order.subscription.amount}</p>
+        <p>Please find your invoice attached.</p>
+        <br/>
+        <p>– Team Ryvive Roots</p>
+      `,
+      attachments: [
+        {
+          filename: `invoice-${order.membershipId}.pdf`,
+          path: invoicePath,
+        },
+      ],
+    });
 
     return res.json({
       success: true,

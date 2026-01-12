@@ -90,7 +90,7 @@ const Navbar = () => {
               <motion.a
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
-                href="/dashboard"
+                href="/login"
                 className="w-12 h-12 flex items-center justify-center rounded-full bg-[#895C40] text-white"
               >
                 <IoPersonOutline className="text-2xl" />

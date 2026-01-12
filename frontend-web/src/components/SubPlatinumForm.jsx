@@ -189,7 +189,7 @@ const PlatinumsubForm = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           formData,
-          plan: "SILVER",
+          plan: "PLATINUM",
         }),
       });
 

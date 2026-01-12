@@ -27,124 +27,141 @@ const OurStory = () => {
 
   const visibleParagraphs = showMore ? paragraphs : paragraphs.slice(0, 3);
   return (
-    <section >
+    <section>
       {/* Banner Section */}
-    <div className="h-[50vh] mt-28 relative overflow-hidden flex items-center justify-center">
-  {/* Background Image */}
-  <img
-    src={BgImage}
-    alt="Our Story Background"
-    className="absolute inset-0 w-full h-full object-cover object-bottom"
-  />
+      <div className="h-[50vh] mt-28 relative overflow-hidden flex items-center justify-center">
+        {/* Background Image */}
+        <img
+          src={BgImage}
+          alt="Our Story Background"
+          className="absolute inset-0 w-full h-full object-cover object-bottom"
+        />
 
-  {/* Dark Overlay (optional but recommended) */}
-  <div className="absolute inset-0 "></div>
+        {/* Dark Overlay (optional but recommended) */}
+        <div className="absolute inset-0 "></div>
 
-  {/* Animated Text */}
-  <motion.h1
-    className="relative z-10 text-[#895C40] font-semibold font-cinzel uppercase 
+        {/* Animated Text */}
+        <motion.h1
+          className="relative z-10 text-[#895C40] font-semibold font-cinzel uppercase 
                text-5xl md:text-7xl text-center"
-    initial={{ x: -150, y: -150, opacity: 0 }}
-    animate={{ x: 0, y: 0, opacity: 1 }}
-    transition={{ duration: 1.2, ease: 'easeOut' }}
-  >
-    Our Story
-  </motion.h1>
-</div>
+          initial={{ x: -150, y: -150, opacity: 0 }}
+          animate={{ x: 0, y: 0, opacity: 1 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+        >
+          Our Story
+        </motion.h1>
+      </div>
 
-
-
-
-     {/* Info Section */}
-<motion.div
-  className="bg-[#FEF7F0] py-10 md:py-16 lg:py-20 xl:py-30 px-6 md:px-26 
+      {/* Info Section */}
+      <motion.div
+        className="bg-[#FEF7F0] py-10 md:py-16 lg:py-20 xl:py-30 px-6 md:px-26 
              grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-12 lg:gap-16"
-  initial={{ opacity: 0, y: 80 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  transition={{ duration: 1, ease: "easeOut" }}
-  viewport={{ once: true }}
->
-  {/* Vision */}
-  <div className="flex items-start gap-4 text-left w-full">
-    <img src={Story} className="h-16 w-16" alt="vision icon" />
-    <div className="w-full">
-      <h3 className="text-xl font-bold text-[#895C40] font-quicksand">Our Vision</h3>
-      <p className="text-[#6c5840] font-semibold font-manrope mt-2 text-base leading-relaxed">
-        We believe health should be simple, effortless, and a natural part of daily life. Our aim is to make 
-wholesome, balanced eating accessible so people can feel lighter, clearer, and more in tune with 
-themselves.
-      </p>
-    </div>
-  </div>
-
-  {/* Mission */}
-  <div className="flex items-start gap-4 text-left w-full">
-    <img src={Value} className="h-16 w-16" alt="mission icon" />
-    <div className="w-full">
-      <h3 className="text-xl font-bold text-[#895C40] font-quicksand">Our Mission</h3>
-      <p className="text-[#6c5840] font-semibold font-manrope mt-2 text-base leading-relaxed">
-       To make healthy eating easy, enjoyable, and accessible for all through mindful preparation, quality 
-ingredients, and balanced nutrition.
-      </p>
-    </div>
-  </div>
-
-  {/* Value */}
-  <div className="flex items-start gap-4 text-left w-full">
-    <img src={Mission} className="h-16 w-16" alt="value icon" />
-    <div className="w-full">
-      <h3 className="text-xl font-bold text-[#895C40] font-quicksand">Our Value</h3>
-      <p className="text-[#6c5840] font-semibold font-manrope mt-2 text-base leading-relaxed">
-        We strive to redefine healthy eating across India by making nutritious, sustainable, wholesome food easy 
-for everyone. We aim to create a future where good health is a lifestyle, not a privilege.
-      </p>
-    </div>
-  </div>
-</motion.div>
-
-
-  <div className="w-full flex flex-col md:flex-row items-start justify-center gap-10 xl:px-24 lg:px-16 px-4 py-20 ">
-    <div className="w-full md:w-1/2">
-      <h1 className="md:text-2xl lg:text-3xl text-xl  font-cinzel uppercase font-semibold text-[#895C40]">
-        Our Story
-      </h1>
-
-      {visibleParagraphs.map((text, index) => (
-        <p key={index} className=" text-base font-manrope py-2">
-          {text}
-        </p>
-      ))}
-
-      {/* Read more / Read less button */}
-      <button
-        className="text-[#895C40] font-semibold mt-2 underline"
-        onClick={() => setShowMore(!showMore)}
+        initial={{ opacity: 0, y: 80 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, ease: "easeOut" }}
+        viewport={{ once: true }}
       >
-        {showMore ? "Read Less..." : "Read More..."}
-      </button>
-    </div>
-       <div className="w-full md:w-1/2">
-       <img src={Storyy} alt="" /></div>
-    </div>
+        {/* Vision */}
+        <div className="flex items-start gap-4 text-left w-full">
+          <img src={Story} className="h-16 w-16" alt="vision icon" />
+          <div className="w-full">
+            <h3 className="text-xl font-bold text-[#895C40] font-quicksand">
+              Our Vision
+            </h3>
+            <p className="text-[#6c5840] font-semibold font-manrope mt-2 text-base leading-relaxed">
+              We believe health should be simple, effortless, and a natural part
+              of daily life. Our aim is to make wholesome, balanced eating
+              accessible so people can feel lighter, clearer, and more in tune
+              with themselves.
+            </p>
+          </div>
+        </div>
 
+        {/* Mission */}
+        <div className="flex items-start gap-4 text-left w-full">
+          <img src={Value} className="h-16 w-16" alt="mission icon" />
+          <div className="w-full">
+            <h3 className="text-xl font-bold text-[#895C40] font-quicksand">
+              Our Mission
+            </h3>
+            <p className="text-[#6c5840] font-semibold font-manrope mt-2 text-base leading-relaxed">
+              To make healthy eating easy, enjoyable, and accessible for all
+              through mindful preparation, quality ingredients, and balanced
+              nutrition.
+            </p>
+          </div>
+        </div>
+
+        {/* Value */}
+        <div className="flex items-start gap-4 text-left w-full">
+          <img src={Mission} className="h-16 w-16" alt="value icon" />
+          <div className="w-full">
+            <h3 className="text-xl font-bold text-[#895C40] font-quicksand">
+              Our Value
+            </h3>
+            <p className="text-[#6c5840] font-semibold font-manrope mt-2 text-base leading-relaxed">
+              We strive to redefine healthy eating across India by making
+              nutritious, sustainable, wholesome food easy for everyone. We aim
+              to create a future where good health is a lifestyle, not a
+              privilege.
+            </p>
+          </div>
+        </div>
+      </motion.div>
+
+      <div className="w-full flex flex-col md:flex-row items-start justify-center gap-10 xl:px-24 lg:px-16 px-4 py-20 ">
+        <div className="w-full md:w-1/2">
+          <h1 className="md:text-2xl lg:text-3xl text-xl  font-cinzel uppercase font-semibold text-[#895C40]">
+            Our Story
+          </h1>
+
+       
+            <p  className=" text-base font-manrope py-2">
+              Ryvive Roots was born from a simple question: Can food truly
+              nourish us anymore? Everywhere we ate, we found frozen,
+              artificial, and over-processed ingredients that lacked both
+              freshness and purpose. We missed real food—the kind that energizes
+              the body and clears the mind. So we created Ryvive Roots: a place
+              where food is made the way it’s meant to be. Every dish is
+              prepared fresh from scratch, with in-house dressings and zero
+              artificial flavours, colours, or sauces. Just honest ingredients,
+              chosen with intention. We believe health is not a trend—it’s a
+              revival. Our menu is designed to support digestion, immunity,
+              brain function, and overall balance, working with your body, not
+              against it. Sustainability matters to us too. That’s why every
+              order is served in eco-friendly sugarcane-based packaging—because
+              true wellness includes caring for the planet. Ryvive Roots means
+              reconnecting with real nourishment. Live. Relive. Believe. Live
+              better, relive your natural energy, and believe in the power of
+              authentic food. This isn’t just a meal—it’s a return to what’s
+              real. 🌱
+            </p>
+         
+
+        
+        </div>
+        <div className="w-full md:w-1/2">
+          <img src={Storyy} alt="" />
+        </div>
+      </div>
 
       <div className="w-full flex flex-col md:flex-row items-start justify-center gap-10 xl:px-24 lg:px-16 px-4 pb-20 ">
-      
-       <div className="w-full md:w-1/2">
-       <img src={What} alt="" /></div>
-      <WhatIsRyviveRoots />
-    </div>
+        <div className="w-full md:w-1/2">
+          <img src={What} alt="" />
+        </div>
+        <WhatIsRyviveRoots />
+      </div>
 
-     {/* === Progress Stats Cards Section === */}
-<motion.div
-  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 py-16 bg-white"
-  initial={{ opacity: 0, y: 80 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  transition={{ duration: 1, ease: "easeOut" }}
-  viewport={{ once: true }}
->
-  {/* Box 1 - Progress Info */}
-  {/* <div className="bg-[#e7dbcf] p-10 flex flex-col justify-center text-left hover:scale-105 transition-transform duration-300">
+      {/* === Progress Stats Cards Section === */}
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 py-16 bg-white"
+        initial={{ opacity: 0, y: 80 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, ease: "easeOut" }}
+        viewport={{ once: true }}
+      >
+        {/* Box 1 - Progress Info */}
+        {/* <div className="bg-[#e7dbcf] p-10 flex flex-col justify-center text-left hover:scale-105 transition-transform duration-300">
     <h4 className="text-sm uppercase text-[#6c5840] font-semibold mb-2 tracking-wide">
       Progress
     </h4>
@@ -155,30 +172,26 @@ for everyone. We aim to create a future where good health is a lifestyle, not a 
     </h2>
   </div> */}
 
-  {/* Box 2 - Served Dishes */}
-  {/* <div className="bg-[#d5bda3] p-8 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform duration-300">
+        {/* Box 2 - Served Dishes */}
+        {/* <div className="bg-[#d5bda3] p-8 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform duration-300">
     <h2 className="text-5xl font-bold text-white mb-2">5934</h2>
     <p className="text-white">Served Dishes</p>
   </div> */}
 
-  {/* Box 3 - Served Customers */}
-  {/* <div className="bg-[#b89b7b] p-8 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform duration-300">
+        {/* Box 3 - Served Customers */}
+        {/* <div className="bg-[#b89b7b] p-8 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform duration-300">
     <h2 className="text-5xl font-bold text-[#fff] mb-2">9211</h2>
     <p className="text-[#f7f3ec]">Served Customers</p>
   </div> */}
 
-  {/* Box 4 - Served Projects */}
-  {/* <div className="bg-[#a28363] p-8 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform duration-300">
+        {/* Box 4 - Served Projects */}
+        {/* <div className="bg-[#a28363] p-8 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform duration-300">
     <h2 className="text-5xl font-bold text-[#fff] mb-2">8672</h2>
     <p className="text-[#f7f3ec]">Served Projects</p>
   </div> */}
-</motion.div>
+      </motion.div>
 
-
-
-  
-<AboutPromise />
-
+      <AboutPromise />
     </section>
   );
 };

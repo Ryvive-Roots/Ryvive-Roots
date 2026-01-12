@@ -22,18 +22,20 @@ export default function WhatIsRyviveRoots() {
         What is Ryvive Roots?
       </h1>
 
-      {visibleParagraphs.map((text, index) => (
-        <p key={index} className=" text-base font-manrope py-2">
-          {text}
-        </p>
-      ))}
+      <p  className=" text-base font-manrope py-2">
+        Ryvive Roots is an invitation to return to what is pure, grounded, and
+        real. Born from a respect for nature and the body’s innate wisdom, every
+        dish is prepared from scratch using clean, carefully chosen ingredients
+        that nourish without excess and restore without force. Free from
+        artificial flavours, preservatives, and shortcuts, our food is designed
+        to move in harmony with your natural rhythm—awakening energy, sustaining
+        balance, and leaving you feeling light, clear, and renewed. We don’t
+        chase trends or promise quick fixes; we offer thoughtful nourishment,
+        crafted with care, meant to support a refined way of living where
+        wellness feels effortless and enduring.
+      </p>
 
-      <button
-        className="text-[#895C40] font-semibold mt-2 underline"
-        onClick={() => setShowMore(!showMore)}
-      >
-        {showMore ? "Read Less..." : "Read More..."}
-      </button>
+    
     </div>
   );
 }
