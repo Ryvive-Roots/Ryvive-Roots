@@ -2,7 +2,6 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import BgImage from "../assets/bg.png";
-import Bg from "../assets/qa1.png"
 
 import Silver from "../assets/silverF.png";
 import Gold from "../assets/goldF.png";
@@ -15,7 +14,7 @@ const SubscriptionTypes = () => {
   return (
     <>
       <ScrollToTop />
-      <div className="relative w-full h-[120vh] flex flex-col md:flex-row items-end overflow-hidden">
+      <div className="relative w-full h-[105vh] flex flex-col md:flex-row items-end overflow-hidden">
         {/* Background */}
         <img
           src={BgImage}
@@ -62,7 +61,6 @@ const SubscriptionTypes = () => {
         </div>
       </div>
 
-      <img src={Bg} alt="background" className="  mt-20 object-cover " />
     </>
   );
 };

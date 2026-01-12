@@ -9,7 +9,7 @@ import Value from "../assets/chef.png";
 import Mission from "../assets/valuei.png";
 import WhatIsRyviveRoots from "../components/WhatRevive";
 import AboutPromise from "../components/OurPromise";
-import BgImage from "../assets/BggImg.png"
+import BgImage from "../assets/StoryBg.png"
 
 const OurStory = () => {
     const [showMore, setShowMore] = useState(false);
@@ -116,7 +116,7 @@ const OurStory = () => {
           </h1>
 
        
-            <p  className=" text-base font-manrope py-2">
+            <p  className=" text-sm font-roboto py-2">
               Ryvive Roots was born from a simple question: Can food truly
               nourish us anymore? Everywhere we ate, we found frozen,
               artificial, and over-processed ingredients that lacked both
@@ -134,7 +134,7 @@ const OurStory = () => {
               reconnecting with real nourishment. Live. Relive. Believe. Live
               better, relive your natural energy, and believe in the power of
               authentic food. This isn’t just a meal—it’s a return to what’s
-              real. 🌱
+              real. 
             </p>
          
 

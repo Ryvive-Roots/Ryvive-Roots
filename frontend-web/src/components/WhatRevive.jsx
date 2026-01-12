@@ -22,7 +22,7 @@ export default function WhatIsRyviveRoots() {
         What is Ryvive Roots?
       </h1>
 
-      <p  className=" text-base font-manrope py-2">
+      <p  className="  text-sm font-roboto py-2">
         Ryvive Roots is an invitation to return to what is pure, grounded, and
         real. Born from a respect for nature and the body’s innate wisdom, every
         dish is prepared from scratch using clean, carefully chosen ingredients

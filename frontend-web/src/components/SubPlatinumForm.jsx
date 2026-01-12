@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from "react";
 import { ChevronDown, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
+import BgImage from "../assets/Form.png";
+
 
 
 const allowedPincodes = [
@@ -253,20 +255,26 @@ const PlatinumsubForm = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto my-30 px-4">
-      {/* HEADER */}
+   <div
+         className="min-h-screen bg-cover bg-top mt-20 bg-no-repeat flex items-center justify-center"
+         style={{
+           backgroundImage: `url(${BgImage})`,
+         }}
+       >
+         {/* Overlay for readability */}
+         <div className="min-h-screen w-full py-20 px-4">
       <div className="text-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-roboto font-bold text-gray-800">
+        <h1 className="text-3xl font-lobster md:text-4xl   text-white">
           Subscription Checkout
         </h1>
-        <p className="text-gray-500 mt-2 font-fredoka">
+        <p className="text-white text-xl  mt-2 font-fredoka">
           Complete your details to begin your wellness journey 🌱
         </p>
       </div>
 
       {/* PROGRESS */}
       <div className="mb-10">
-        <div className="flex justify-between text-xs font-medium text-gray-500 mb-2">
+        <div className="flex justify-between text-xs font-medium text-white mb-2">
           <span>{steps[step]}</span>
           <span>{progress}% Complete</span>
         </div>
@@ -289,43 +297,77 @@ const PlatinumsubForm = () => {
 
             {/* STEP 1 */}
             {step === 0 && (
-              <div className="grid md:grid-cols-2 font-roboto gap-4">
-                <input
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className={inputStyle}
-                  placeholder="First Name"
-                />
-                <input
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className={inputStyle}
-                  placeholder="Last Name"
-                />
-                <input
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className={inputStyle}
-                  placeholder="Phone Number"
-                />
-                <input
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className={inputStyle}
-                  placeholder="Email ID"
-                />
-                <input
-                  name="dob"
-                  type="date"
-                  value={formData.dob}
-                  onChange={handleChange}
-                  className={inputStyle}
-                />
-              </div>
+             <div className="grid md:grid-cols-2 font-roboto gap-6">
+  <div className="flex flex-col gap-1">
+    <label htmlFor="firstName" className="text-sm font-medium">
+      First Name
+    </label>
+    <input
+      id="firstName"
+      name="firstName"
+      value={formData.firstName}
+      onChange={handleChange}
+      className={inputStyle}
+      placeholder="First Name"
+    />
+  </div>
+
+  <div className="flex flex-col gap-1">
+    <label htmlFor="lastName" className="text-sm font-medium">
+      Last Name
+    </label>
+    <input
+      id="lastName"
+      name="lastName"
+      value={formData.lastName}
+      onChange={handleChange}
+      className={inputStyle}
+      placeholder="Last Name"
+    />
+  </div>
+
+  <div className="flex flex-col gap-1">
+    <label htmlFor="phone" className="text-sm font-medium">
+      Phone Number
+    </label>
+    <input
+      id="phone"
+      name="phone"
+      value={formData.phone}
+      onChange={handleChange}
+      className={inputStyle}
+      placeholder="Phone Number"
+    />
+  </div>
+
+  <div className="flex flex-col gap-1">
+    <label htmlFor="email" className="text-sm font-medium">
+      Email ID
+    </label>
+    <input
+      id="email"
+      name="email"
+      value={formData.email}
+      onChange={handleChange}
+      className={inputStyle}
+      placeholder="Email ID"
+    />
+  </div>
+
+  <div className="flex flex-col gap-1">
+    <label htmlFor="dob" className="text-sm font-medium">
+      Date of Birth
+    </label>
+    <input
+      id="dob"
+      name="dob"
+      type="date"
+      value={formData.dob}
+      onChange={handleChange}
+      className={inputStyle}
+    />
+  </div>
+</div>
             )}
 
             {/* STEP 2 */}
@@ -658,6 +700,7 @@ const PlatinumsubForm = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

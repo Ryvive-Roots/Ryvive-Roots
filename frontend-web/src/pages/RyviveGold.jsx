@@ -4,10 +4,7 @@ import wrapIcon from "../assets/wraps.avif/";
 import juiceIcon from "../assets/juices.png";
 import chaatIcon from "../assets/chat.png";
 import Pasta from "../assets/pasta.png"
-
-
-
-
+import BgImage from "../assets/goldbg.png"
 
 const RyviveGold = () => {
   const categories = [
@@ -19,10 +16,17 @@ const RyviveGold = () => {
     ]
 
   return (
-    <div className="min-h-screen mt-20 bg-gray-50 flex items-center justify-center px-4">
+     <div
+               className="min-h-screen bg-cover bg-top mt-20 bg-no-repeat flex items-center justify-center"
+               style={{
+                 backgroundImage: `url(${BgImage})`,
+               }}
+             >
+               {/* Overlay for readability */}
+               <div className="min-h-screen w-full py-20 px-4">
       <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* LEFT — CART TOTALS */}
-        <div className="md:col-span-2 bg-white rounded-xl shadow-md p-6 text-sm">
+        <div className="md:col-span-2 bg-white/55 rounded-xl shadow-md p-6 text-sm">
           <h1 className="text-xl text-center font-cinzel uppercase font-semibold text-[#243E36] mb-3">
             Ryvive Gold
           </h1>
@@ -30,18 +34,12 @@ const RyviveGold = () => {
             More variety. More function. More nourishment.{" "}
           </h2>
 
-          <p className="text-gray-600 mb-2 font-roboto">
-            Ryvive Gold is crafted for those who move through full days with
-            purpose and presence. Designed to support both performance and
-            balance, it offers a deeper, more considered approach to everyday
-            nourishment.
+          <p className="text-black font-bold mb-2 font-roboto">
+           Ryvive Gold is crafted for those who move through full days with purpose and presence. Designed to support both performance and balance, it offers a deeper, more considered approach to everyday nourishment.
           </p>
 
-          <p className="text-gray-600 mb-4 font-roboto">
-            With fresh salads, protein-balanced wraps, functional juices, and
-            clean chaat options, this plan helps you gradually replace unhealthy
-            choices with better ones. Perfect for beginners, busy professionals,
-            and anyone starting their wellness journey.
+          <p className="text-black font-bold mb-4 font-roboto">
+            With elevated protein options, functional juices, and a wider selection of refined meals, Ryvive Gold sustains energy while honoring the body’s rhythm.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -96,7 +94,7 @@ const RyviveGold = () => {
         </div>
 
         {/* RIGHT — CONTENT */}
-        <div className="bg-white rounded-xl shadow-md p-5 h-fit">
+        <div className="bg-white/70 rounded-xl shadow-md p-5 h-fit">
           <h2 className="text-sm font-semibold text-gray-800 mb-3 border-b pb-2 tracking-wide">
             CART TOTALS
           </h2>
@@ -127,6 +125,7 @@ const RyviveGold = () => {
           </a>
         </div>
       </div>
+    </div>
     </div>
   );
 };

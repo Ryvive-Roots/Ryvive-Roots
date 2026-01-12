@@ -307,43 +307,78 @@ const createPasswordAndLogin = async () => {
 
                 {/* STEP 1 */}
                 {step === 0 && (
-                  <div className="grid md:grid-cols-2 font-roboto gap-6">
-                    <input
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      className={inputStyle}
-                      placeholder="First Name"
-                    />
-                    <input
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      className={inputStyle}
-                      placeholder="Last Name"
-                    />
-                    <input
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className={inputStyle}
-                      placeholder="Phone Number"
-                    />
-                    <input
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className={inputStyle}
-                      placeholder="Email ID"
-                    />
-                    <input
-                      name="dob"
-                      type="date"
-                      value={formData.dob}
-                      onChange={handleChange}
-                      className={inputStyle}
-                    />
-                  </div>
+                 <div className="grid md:grid-cols-2 font-roboto gap-6">
+  <div className="flex flex-col gap-1">
+    <label htmlFor="firstName" className="text-sm font-medium">
+      First Name
+    </label>
+    <input
+      id="firstName"
+      name="firstName"
+      value={formData.firstName}
+      onChange={handleChange}
+      className={inputStyle}
+      placeholder="First Name"
+    />
+  </div>
+
+  <div className="flex flex-col gap-1">
+    <label htmlFor="lastName" className="text-sm font-medium">
+      Last Name
+    </label>
+    <input
+      id="lastName"
+      name="lastName"
+      value={formData.lastName}
+      onChange={handleChange}
+      className={inputStyle}
+      placeholder="Last Name"
+    />
+  </div>
+
+  <div className="flex flex-col gap-1">
+    <label htmlFor="phone" className="text-sm font-medium">
+      Phone Number
+    </label>
+    <input
+      id="phone"
+      name="phone"
+      value={formData.phone}
+      onChange={handleChange}
+      className={inputStyle}
+      placeholder="Phone Number"
+    />
+  </div>
+
+  <div className="flex flex-col gap-1">
+    <label htmlFor="email" className="text-sm font-medium">
+      Email ID
+    </label>
+    <input
+      id="email"
+      name="email"
+      value={formData.email}
+      onChange={handleChange}
+      className={inputStyle}
+      placeholder="Email ID"
+    />
+  </div>
+
+  <div className="flex flex-col gap-1">
+    <label htmlFor="dob" className="text-sm font-medium">
+      Date of Birth
+    </label>
+    <input
+      id="dob"
+      name="dob"
+      type="date"
+      value={formData.dob}
+      onChange={handleChange}
+      className={inputStyle}
+    />
+  </div>
+</div>
+
                 )}
 
                 {/* STEP 2 */}
