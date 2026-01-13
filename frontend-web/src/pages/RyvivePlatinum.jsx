@@ -113,17 +113,17 @@ const RyvivePlatinum = () => {
           <div className="space-y-2 text-sm text-black font-manrope">
             <div className="flex font-bold justify-between">
               <span>Subtotal</span>
-              <span>₹5,999</span>
+              <span>₹6,999</span>
             </div>
 
             <div className="flex font-bold justify-between">
               <span>Food Delivery Fee</span>
-              <span>₹00.00</span>
+              <span>Free </span>
             </div>
 
             <div className="flex justify-between font-semibold border-t pt-2">
               <span>Total</span>
-              <span>₹5,999</span>
+              <span>₹6,999</span>
             </div>
           </div>
 

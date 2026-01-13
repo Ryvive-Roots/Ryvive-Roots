@@ -4,8 +4,7 @@ import { PLANS } from "../utils/planConfig.js";
 import generateMembershipId from "../utils/generateMembershipId.js";
 import sendEmail from "../utils/sendEmail.js";
 import generateInvoice from "../utils/generateInvoice.js";
-
-
+import generateReceiptNumber from "../utils/generateReceiptNumber.js";
 
 
 
@@ -53,16 +52,20 @@ export const placeOrder = async (req, res) => {
 
     // 2️⃣ CREATE MEMBERSHIP ID
     const membershipId = await generateMembershipId(Order);
+    // 🔢 Generate Receipt Number
+    const receiptNumber = await generateReceiptNumber(Order);
 
     // 4️⃣ CREATE ORDER ✅
     const order = await Order.create({
       membershipId,
+      receiptNumber,
 
       user: {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        phone: user.phone,
-        email: user.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        email: formData.email,
+        dob: new Date(formData.dob), // ✅ IMPORTANT
       },
 
       address: {
@@ -96,20 +99,68 @@ export const placeOrder = async (req, res) => {
     // 8️⃣ Send Welcome Email (Hostinger mail)
     await sendEmail({
       to: order.user.email,
-      subject: "Welcome to Ryvive Roots 🌱",
+      subject: "Thank You! Your Payment Has Been Received — Ryvive Roots",
       html: `
-        <h2>Welcome ${order.user.firstName} 🌿</h2>
-        <p>Your subscription has been successfully activated.</p>
-        <p><b>Membership ID:</b> ${order.membershipId}</p>
-        <p><b>Plan:</b> ${order.subscription.plan}</p>
-        <p><b>Amount Paid:</b> ₹${order.subscription.amount}</p>
-        <p>Please find your invoice attached.</p>
-        <br/>
-        <p>– Team Ryvive Roots</p>
-      `,
+  <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+    <h2>Hi ${order.user.firstName},</h2>
+
+    <p>
+      Thank you for making the payment and joining the
+      <b>Ryvive Roots Subscription Program</b> 🌿
+      We’re excited to have you with us on this healthy journey.
+    </p>
+
+    <p>Here are your subscription details for your reference:</p>
+
+    <table style="border-collapse: collapse;">
+     <tr>
+  <td><b>Receipt Number</b></td>
+  <td>: ${order.receiptNumber}</td>
+</tr>
+
+      <tr>
+        <td><b>Plan Chosen</b></td>
+        <td>: ${order.subscription.plan}</td>
+      </tr>
+      <tr>
+        <td><b>Amount Paid</b></td>
+        <td>: ₹${order.subscription.amount}</td>
+      </tr>
+      <tr>
+        <td><b>Payment Date</b></td>
+      <td>: ${order.createdAt.toLocaleDateString("en-IN")}</td>
+      </tr>
+    </table>
+
+    <br />
+
+    <p>
+     Your payment is confirmed 🎉 and your subscription is recorded.
+    </p>
+
+    <p>
+      You’ll receive another email shortly with your membership number and activation details.
+    </p>
+
+    <br />
+
+    <p>
+     If you ever need help, we’re always here — reach us at:<br />
+      <b>customersupport@ryviveroots.com</b>
+    </p>
+
+    <br />
+
+    <p>
+      Stay healthy, stay vibrant 💚<br />
+      <b>Team Ryvive Roots</b>
+    </p>
+  </div>
+`,
+
       attachments: [
         {
-          filename: `invoice-${order.membershipId}.pdf`,
+          filename: `invoice-${order.receiptNumber}.pdf`,
           path: invoicePath,
         },
       ],

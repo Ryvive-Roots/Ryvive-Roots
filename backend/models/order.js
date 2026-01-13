@@ -7,12 +7,21 @@ const OrderSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
+    receiptNumber: {
+      type: String,
+      unique: true,
+      required: true,
+    },
 
     user: {
       firstName: String,
       lastName: String,
       phone: String,
       email: String,
+      dob: {
+        type: Date, // ✅ BEST PRACTICE
+        required: true,
+      },
     },
 
     address: {
