@@ -10,94 +10,62 @@ const PrivacyPolicy = () => {
           Privacy Policy
         </h1>
 
-        <p className="text-gray-600 font-manrope mb-8 leading-relaxed">
-          At <span className="font-semibold">RYVIVE ROOTS</span>, we value your privacy
-          and are committed to protecting your personal information. This Privacy
-          Policy explains how we collect, use, and safeguard your data when you visit
-          our website or subscribe to our services.
+        <p className="text-gray-600 font-roboto mb-8 leading-relaxed">
+         Ryvive Roots  is committed to safeguarding the privacy of its users. This Privacy Policy describes how we collect, use, disclose, and protect your information when you access our website, place orders, or use our services.
         </p>
+         <p className="text-gray-600 font-roboto mb-8 leading-relaxed">
+          By accessing or using our website or services, you agree to the collection and use of information in accordance with this Privacy Policy.
+         </p>
+
 
         {/* Section */}
-        <section className="mb-8 font-manrope">
+        <section className="mb-8 font-roboto">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Information We Collect
-          </h2>
-          <ul className="list-disc list-inside text-gray-600 space-y-2">
-            <li>Name, Email Id, Phone Number, DoB</li>
-            <li>Delivery address and Delivery Slot</li>
-            <li>Payment details (processed securely via Razorpay)</li>
-            <li>Subscription preferences and order history</li>
-          </ul>
-        </section>
-
-        {/* Section */}
-        <section className="mb-8 font-manrope">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            How We Use Your Information
-          </h2>
-          <ul className="list-disc list-inside text-gray-600 space-y-2">
-            <li>Process subscriptions and orders</li>
-            <li>Deliver food and beverages to your address</li>
-            <li>Communicate updates, offers, or service-related information</li>
-            <li>Improve our website and customer experience</li>
-          </ul>
-        </section>
-
-        {/* Section */}
-        <section className="mb-8 font-manrope">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Payment Security
+           Information We Collect
           </h2>
           <p className="text-gray-600 leading-relaxed">
-            All payments for monthly subscriptions are securely processed through
-            <span className="font-medium"> Razorpay</span>. We do not store or have
-            access to your card or banking information.
+            We may collect personal information such as name, contact details, delivery address, date of birth (if voluntarily provided), subscription details, order history, and any dietary preferences or allergies disclosed by the user..
+          </p>
+          
+        </section>
+
+        {/* Section */}
+        <section className="mb-8 font-roboto">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+           Payment Information
+          </h2>
+          <p className="text-gray-600 leading-relaxed">
+           All payments are processed securely through Razorpay. Ryvive Roots does not store, process, or retain any card details, UPI IDs, banking credentials, or wallet information.
           </p>
         </section>
 
         {/* Section */}
-        <section className="mb-8 font-manrope">
+        <section className="mb-8 font-roboto">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Data Protection
+           Technical & Usage Information
           </h2>
           <p className="text-gray-600 leading-relaxed">
-            We take appropriate security measures to protect your personal data
-            against unauthorized access, alteration, or disclosure.
+           We may collect technical information such as IP address, browser type, device details, and website usage data through cookies or analytics tools.
           </p>
         </section>
 
         {/* Section */}
-        <section className="mb-8 font-manrope">
+        <section className="mb-8 font-roboto">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Third-Party Sharing
+            Purpose of Data Collection
           </h2>
           <p className="text-gray-600 leading-relaxed">
-            We do not sell or rent your personal information. Data may be shared
-            only with trusted partners for order fulfillment and payment processing.
-          </p>
-        </section>
-
-        {/* Section */}
-        <section className="mb-8 font-manrope">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Changes to This Policy
-          </h2>
-          <p className="text-gray-600 leading-relaxed">
-            We reserve the right to update this Privacy Policy at any time. Any
-            changes will be posted on this page.
+            Information is collected solely for order processing, subscription management, delivery coordination, customer support, grievance handling, internal analytics, and legal or regulatory compliance.
           </p>
         </section>
 
         {/* Contact */}
-        <section className="border-t pt-6 font-manrope">
+        <section className="mb-8 font-roboto">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Contact Us
+            Purpose of Data Collection
           </h2>
-          <p className="text-gray-600">
-            For questions regarding this Privacy Policy, contact us at:
-          </p>
-          <p className="mt-2 text-green-700 font-medium">
-            📧 contact@ryviveroots.com
+          <p className="text-gray-600 leading-relaxed">
+            Information is collected solely for order processing, subscription management, delivery coordination, customer support, grievance handling, internal analytics, and legal or regulatory compliance.
           </p>
         </section>
 

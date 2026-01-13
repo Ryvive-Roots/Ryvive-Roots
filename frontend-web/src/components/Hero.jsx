@@ -10,21 +10,25 @@ import ScrollingText from "./Usps";
 import MenuCarousel from "./MenuCarousal";
 import { useNavigate } from "react-router-dom";
 import TestimonialsSection from "./Testimonials";
+import Bowl from "../assets/bowl.JPG";
+import HJuice from "../assets/HJuice.JPG"
+import Chaat from "../assets/Chaat.JPG"
+import Sandwitch1 from "../assets/Sandwitch1.JPG"
 
 const HeroSection = () => {
   const cloudinaryImages = {
-    Sandwitch:
-      "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765276783/Sandwitch_zyfnbq.jpg",
-    Juice:
-      "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765279455/Juice_ercm00.jpg",
-    Salad:
-      "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765347810/Salad3_guopxm.webp",
+    Sandwitch: Sandwitch1,
+    Juice:HJuice,
+    Salad:Bowl,
+     Chaat : Chaat
   };
 
   const images = [
     cloudinaryImages.Salad,
     cloudinaryImages.Sandwitch,
     cloudinaryImages.Juice,
+    cloudinaryImages.Chaat,
+  
   ];
   const sliderRef = useRef(null);
   const navigate = useNavigate();
@@ -131,7 +135,7 @@ const HeroSection = () => {
               <div key={i} className="w-full h-[50vh] lg:h-[90vh]">
                 <img
                   src={img}
-                  className="w-full h-full object-cover object-top-left"
+                  className="w-full h-full object-cover object-top"
                 />
               </div>
             ))}

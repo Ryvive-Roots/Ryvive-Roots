@@ -26,6 +26,7 @@ import GoldsubForm from "./components/SubGoldForm"
 import PlatinumsubForm from "./components/SubPlatinumForm"
 import UserDashboard from "./components/UserDashboard"
 import Login from "./components/Login"
+import Shipping from "./components/Shipping"
 
 
 
@@ -56,6 +57,7 @@ function App() {
           <Route path="/subscription-gold" element={<GoldsubForm />} />
           <Route path="/subscription-platinum" element={<PlatinumsubForm />} />
           <Route path="/dashboard" element={<UserDashboard />} />
+           <Route path="/shipping-delivery" element={<Shipping/>} />
         </Routes>
       </main>
 

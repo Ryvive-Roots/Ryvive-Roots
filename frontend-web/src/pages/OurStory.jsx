@@ -9,7 +9,7 @@ import Value from "../assets/chef.png";
 import Mission from "../assets/valuei.png";
 import WhatIsRyviveRoots from "../components/WhatRevive";
 import AboutPromise from "../components/OurPromise";
-import BgImage from "../assets/StoryBg.png"
+import BgImage from "../assets/StoryBg.JPG";
 
 const OurStory = () => {
     const [showMore, setShowMore] = useState(false);
@@ -29,12 +29,12 @@ const OurStory = () => {
   return (
     <section>
       {/* Banner Section */}
-      <div className="h-[50vh] mt-28 relative overflow-hidden flex items-center justify-center">
+      <div className="h-[80vh] mt-28 relative overflow-hidden flex items-center justify-center">
         {/* Background Image */}
         <img
           src={BgImage}
           alt="Our Story Background"
-          className="absolute inset-0 w-full h-full object-cover object-bottom"
+          className="absolute inset-0 w-full h-full opacity-85 object-cover object-center"
         />
 
         {/* Dark Overlay (optional but recommended) */}
@@ -42,7 +42,7 @@ const OurStory = () => {
 
         {/* Animated Text */}
         <motion.h1
-          className="relative z-10 text-[#895C40] font-semibold font-cinzel uppercase 
+          className="relative z-10 text-white font-semibold font-cinzel uppercase 
                text-5xl md:text-7xl text-center"
           initial={{ x: -150, y: -150, opacity: 0 }}
           animate={{ x: 0, y: 0, opacity: 1 }}

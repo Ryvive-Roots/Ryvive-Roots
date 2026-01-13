@@ -114,7 +114,7 @@ export const placeOrder = async (req, res) => {
 
     <table style="border-collapse: collapse;">
      <tr>
-  <td><b>Receipt Number</b></td>
+  <td><b>Invoice Number</b></td>
   <td>: ${order.receiptNumber}</td>
 </tr>
 

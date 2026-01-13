@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import bowlImg from "../assets/bowl.png";
+import bowlImg from "../assets/bowl.JPG";
 import appleImg from "../assets/apple.png";
 import kiwiImg from "../assets/kiwi.png";
 import avacodoImg from "../assets/avacodo.png";

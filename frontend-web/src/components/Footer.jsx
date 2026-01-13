@@ -1,5 +1,4 @@
 import { FaInstagram, FaLinkedin } from "react-icons/fa";
-import { FaXTwitter } from "react-icons/fa6";
 import { FaPhoneAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { FaLocationDot } from "react-icons/fa6";
@@ -119,8 +118,8 @@ Wholesome food made to nourish your body and make you feel good every day.
             {[
               { name: "Privacy Policy", path: "/privacy-policy" },
               { name: "Terms & Conditions", path: "/terms-conditions" },
-              { name: "Cancellation & Refund Policy", path: "/menu" },
-              { name: "Shipping & Delivery Policy", path: "/subscription" },
+              { name: "Cancellation & Refund Policy", path: "/shipping-delivery" },
+              { name: "Shipping & Delivery Policy", path: "/shipping-delivery" },
            
             ].map((link, index) => (
               <motion.li key={index} variants={itemVariants}>
