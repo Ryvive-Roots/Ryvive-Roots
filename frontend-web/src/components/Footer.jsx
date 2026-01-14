@@ -118,7 +118,7 @@ Wholesome food made to nourish your body and make you feel good every day.
             {[
               { name: "Privacy Policy", path: "/privacy-policy" },
               { name: "Terms & Conditions", path: "/terms-conditions" },
-              { name: "Cancellation & Refund Policy", path: "/shipping-delivery" },
+              { name: "Cancellation & Refund Policy", path: "/cancellation-refund" },
               { name: "Shipping & Delivery Policy", path: "/shipping-delivery" },
            
             ].map((link, index) => (
@@ -153,7 +153,7 @@ Wholesome food made to nourish your body and make you feel good every day.
               variants={itemVariants}
             >
               <FaPhoneAlt className="text-[#895C40] text-lg" />
-              <span className="text-black/75 font-semibold">+91 9076000468 / 97656 00701</span>
+              <span className="text-black/75 font-semibold">+91 9076000468 / 9765600701</span>
             </motion.div>
             <hr className="border-gray-300" />
 

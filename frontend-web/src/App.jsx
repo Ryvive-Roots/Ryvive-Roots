@@ -27,6 +27,7 @@ import PlatinumsubForm from "./components/SubPlatinumForm"
 import UserDashboard from "./components/UserDashboard"
 import Login from "./components/Login"
 import Shipping from "./components/Shipping"
+import Cancellation from "./components/Cancellation"
 
 
 
@@ -58,6 +59,8 @@ function App() {
           <Route path="/subscription-platinum" element={<PlatinumsubForm />} />
           <Route path="/dashboard" element={<UserDashboard />} />
            <Route path="/shipping-delivery" element={<Shipping/>} />
+            <Route path="/cancellation-refund" element={<Cancellation />} />
+                 
         </Routes>
       </main>
 

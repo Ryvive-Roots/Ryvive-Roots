@@ -61,11 +61,18 @@ const OrderSchema = new mongoose.Schema(
         type: Date,
         required: true,
       },
+      pause: {
+  startDate: Date,
+  resumeDate: Date,
+  days: Number,
+},
+
       status: {
         type: String,
         enum: ["ACTIVE", "PAUSED", "CANCELLED", "EXPIRED"],
         default: "ACTIVE",
       },
+
     },
 
     paymentStatus: {
