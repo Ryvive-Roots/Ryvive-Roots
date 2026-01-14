@@ -73,6 +73,11 @@ const OrderSchema = new mongoose.Schema(
       enum: ["PENDING", "PAID"],
       default: "PAID",
     },
+    paymentMethod: {
+      type: String,
+      enum: ["CASH", "GPAY", "CARD", "RAZORPAY"],
+      default: "CASH",
+    },
   },
   { timestamps: true }
 );

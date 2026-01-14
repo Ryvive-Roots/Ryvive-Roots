@@ -197,6 +197,7 @@ const PlatinumsubForm = () => {
        body: JSON.stringify({
          formData,
          plan: "PLATINUM",
+         paymentMethod: "RAZORPAY",
        }),
      });
 

@@ -10,7 +10,7 @@ import generateReceiptNumber from "../utils/generateReceiptNumber.js";
 
 export const placeOrder = async (req, res) => {
   try {
-    const { formData, plan } = req.body;
+    const { formData, plan, paymentMethod } = req.body;
 
     console.log("📦 ORDER DATA:", formData, plan);
 
@@ -88,7 +88,8 @@ export const placeOrder = async (req, res) => {
         status: "ACTIVE",
       },
 
-      paymentStatus: "PAID", // DEV MODE
+      paymentStatus: "PAID",
+      paymentMethod: paymentMethod || "RAZORPAY",
     });
 
     console.log("✅ ORDER SAVED:", order._id);
@@ -164,6 +165,42 @@ export const placeOrder = async (req, res) => {
           path: invoicePath,
         },
       ],
+    });
+
+    // 📩 Send order details to company email
+    await sendEmail({
+      to: process.env.COMPANY_EMAIL,
+      subject: `🧾 New Subscription Order - ${order.membershipId}`,
+      html: `
+    <h2>New Customer Subscription Received</h2>
+
+    <h3>Customer Details</h3>
+    <ul>
+      <li><b>Name:</b> ${order.user.firstName} ${order.user.lastName}</li>
+      <li><b>Phone:</b> ${order.user.phone}</li>
+      <li><b>Email:</b> ${order.user.email}</li>
+      <li><b>DOB:</b> ${order.user.dob.toLocaleDateString("en-IN")}</li>
+    </ul>
+
+    <h3>Subscription</h3>
+    <ul>
+      <li><b>Plan:</b> ${order.subscription.plan}</li>
+      <li><b>Amount:</b> ₹${order.subscription.amount}</li>
+      <li><b>Slot:</b> ${order.deliverySlot}</li>
+      <li><b>Payment Method:</b> ${order.paymentMethod}</li>
+      <li><b>Receipt No:</b> ${order.receiptNumber}</li>
+      <li><b>Membership ID:</b> ${order.membershipId}</li>
+    </ul>
+
+    <h3>Address</h3>
+    <p>
+      ${order.address.house}, ${order.address.street}, <br/>
+      ${order.address.landmark || ""} <br/>
+      ${order.address.city}, ${order.address.state} - ${order.address.pincode}
+    </p>
+
+    <p>🕒 Order Time: ${order.createdAt.toLocaleString("en-IN")}</p>
+  `,
     });
 
     return res.json({

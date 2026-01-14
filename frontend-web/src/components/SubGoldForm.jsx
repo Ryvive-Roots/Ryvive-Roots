@@ -197,6 +197,7 @@ const GoldsubForm = () => {
        body: JSON.stringify({
          formData,
          plan: "GOLD",
+         paymentMethod: "RAZORPAY",
        }),
      });
 
