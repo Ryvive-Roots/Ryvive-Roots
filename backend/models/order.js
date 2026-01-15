@@ -20,7 +20,6 @@ const OrderSchema = new mongoose.Schema(
       email: String,
       dob: {
         type: Date, // ✅ BEST PRACTICE
-        required: true,
       },
     },
 
@@ -62,17 +61,21 @@ const OrderSchema = new mongoose.Schema(
         required: true,
       },
       pause: {
-  startDate: Date,
-  resumeDate: Date,
-  days: Number,
-},
+        used: { type: Number, default: 0 }, // ✅ pause counter
+        history: [
+          {
+            startDate: Date,
+            resumeDate: Date,
+            days: Number,
+          },
+        ],
+      },
 
       status: {
         type: String,
         enum: ["ACTIVE", "PAUSED", "CANCELLED", "EXPIRED"],
         default: "ACTIVE",
       },
-
     },
 
     paymentStatus: {

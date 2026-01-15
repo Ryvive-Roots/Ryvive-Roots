@@ -2,22 +2,28 @@ import Order from "../models/Order.js";
 
 export const getUserOrders = async (req, res) => {
   try {
-    const user = req.user; // from authMiddleware
+    const { membershipId } = req.query;
 
-    // ✅ Find orders using phone (since orders store embedded user)
-    const orders = await Order.find({
-      "user.phone": user.phone,
-    }).sort({ createdAt: -1 });
+    if (!membershipId) {
+      return res.status(400).json({
+        success: false,
+        message: "Membership ID required",
+      });
+    }
+
+    const orders = await Order.find({ membershipId }).sort({
+      createdAt: -1,
+    });
 
     return res.json({
       success: true,
       orders,
     });
   } catch (error) {
-    console.error("Get orders error:", error);
+    console.error("User orders error:", error);
     return res.status(500).json({
       success: false,
-      message: "Server error",
+      message: "Failed to fetch orders",
     });
   }
 };

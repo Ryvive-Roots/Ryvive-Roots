@@ -3,24 +3,50 @@ import Bg from "../assets/BgSignIn.jpeg";
 
 const Login = () => {
   const [membershipId, setMembershipId] = useState("");
-  const [password, setPassword] = useState("");
+  const [identifier, setIdentifier] = useState(""); // email or phone
+  const [loading, setLoading] = useState(false);
+
+  
 
   const handleLogin = async () => {
-    const res = await fetch("http://localhost:4000/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ membershipId, password }),
-    });
+    if (!membershipId || !identifier) {
+      alert("Please enter Membership ID and Email or Phone");
+      return;
+    }
 
-    const data = await res.json();
+    try {
+      setLoading(true);
 
-    if (data.success) {
-      localStorage.setItem("token", data.token);
-      window.location.href = "/dashboard";
-    } else {
-      alert("Invalid login details");
+      const res = await fetch("http://localhost:4000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          membershipId,
+          identifier,
+        }),
+      });
+
+      const data = await res.json();
+
+      console.log("✅ LOGIN RESPONSE:", data); // 👈 ADD THIS
+
+      if (data.success) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("membershipId", data.membershipId);
+
+        console.log("➡️ Redirecting to /dashboard...");
+        window.location.href = "/dashboard";
+      } else {
+        alert(data.message || "Invalid login details");
+      }
+    } catch (error) {
+      console.error("❌ Login error:", error);
+      alert("Server error. Try again.");
+    } finally {
+      setLoading(false);
     }
   };
+
 
   return (
     <div className="relative mt-28 font-merriweather min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-10">
@@ -52,10 +78,13 @@ const Login = () => {
           Welcome Back!
         </h2>
 
-        <p className="text-white text-center mt-4">Sign in to continue</p>
+        <p className="text-white text-center mt-4">
+          Login using Membership ID and Email / Phone
+        </p>
 
         {/* LOGIN FORM */}
         <div className="mt-6 space-y-5 text-white">
+          {/* Membership ID */}
           <input
             placeholder="Membership ID"
             value={membershipId}
@@ -70,11 +99,11 @@ const Login = () => {
             "
           />
 
+          {/* Email or Phone */}
           <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Email or Phone"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             className="
               w-full px-4 py-3 
               bg-transparent 
@@ -85,7 +114,9 @@ const Login = () => {
             "
           />
 
+          {/* Login Button */}
           <button
+            disabled={loading}
             onClick={handleLogin}
             className="
               w-full py-3 
@@ -95,9 +126,10 @@ const Login = () => {
               font-semibold 
               text-white
               transition
+              disabled:opacity-60
             "
           >
-            LOGIN
+            {loading ? "Logging in..." : "LOGIN"}
           </button>
         </div>
       </div>

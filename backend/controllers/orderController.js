@@ -33,17 +33,18 @@ export const placeOrder = async (req, res) => {
       });
     }
 
-    // 1️⃣ FIND OR CREATE USER
-    let user = await User.findOne({ phone: formData.phone });
+   let user = await User.findOne({ phone: formData.phone });
 
-    if (!user) {
-      user = await User.create({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-      });
-    }
+   if (!user) {
+     user = await User.create({
+       firstName: formData.firstName,
+       lastName: formData.lastName,
+       email: formData.email,
+       phone: formData.phone,
+       membershipId: null, // ✅ safe initially
+     });
+   }
+
 
     // 3️⃣ CALCULATE DATES
     const startDate = new Date();
@@ -85,6 +86,7 @@ export const placeOrder = async (req, res) => {
         duration: selectedPlan.duration,
         startDate,
         endDate,
+        pause: { used: 0, history: [] },
         status: "ACTIVE",
       },
 
@@ -93,6 +95,20 @@ export const placeOrder = async (req, res) => {
     });
 
     console.log("✅ ORDER SAVED:", order._id);
+
+    await User.findByIdAndUpdate(
+      user._id,
+      {
+        membershipId: membershipId,
+        firstName: order.user.firstName,
+        lastName: order.user.lastName,
+        email: order.user.email,
+        phone: order.user.phone, // ✅ ADD THIS
+      },
+      { new: true }
+    );
+
+
 
     // 7️⃣ Generate Invoice PDF
     const invoicePath = await generateInvoice(order);

@@ -5,61 +5,102 @@ import {
   goldPauseEmail,
   platinumPauseEmail,
 } from "../utils/pauseEmailTemplates.js";
-import authMiddleware from "../middleware/authMiddleware.js";
+
 
 const router = express.Router();
 
-router.post("/pause", authMiddleware, async (req, res) => {
+// ✅ Pause limits per plan
+const PAUSE_LIMIT = {
+  GOLD: 2,
+  PLATINUM: 3,
+};
+
+router.post("/pause",  async (req, res) => {
   try {
-    const { pauseStartDate, pauseDays } = req.body;
-    
+    const {membershipId, pauseStartDate, pauseDays } = req.body;
 
-   const order = await Order.findOne({
-  "user.phone": req.user.phone,
-});
-
-
-    if (!order) {
-      return res.status(404).json({ success: false, message: "Order not found" });
+    if (!membershipId) {
+      return res.status(400).json({
+        success: false,
+        message: "Membership ID missing",
+      });
     }
 
-    if (order.subscription.status === "PAUSED") {
-      return res.json({ success: false, message: "Already paused" });
+ const order = await Order.findOne({ membershipId });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    if (!["GOLD", "PLATINUM"].includes(order.subscription.plan)) {
+      return res.status(400).json({
+        success: false,
+        message: "Pause not allowed for this plan",
+      });
+    }
+
+    // ✅ Initialize pause object if missing
+    if (!order.subscription.pause) {
+      order.subscription.pause = {
+        used: 0,
+        history: [],
+      };
+    }
+
+    // 🚫 Enforce Pause Limit
+    const maxAllowed = PAUSE_LIMIT[order.subscription.plan];
+
+    if (order.subscription.pause.used >= maxAllowed) {
+      return res.status(400).json({
+        success: false,
+        message: "Pause limit reached",
+        remaining: 0,
+      });
     }
 
     const pauseStart = new Date(pauseStartDate);
     const resumeDate = new Date(pauseStart);
-    resumeDate.setDate(resumeDate.getDate() + pauseDays);
+    resumeDate.setDate(resumeDate.getDate() + Number(pauseDays));
 
     // 🔥 Extend subscription end date
     const newEndDate = new Date(order.subscription.endDate);
-    newEndDate.setDate(newEndDate.getDate() + pauseDays);
+    newEndDate.setDate(newEndDate.getDate() + Number(pauseDays));
 
-    order.subscription.status = "PAUSED";
-    order.subscription.pause = {
+    // ✅ Update pause info
+    order.subscription.pause.used += 1;
+    order.subscription.pause.history.push({
       startDate: pauseStart,
       resumeDate,
       days: pauseDays,
-    };
+    });
+
+    order.subscription.pause.used += 1;
+    order.subscription.pause.history.push({
+      startDate: pauseStart,
+      resumeDate,
+      days: pauseDays,
+    });
+
+    // ❌ DO NOT SET STATUS HERE
     order.subscription.endDate = newEndDate;
 
     await order.save();
 
-    // 📌 Remaining pauses logic
-    const maxPauses = order.subscription.plan === "GOLD" ? 2 : 3;
-    const usedPauses = order.subscription.pauseCount || 0;
-    const remainingPauses = maxPauses - (usedPauses + 1);
 
-    order.subscription.pauseCount = usedPauses + 1;
-    await order.save();
+    const remaining = maxAllowed - order.subscription.pause.used;
+    
 
-    const emailPayload = {
-      customerName: `${order.user.firstName} ${order.user.lastName}`,
-      pauseStartDate: pauseStart.toLocaleDateString("en-IN"),
-      pauseEndDate: resumeDate.toLocaleDateString("en-IN"),
-      timeSlot: order.deliverySlot,
-      remainingPauses,
-    };
+ const emailPayload = {
+   customerName: `${order.user.firstName} ${order.user.lastName}`,
+   pauseStartDate: pauseStart.toLocaleDateString("en-IN"),
+   pauseEndDate: resumeDate.toLocaleDateString("en-IN"),
+   timeSlot: order.deliverySlot,
+   remainingPauses: remaining, // ✅ FIXED
+ };
+
 
     const emailTemplate =
       order.subscription.plan === "GOLD"
@@ -73,8 +114,8 @@ router.post("/pause", authMiddleware, async (req, res) => {
       html: emailTemplate.html,
     });
 
-       await sendEmail({
-      to: "customerservice@ryviveroots.com",
+    await sendEmail({
+      to: "customersupport@ryviveroots.com",
       subject: `Subscription Pause – ${order.subscription.plan} Member`,
       html: `
 Dear Team,
@@ -103,14 +144,18 @@ Warm regards,
 `,
     });
 
-    res.json({
-      success: true,
-      message: "Subscription paused successfully",
-    });
+   res.json({
+     success: true,
+     message: "Subscription paused successfully",
+     remainingPauses: remaining,
+     usedPauses: order.subscription.pause.used,
+   });
   } catch (error) {
     console.error("Pause Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
+
 
 export default router;

@@ -33,16 +33,14 @@ const steps = [
   "Delivery Address",
   "Review & Place Order",
   "Payment Successful",
-  "Create Password",
 ];
+
 
 
 
 const PlatinumsubForm = () => {
   const [step, setStep] = useState(0);
   const [membershipId, setMembershipId] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [loadingOrder, setLoadingOrder] = useState(false);
 
 
@@ -226,43 +224,6 @@ const PlatinumsubForm = () => {
   };
   
 
-const createPasswordAndLogin = async () => {
-  try {
-    const res = await fetch("http://localhost:4000/api/auth/create-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        membershipId,
-        password,
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!data.success) {
-      alert(data.message);
-     return res.json({
-       success: true,
-       token,
-     });
-
-    }
-
-    // ✅ Save JWT
-    localStorage.setItem("token", data.token);
-
-    // ✅ Redirect to dashboard
-    window.location.replace("/dashboard");
-  } catch (error) {
-    console.error(error);
-    alert("Something went wrong");
-  }
-};
-
-
-
-
-
 
   return (
     <div
@@ -309,78 +270,80 @@ const createPasswordAndLogin = async () => {
 
                 {/* STEP 1 */}
                 {step === 0 && (
-                 <div className="grid md:grid-cols-2 font-roboto gap-6">
-  <div className="flex flex-col gap-1">
-    <label htmlFor="firstName" className="text-sm font-medium">
-      First Name
-    </label>
-    <input
-      id="firstName"
-      name="firstName"
-      value={formData.firstName}
-      onChange={handleChange}
-      className={inputStyle}
-      placeholder="First Name"
-    />
-  </div>
+                  <div className="grid md:grid-cols-2 font-roboto gap-6">
+                    <div className="flex flex-col gap-1">
+                      <label
+                        htmlFor="firstName"
+                        className="text-sm font-medium"
+                      >
+                        First Name
+                      </label>
+                      <input
+                        id="firstName"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleChange}
+                        className={inputStyle}
+                        placeholder="First Name"
+                      />
+                    </div>
 
-  <div className="flex flex-col gap-1">
-    <label htmlFor="lastName" className="text-sm font-medium">
-      Last Name
-    </label>
-    <input
-      id="lastName"
-      name="lastName"
-      value={formData.lastName}
-      onChange={handleChange}
-      className={inputStyle}
-      placeholder="Last Name"
-    />
-  </div>
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="lastName" className="text-sm font-medium">
+                        Last Name
+                      </label>
+                      <input
+                        id="lastName"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleChange}
+                        className={inputStyle}
+                        placeholder="Last Name"
+                      />
+                    </div>
 
-  <div className="flex flex-col gap-1">
-    <label htmlFor="phone" className="text-sm font-medium">
-      Phone Number
-    </label>
-    <input
-      id="phone"
-      name="phone"
-      value={formData.phone}
-      onChange={handleChange}
-      className={inputStyle}
-      placeholder="Phone Number"
-    />
-  </div>
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="phone" className="text-sm font-medium">
+                        Phone Number
+                      </label>
+                      <input
+                        id="phone"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        className={inputStyle}
+                        placeholder="Phone Number"
+                      />
+                    </div>
 
-  <div className="flex flex-col gap-1">
-    <label htmlFor="email" className="text-sm font-medium">
-      Email ID
-    </label>
-    <input
-      id="email"
-      name="email"
-      value={formData.email}
-      onChange={handleChange}
-      className={inputStyle}
-      placeholder="Email ID"
-    />
-  </div>
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="email" className="text-sm font-medium">
+                        Email ID
+                      </label>
+                      <input
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className={inputStyle}
+                        placeholder="Email ID"
+                      />
+                    </div>
 
-  <div className="flex flex-col gap-1">
-    <label htmlFor="dob" className="text-sm font-medium">
-      Date of Birth
-    </label>
-    <input
-      id="dob"
-      name="dob"
-      type="date"
-      value={formData.dob}
-      onChange={handleChange}
-      className={inputStyle}
-    />
-  </div>
-</div>
-
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="dob" className="text-sm font-medium">
+                        Date of Birth
+                      </label>
+                      <input
+                        id="dob"
+                        name="dob"
+                        type="date"
+                        value={formData.dob}
+                        onChange={handleChange}
+                        className={inputStyle}
+                      />
+                    </div>
+                  </div>
                 )}
 
                 {/* STEP 2 */}
@@ -578,21 +541,20 @@ const createPasswordAndLogin = async () => {
                       <h4 className="font-semibold text-gray-800 mb-2">
                         Subscription Summary
                       </h4>
- <div className="flex justify-between text-sm">
-                    <span>Platinum Subscription Plan</span>
-                    <span>₹ 6,999.00</span>
-                  </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Platinum Subscription Plan</span>
+                        <span>₹ 6,999.00</span>
+                      </div>
 
-                  <div className="flex justify-between text-sm text-green-600">
-                    <span>Delivery Fee</span>
-                    <span>FREE</span>
-                  </div>
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>Delivery Fee</span>
+                        <span>FREE</span>
+                      </div>
 
-                  <div className="border-t pt-3 flex justify-between font-semibold text-lg">
-                    <span>Total Payable</span>
-                    <span>₹ 6,999.00</span>
-                  </div>
-
+                      <div className="border-t pt-3 flex justify-between font-semibold text-lg">
+                        <span>Total Payable</span>
+                        <span>₹ 6,999.00</span>
+                      </div>
 
                       <p className="text-xs text-gray-500 mt-2">
                         🚚 Free delivery included • No hidden charges
@@ -651,52 +613,10 @@ const createPasswordAndLogin = async () => {
                     </div>
 
                     <button
-                      onClick={() => setStep(6)}
+                      onClick={() => window.location.replace("/login")}
                       className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl"
                     >
-                      CREATE PASSWORD & LOGIN
-                    </button>
-                  </div>
-                )}
-                {step === 6 && (
-                  <div className="space-y-6 max-w-md mx-auto">
-                    <h2 className="text-2xl font-semibold text-center">
-                      Create Your Password 🔐
-                    </h2>
-
-                    <input
-                      value={membershipId}
-                      readOnly
-                      className={`${inputStyle} bg-gray-100`}
-                    />
-
-                    <input
-                      type="password"
-                      placeholder="Create Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className={inputStyle}
-                    />
-
-                    <input
-                      type="password"
-                      placeholder="Confirm Password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className={inputStyle}
-                    />
-
-                    <button
-                      disabled={!password || password !== confirmPassword}
-                      onClick={createPasswordAndLogin}
-                      className={`w-full py-3 rounded-xl text-white
-    ${
-      password && password === confirmPassword
-        ? "bg-green-600 hover:bg-green-700"
-        : "bg-gray-300 cursor-not-allowed"
-    }`}
-                    >
-                      CREATE PASSWORD & LOGIN
+                      GO TO LOGIN
                     </button>
                   </div>
                 )}

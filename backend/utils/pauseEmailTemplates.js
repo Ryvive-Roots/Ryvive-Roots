@@ -1,7 +1,7 @@
 export const goldPauseEmail = ({
   customerName,
   pauseStartDate,
-  pauseEndDate,
+  resumeDate,
   timeSlot,
   remainingPauses,
 }) => ({
@@ -20,7 +20,7 @@ export const goldPauseEmail = ({
 
     <ul>
       <li><strong>Pause Start Date:</strong> ${pauseStartDate}</li>
-      <li><strong>Pause End Date:</strong> ${pauseEndDate}</li>
+      <li><strong>Resume Date:</strong> ${resumeDate}</li>
       <li><strong>Scheduled Delivery Time Slot:</strong> ${timeSlot}</li>
     </ul>
 
@@ -57,7 +57,7 @@ export const goldPauseEmail = ({
 export const platinumPauseEmail = ({
   customerName,
   pauseStartDate,
-  pauseEndDate,
+  resumeDate,
   timeSlot,
   remainingPauses,
 }) => ({
@@ -77,7 +77,7 @@ export const platinumPauseEmail = ({
 
     <ul>
       <li><strong>Pause Start Date:</strong> ${pauseStartDate}</li>
-      <li><strong>Pause End Date:</strong> ${pauseEndDate}</li>
+    <li><strong>Resume Date:</strong> ${resumeDate}</li>
       <li><strong>Scheduled Delivery Time Slot:</strong> ${timeSlot}</li>
     </ul>
 
