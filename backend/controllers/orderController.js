@@ -217,6 +217,12 @@ export const placeOrder = async (req, res) => {
 
     <p>🕒 Order Time: ${order.createdAt.toLocaleString("en-IN")}</p>
   `,
+      attachments: [
+        {
+          filename: `invoice-${order.receiptNumber}.pdf`,
+          path: invoicePath,
+        },
+      ],
     });
 
     return res.json({

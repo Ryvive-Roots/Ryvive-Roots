@@ -1,18 +1,14 @@
 import React, { useEffect, useState } from "react";
 
 const allowedPincodes = [
-  { code: "421201", area: "Dombivli East – Thakurli, Ramnagar, Tilaknagar" },
+  { code: "421201", area: "Dombivli East" },
   {
     code: "421202",
-    area: "Dombivli West – Vishnu Nagar, Bhoir Wadi, Reti Bunder",
+    area: "Dombivli West",
   },
-  { code: "421203", area: "Dombivli East – MIDC, Azde, Sagarli Gaon" },
-  { code: "421204", area: "Khoni, Padle, Nilje, Manpada" },
+  { code: "421203", area: "Dombivli East" },
+  { code: "421204", area: "Khoni" },
 ];
-
-
-
-
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
@@ -39,8 +35,6 @@ const AdminDashboard = () => {
       country: "India",
     },
   });
-
-
 
   // Fetch Orders
   const fetchOrders = async () => {
@@ -101,7 +95,6 @@ const AdminDashboard = () => {
     }
   };
 
-
   // 🔍 Search + Filter
   const filteredOrders = orders.filter((order) => {
     const text = search.toLowerCase();
@@ -121,45 +114,42 @@ const AdminDashboard = () => {
 
   if (loading) return <p className="p-6">Loading orders...</p>;
 
- const getPauseStatusText = (order) => {
-   const pause = order.subscription?.pause;
+  const getPauseStatusText = (order) => {
+    const pause = order.subscription?.pause;
 
-   if (!pause || !pause.history || pause.history.length === 0) {
-     return "🟢 ACTIVE";
-   }
+    if (!pause || !pause.history || pause.history.length === 0) {
+      return "🟢 ACTIVE";
+    }
 
-   const latest = pause.history[pause.history.length - 1];
+    const latest = pause.history[pause.history.length - 1];
 
-   const start = new Date(latest.startDate);
-   const resume = new Date(latest.resumeDate);
-   const days = latest.days || 1;
-   const today = new Date();
+    const start = new Date(latest.startDate);
+    const resume = new Date(latest.resumeDate);
+    const days = latest.days || 1;
+    const today = new Date();
 
-   const startText = start.toLocaleDateString("en-IN");
-   const resumeText = resume.toLocaleDateString("en-IN");
+    const startText = start.toLocaleDateString("en-IN");
+    const resumeText = resume.toLocaleDateString("en-IN");
 
-   // 🟠 CURRENTLY PAUSED
-   if (today >= start && today <= resume) {
-     if (days === 1) {
-       return `⏸ PAUSED • ${startText} (1 day)`;
-     }
-     return `⏸ PAUSED • ${startText} → ${resumeText}`;
-   }
+    // 🟠 CURRENTLY PAUSED
+    if (today >= start && today <= resume) {
+      if (days === 1) {
+        return `⏸ PAUSED • ${startText} (1 day)`;
+      }
+      return `⏸ PAUSED • ${startText} → ${resumeText}`;
+    }
 
-   // 🔵 PAUSE SCHEDULED (FUTURE)
-   if (today < start) {
-     if (days === 1) {
-       return `🟢 ACTIVE • ⏳ Pause scheduled ${startText} (1 day)`;
-     }
-     return `🟢 ACTIVE • ⏳ Pause scheduled ${startText} → ${resumeText}`;
-   }
+    // 🔵 PAUSE SCHEDULED (FUTURE)
+    if (today < start) {
+      if (days === 1) {
+        return `🟢 ACTIVE • ⏳ Pause scheduled ${startText} (1 day)`;
+      }
+      return `🟢 ACTIVE • ⏳ Pause scheduled ${startText} → ${resumeText}`;
+    }
 
-   // 🟢 PAST PAUSE FINISHED
-   return "🟢 ACTIVE";
- };
-
-
-
+    // 🟢 PAST PAUSE FINISHED
+    return "🟢 ACTIVE";
+  };
 
   return (
     <div className="p-4 md:p-8 max-w-[1400px] mx-auto">

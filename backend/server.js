@@ -7,11 +7,9 @@ import orderRoutes from "./routes/orderRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
-import invoiceRoutes from './routes/invoiceRoutes.js';
+import invoiceRoutes from "./routes/invoiceRoutes.js";
 import adminRoutes from "./routes/admin.js";
 import subscriptionRoutes from "./routes/subscription.js";
-
-
 
 // DB Connection
 connectDB();
@@ -33,9 +31,8 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/invoice", invoiceRoutes);
-app.use("/api/admin", adminRoutes); 
+app.use("/api/admin", adminRoutes);
 app.use("/api/subscription", subscriptionRoutes);
-
 
 // Test API
 app.get("/", (req, res) => {

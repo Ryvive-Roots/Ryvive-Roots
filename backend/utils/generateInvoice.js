@@ -10,54 +10,99 @@ const generateInvoice = async (order) => {
   const invoiceDir = "invoices";
   if (!fs.existsSync(invoiceDir)) fs.mkdirSync(invoiceDir);
 
- const filePath = path.join(invoiceDir, `invoice-${order.receiptNumber}.pdf`);
-
+  const filePath = path.join(invoiceDir, `invoice-${order.receiptNumber}.pdf`);
 
   const doc = new PDFDocument({ size: "A4", margin: 0 });
   doc.pipe(fs.createWriteStream(filePath));
 
-  // 🖼 Background image
+  /* =======================
+     BACKGROUND IMAGE
+  ======================= */
   const bgImagePath = path.join(__dirname, "../assets/invoice.png");
   doc.image(bgImagePath, 0, 0, {
     width: doc.page.width,
     height: doc.page.height,
   });
 
-  doc.fillColor("#000").fontSize(12);
+  /* =======================
+     FONT - POPPINS
+  ======================= */
+  const fontPath = path.join(__dirname, "../assets/fonts/Poppins-Regular.ttf");
+
+  doc.registerFont("Poppins", fontPath);
+  doc.font("Poppins").fillColor("#000").fontSize(12);
 
   /* =======================
-     INVOICE HEADER (VALUES ONLY)
-  ======================= */
-  doc.text(order.receiptNumber, 160, 100); // moved down slightly
-  doc.text(order.createdAt.toLocaleDateString("en-IN"), 160, 120);
+   INVOICE HEADER
+======================= */
+
+  // Invoice Number (move UP)
+  doc.fontSize(12).text(order.receiptNumber || "-", 150, 155);
+
+  // Invoice Date
+  doc.text(new Date(order.createdAt).toLocaleDateString("en-IN"), 150, 189);
 
   /* =======================
-     CUSTOMER INFO (VALUES ONLY)
-  ======================= */
-  doc.text(`${order.user.firstName} ${order.user.lastName}`, 210, 198);
+   CUSTOMER INFO
+======================= */
 
-  doc.text(order.user.phone, 210, 222);
+  // Customer Name
+  doc.text(
+    `${order.user?.firstName || ""} ${order.user?.lastName || ""}`,
+    313,
+    232
+  );
+
+  // Contact Number
+  doc.text(order.user?.phone || "-", 313, 263);
 
   /* =======================
-     PLAN DETAILS (VALUES ONLY)
-  ======================= */
-  doc.text(`${order.subscription.plan} Subscription`, 120, 306);
-  doc.text(`${order.subscription.duration} Days`, 120, 332);
+   PLAN DETAILS (Table Row)
+======================= */
+
+  // Row Y position aligned to background table
+  const planRowY = 390;
+
+  doc.text(order.subscription?.plan || "-", 60, planRowY);
+  doc.text(`${order.subscription?.duration || 0} Days`, 300, planRowY);
+  doc.text("1", 420, planRowY);
+  doc.text(`₹ ${order.subscription?.amount || 0}`, 490, planRowY);
 
   /* =======================
-     PAYMENT SUMMARY (VALUES ONLY)
-  ======================= */
-  const amount = order.subscription.amount;
+   PAYMENT SUMMARY
+======================= */
 
-  // Right column – move DOWN
-  doc.text(`Rs. ${amount}`, 440, 420); // Subtotal
-  doc.text(`Rs. 0`, 440, 446); // Taxes
-  doc.text(`Rs. 0`, 440, 472); // Discounts
+  const amount = order.subscription?.amount || 0;
 
-  doc.fontSize(14).text(`Rs. ${amount}`, 440, 500); // Total Paid
-  doc.fontSize(12).text(`Online`, 440, 528); // Payment Mode
+  // Auto Detect Payment Mode
+  const paymentMode = order.paymentMethod === "CASH" ? "Cash" : "Online";
 
+  // Start Y for payment section
+  const paymentY = 500;
+
+  // Subtotal
+  doc.text(`₹ ${amount}`, 490, paymentY);
+
+  // Discount
+  doc.text(`-`, 490, paymentY + 32);
+
+  // Delivery Charges
+  doc.text(`Free`, 490, paymentY + 72);
+
+  // Payment Mode
+  doc.text(paymentMode, 490, paymentY + 103);
+
+  // Grand Total (Bold & Center Feel)
+  doc
+    .fontSize(16)
+    .font("Poppins")
+    .text(`₹ ${amount}`, 490, paymentY + 135);
+
+  doc.fontSize(14);
+
+  // ✅ FINALIZE PDF
   doc.end();
+
   return filePath;
 };
 

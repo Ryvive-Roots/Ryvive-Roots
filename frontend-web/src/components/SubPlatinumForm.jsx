@@ -8,13 +8,13 @@ import BgImage from "../assets/Form.png";
 
 
 const allowedPincodes = [
-  { code: "421201", area: "Dombivli East – Thakurli, Ramnagar, Tilaknagar" },
+  { code: "421201", area: "Dombivli East" },
   {
     code: "421202",
-    area: "Dombivli West – Vishnu Nagar, Bhoir Wadi, Reti Bunder",
+    area: "Dombivli West",
   },
-  { code: "421203", area: "Dombivli East – MIDC, Azde, Sagarli Gaon" },
-  { code: "421204", area: "Khoni, Padle, Nilje, Manpada" },
+  { code: "421203", area: "Dombivli East" },
+  { code: "421204", area: "Khoni, Padle" },
 ];
 
 const inputStyle = `
