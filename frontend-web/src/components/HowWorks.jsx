@@ -16,69 +16,69 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section className="w-full cursor-pointer py-20 bg-[#a07d5d]">
-       <motion.h3
-        initial={{ opacity: 0, y: 80 }}   // comes from lower bottom
+    <section className="w-full cursor-pointer py-20 bg-[#92B855]">
+      <motion.h3
+        initial={{ opacity: 0, y: 80 }} // comes from lower bottom
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         viewport={{ once: false, amount: 0.3 }}
         className="text-2xl md:text-3xl text-center font-cinzel uppercase font-semibold text-white pb-10"
       >
-       How It Works
+        How It Works
       </motion.h3>
-     
 
       <div className="md:px-30 mx-auto relative px-4 flex flex-col md:flex-row items-center md:justify-between gap-4 md:gap-0">
-
         {/* Desktop Base Line */}
         <div className="hidden md:block absolute top-1/2 left-0 w-full h-[3px] bg-gray-300 -z-10"></div>
 
         {/* Mobile Line */}
         <div className="md:hidden absolute left-1/2 top-0 h-full w-[3px] bg-gray-300 -z-10"></div>
 
-       {steps.map((step, index) => (
-  <div key={index} className="flex items-center relative">
+        {steps.map((step, index) => (
+          <div key={index} className="flex items-center relative">
+            {/* Step Box */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.6,
+                delay: index * 0.3,
+                ease: "easeOut",
+              }}
+              viewport={{ once: true, amount: 0.3 }}
+              whileHover={{ y: -10, scale: 1.03 }}
+              className="group relative p-5 text-center w-56 md:w-64 transition-all"
+            >
+              <div className="mb-3 flex justify-center items-center h-16">
+                <motion.img
+                  src={step.image}
+                  alt={step.title}
+                  className="w-14 h-14 object-contain transition-transform duration-500 ease-out group-hover:scale-125 group-hover:rotate-2"
+                />
+              </div>
 
-    {/* Step Box */}
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: index * 0.3, ease: "easeOut" }}
-      viewport={{ once: true, amount: 0.3 }}
-      whileHover={{ y: -10, scale: 1.03 }}
-      className="group relative p-5 text-center w-56 md:w-64 transition-all"
-    >
-      <div className="mb-3 flex justify-center items-center h-16">
-        <motion.img
-          src={step.image}
-          alt={step.title}
-          className="w-14 h-14 object-contain transition-transform duration-500 ease-out group-hover:scale-125 group-hover:rotate-2"
-        />
-      </div>
+              <h3
+                className="font-bold 
+       font-cinzel uppercase text-base md:text-xl leading-tight text-white"
+              >
+                {step.title}
+              </h3>
 
-      <h3 className="font-bold 
-       font-cinzel uppercase text-base md:text-xl leading-tight text-white">
-        {step.title}
-      </h3>
+              <p className="text-black text-base mb-4 text-center font-manrope mt-2">
+                {step.desc}
+              </p>
+            </motion.div>
 
-      <p className="text-black text-base mb-4 text-center font-manrope mt-2">
-        {step.desc}
-      </p>
-    </motion.div>
-
-    {/* Arrow – auto width, touches the steps */}
-    {index !== steps.length - 1 && (
-      <img
-        src={Arrow}
-        alt="arrow"
-        className="hidden md:block w-40 -mx-1 object-contain"
-      />
-    )}
-  </div>
-))}
-
-
-
+            {/* Arrow – auto width, touches the steps */}
+            {index !== steps.length - 1 && (
+              <img
+                src={Arrow}
+                alt="arrow"
+                className="hidden md:block w-40 -mx-1 object-contain"
+              />
+            )}
+          </div>
+        ))}
       </div>
     </section>
   );

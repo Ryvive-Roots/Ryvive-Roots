@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Bg from "../assets/BgSignIn.jpeg";
+
 
 const Login = () => {
   const [membershipId, setMembershipId] = useState("");
@@ -47,6 +48,14 @@ const Login = () => {
     }
   };
 
+  useEffect(() => {
+    const savedMembershipId = localStorage.getItem("membershipId");
+
+    if (savedMembershipId) {
+      setMembershipId(savedMembershipId);
+    }
+  }, []);
+
 
   return (
     <div className="relative mt-28 font-merriweather min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-10">
@@ -88,15 +97,16 @@ const Login = () => {
           <input
             placeholder="Membership ID"
             value={membershipId}
-            onChange={(e) => setMembershipId(e.target.value)}
+            disabled
             className="
-              w-full px-4 py-3 
-              bg-transparent 
-              border border-white 
-              rounded-full 
-              placeholder-white
-              focus:ring-2 focus:ring-[#895C40] outline-none
-            "
+    w-full px-4 py-3 
+    bg-white/30
+    border border-white 
+    rounded-full 
+    text-white
+    cursor-not-allowed
+    placeholder-white
+  "
           />
 
           {/* Email or Phone */}
@@ -105,14 +115,18 @@ const Login = () => {
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
             className="
-              w-full px-4 py-3 
-              bg-transparent 
-              border border-white 
-              rounded-full 
-              placeholder-white
-              focus:ring-2 focus:ring-[#895C40] outline-none
-            "
+    w-full px-4 py-3 
+    bg-transparent 
+    border border-white 
+    rounded-full 
+    placeholder-white
+    focus:ring-2 focus:ring-[#895C40] outline-none
+  "
           />
+
+          <p className="text-xs text-white/80 mt-1 text-center">
+            ⚠️ Please enter your <b>registered Email ID or Phone Number</b>.
+          </p>
 
           {/* Login Button */}
           <button

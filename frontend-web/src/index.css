@@ -15,6 +15,13 @@
   100% { transform: rotate(360deg); }
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+
+
 .animate-spin-slow {
   animation: spin-slow 12s linear infinite;
 }

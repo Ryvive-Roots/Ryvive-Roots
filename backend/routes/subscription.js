@@ -61,42 +61,38 @@ router.post("/pause",  async (req, res) => {
       });
     }
 
-    const pauseStart = new Date(pauseStartDate);
-    const resumeDate = new Date(pauseStart);
-    resumeDate.setDate(resumeDate.getDate() + Number(pauseDays));
+const pauseStart = new Date(pauseStartDate);
 
-    // 🔥 Extend subscription end date
-    const newEndDate = new Date(order.subscription.endDate);
-    newEndDate.setDate(newEndDate.getDate() + Number(pauseDays));
+// ✅ Calculate resume date
+const resumeDate = new Date(pauseStart);
+resumeDate.setDate(resumeDate.getDate() + Number(pauseDays));
 
-    // ✅ Update pause info
-    order.subscription.pause.used += 1;
-    order.subscription.pause.history.push({
-      startDate: pauseStart,
-      resumeDate,
-      days: pauseDays,
-    });
+// 🔥 Extend subscription end date
+const newEndDate = new Date(order.subscription.endDate);
+newEndDate.setDate(newEndDate.getDate() + Number(pauseDays));
 
-    order.subscription.pause.used += 1;
-    order.subscription.pause.history.push({
-      startDate: pauseStart,
-      resumeDate,
-      days: pauseDays,
-    });
+// ✅ Update pause info (ONLY ONCE)
+order.subscription.pause.used += 1;
+order.subscription.pause.history.push({
+  startDate: pauseStart,
+  resumeDate,
+  days: pauseDays,
+});
 
-    // ❌ DO NOT SET STATUS HERE
-    order.subscription.endDate = newEndDate;
+// ❌ DO NOT SET STATUS HERE
+order.subscription.endDate = newEndDate;
 
-    await order.save();
+await order.save();
 
+// ✅ Remaining pauses
+const remaining = maxAllowed - order.subscription.pause.used;
 
-    const remaining = maxAllowed - order.subscription.pause.used;
     
 
  const emailPayload = {
    customerName: `${order.user.firstName} ${order.user.lastName}`,
    pauseStartDate: pauseStart.toLocaleDateString("en-IN"),
-   pauseEndDate: resumeDate.toLocaleDateString("en-IN"),
+   ResumeDate: resumeDate.toLocaleDateString("en-IN"),
    timeSlot: order.deliverySlot,
    remainingPauses: remaining, // ✅ FIXED
  };
@@ -131,7 +127,6 @@ A customer has successfully placed a **subscription pause request** via the dash
 
 **Pause Information**
 • Pause Start Date: ${pauseStart.toLocaleDateString("en-IN")}
-• Pause End Date: ${pauseEnd.toLocaleDateString("en-IN")}
 • Resume Date: ${resumeDate.toLocaleDateString("en-IN")}
 • Delivery Slot: ${order.deliverySlot}
 • Pause Days: ${pauseDays}

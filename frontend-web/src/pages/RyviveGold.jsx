@@ -23,7 +23,7 @@ const RyviveGold = () => {
       }}
     >
       {/* Overlay for readability */}
-      <div className="min-h-screen w-full py-20 px-4">
+      <div className="min-h-screen w-full py-20  px-6 md:px-20 ">
         <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* LEFT — CART TOTALS */}
           <div className="md:col-span-2 bg-white/55 rounded-xl shadow-md p-6 text-sm">

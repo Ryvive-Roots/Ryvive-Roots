@@ -6,79 +6,76 @@ import { Lock } from "lucide-react";
 const UserDashboard = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  
 
   const [showPauseModal, setShowPauseModal] = useState(false);
   const [pauseStartDate, setPauseStartDate] = useState("");
   const [pauseDays, setPauseDays] = useState(1);
 
-const getResumeDate = () => {
-  if (!pauseStartDate) return "";
+  const getResumeDate = () => {
+    if (!pauseStartDate) return "";
 
-  const resume = new Date(pauseStartDate);
-  resume.setDate(resume.getDate() + pauseDays);
+    const resume = new Date(pauseStartDate);
+    resume.setDate(resume.getDate() + pauseDays);
 
-  return resume.toLocaleDateString("en-IN");
-};
+    return resume.toLocaleDateString("en-IN");
+  };
 
-const confirmPause = async () => {
-  const membershipId = localStorage.getItem("membershipId");
-
-  const res = await fetch("http://localhost:4000/api/subscription/pause", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      membershipId,
-      pauseStartDate,
-      pauseDays,
-    }),
-  });
-
-  const data = await res.json();
-
-  if (data.success) {
-    alert("Subscription paused successfully");
-    setShowPauseModal(false);
-    window.location.reload();
-  } else {
-    alert(data.message);
-  }
-};
-
-
-useEffect(() => {
-  const fetchDashboard = async () => {
+  const confirmPause = async () => {
     const membershipId = localStorage.getItem("membershipId");
 
-    if (!membershipId) {
-      window.location.replace("/login");
-      return;
-    }
+    const res = await fetch("http://localhost:4000/api/subscription/pause", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        membershipId,
+        pauseStartDate,
+        pauseDays,
+      }),
+    });
 
-    try {
-      const res = await fetch(
-        `http://localhost:4000/api/user/orders?membershipId=${membershipId}`
-      );
+    const data = await res.json();
 
-      const data = await res.json();
-
-      if (data.success && data.orders.length > 0) {
-        setOrder(data.orders[0]);
-      } else {
-        alert("No active subscription found");
-      }
-    } catch (error) {
-      console.error("Dashboard fetch error:", error);
-    } finally {
-      setLoading(false);
+    if (data.success) {
+      alert("Subscription paused successfully");
+      setShowPauseModal(false);
+      window.location.reload();
+    } else {
+      alert(data.message);
     }
   };
 
-  fetchDashboard();
-}, []);
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      const membershipId = localStorage.getItem("membershipId");
 
+      if (!membershipId) {
+        window.location.replace("/login");
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `http://localhost:4000/api/user/orders?membershipId=${membershipId}`
+        );
+
+        const data = await res.json();
+
+        if (data.success && data.orders.length > 0) {
+          setOrder(data.orders[0]);
+        } else {
+          alert("No active subscription found");
+        }
+      } catch (error) {
+        console.error("Dashboard fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
 
   if (loading) {
     return (
@@ -90,51 +87,65 @@ useEffect(() => {
 
   if (!order) return null;
 
- const { user, subscription, membershipId } = order;
+  const { user, subscription, membershipId } = order;
 
- // ✅ Pause limits per plan
- const PAUSE_LIMIT = {
-   GOLD: 2,
-   PLATINUM: 3,
- };
+  // ✅ Pause limits per plan
+  // ✅ Max pause days allowed per plan
+  const PAUSE_DAYS_LIMIT = {
+    GOLD: 2, // 2 days pause allowed
+    PLATINUM: 3, // 3 days pause allowed
+  };
 
- // ✅ Used pauses (safe fallback)
- const usedPauses = subscription.pause?.used || 0;
+  // ✅ Calculate used pause days
+ const usedPauseDays =
+   subscription.pause?.history?.reduce(
+     (total, item) => total + Number(item.days || 0),
+     0
+   ) || 0;
 
- // ✅ Max allowed pauses
- const maxPauses = PAUSE_LIMIT[subscription.plan] || 0;
+ const maxPauseDays = PAUSE_DAYS_LIMIT[subscription.plan] || 0;
 
- // ✅ Remaining pauses
- const remainingPauses = maxPauses - usedPauses;
+ // ✅ Prevent UI overflow
+ const safeUsedDays = Math.min(usedPauseDays, maxPauseDays);
 
- // ✅ Lock when no remaining pauses left
- const isLocked = remainingPauses <= 0;
+ const remainingPauseDays = Math.max(maxPauseDays - safeUsedDays, 0);
 
-const getSubscriptionStatus = () => {
-  const pause = subscription.pause;
 
-  if (!pause || pause.history.length === 0) return "ACTIVE";
+  // ✅ Lock condition
+  const isLocked = remainingPauseDays === 0;
 
-  const latestPause = pause.history[pause.history.length - 1];
+  // ✅ Friendly label text
+  const remainingLabel =
+    remainingPauseDays === 0
+      ? "No pause days remaining"
+      : remainingPauseDays === 1
+      ? "1 day remaining"
+      : `${remainingPauseDays} days remaining`;
 
-  const now = new Date();
-  const start = new Date(latestPause.startDate);
-  const resume = new Date(latestPause.resumeDate);
+  const getSubscriptionStatus = () => {
+    const pause = subscription.pause;
 
-  if (now < start) {
-    return "ACTIVE"; // ⏳ Pause scheduled but not started yet
-  }
+    if (!pause || pause.history.length === 0) return "ACTIVE";
 
-  if (now >= start && now <= resume) {
-    return "PAUSED"; // ⏸ Currently paused
-  }
+    const latestPause = pause.history[pause.history.length - 1];
 
-  return "ACTIVE"; // ✅ Pause completed
-};
+    const now = new Date();
+    const start = new Date(latestPause.startDate);
+    const resume = new Date(latestPause.resumeDate);
 
+    if (now < start) {
+      return "ACTIVE"; // ⏳ Pause scheduled but not started yet
+    }
+
+    if (now >= start && now <= resume) {
+      return "PAUSED"; // ⏸ Currently paused
+    }
+
+    return "ACTIVE"; // ✅ Pause completed
+  };
 
   const dynamicStatus = getSubscriptionStatus();
-  
+
   const latestPause =
     subscription.pause?.history?.length > 0
       ? subscription.pause.history[subscription.pause.history.length - 1]
@@ -144,26 +155,23 @@ const getSubscriptionStatus = () => {
     ? new Date(latestPause.resumeDate).toLocaleDateString("en-IN")
     : null;
 
-  
-const pauseMessage = (() => {
-  if (!latestPause) return null;
+  const pauseMessage = (() => {
+    if (!latestPause) return null;
 
-  const start = new Date(latestPause.startDate);
-  const resume = new Date(latestPause.resumeDate);
-  const days = latestPause.days || 1;
+    const start = new Date(latestPause.startDate);
+    const resume = new Date(latestPause.resumeDate);
+    const days = latestPause.days || 1;
 
-  if (days === 1) {
-    return `⏸ Pause scheduled for ${start.toLocaleDateString(
+    if (days === 1) {
+      return `⏸ Pause scheduled for ${start.toLocaleDateString(
+        "en-IN"
+      )}. Service will resume the next day.`;
+    }
+
+    return `⏸ Pause scheduled from ${start.toLocaleDateString(
       "en-IN"
-    )}. Service will resume the next day.`;
-  }
-
-  return `⏸ Pause scheduled from ${start.toLocaleDateString(
-    "en-IN"
-  )} to ${resume.toLocaleDateString("en-IN")}`;
-})();
-
-
+    )} to ${resume.toLocaleDateString("en-IN")}`;
+  })();
 
   return (
     <div className="relative min-h-screen px-6 md:px-20 mt-28 ">
@@ -175,39 +183,45 @@ const pauseMessage = (() => {
       />
 
       {/* CONTENT */}
-      <div className="relative z-10 max-w-3xl m p-20 space-y-6">
+      <div
+        className="relative z-10 max-w-3xl
+  px-4 sm:px-6 md:px-10
+  py-6 sm:py-10
+  space-y-5
+  mx-0 sm:mx-auto lg:ml-16 xl:ml-24"
+      >
         {/* PROFILE */}
-        <div className="bg-white/80 rounded-2xl p-6 shadow">
+        <div className="bg-white/70 rounded-2xl p-4 sm:p-6 shadow">
           <h2 className="text-[#4a7f34]  font-cinzel font-semibold text-lg mb-2">
             MY PROFILE
           </h2>
-          <p className="  font-roboto">
+          <p className=" text-sm lg:text-base  font-roboto">
             <b>Name:</b> {user.firstName} {user.lastName}
           </p>
-          <p className=" font-roboto">
+          <p className="  text-sm lg:text-base font-roboto">
             <b>Email:</b> {user.email}
           </p>
-          <p className=" font-roboto">
+          <p className="  text-sm lg:text-base font-roboto">
             <b>Phone:</b> {user.phone}
           </p>
 
-          <p className=" font-roboto">
+          <p className="  text-sm lg:text-base font-roboto">
             <b>Membership ID:</b> {membershipId}
           </p>
         </div>
 
         {/* SUBSCRIPTION */}
-        <div className="bg-white/80 rounded-2xl p-6 shadow">
+        <div className="bg-white/80 rounded-2xl p-4 sm:p-6 shadow">
           <h2 className="text-[#4a7f34] font-cinzel font-semibold text-lg mb-2">
             MY SUBSCRIPTION
           </h2>
-          <p className=" font-roboto">
+          <p className="  text-sm lg:text-base font-roboto">
             <b>Plan:</b> {subscription.plan}
           </p>
-          <p className=" font-roboto">
+          <p className="  text-sm lg:text-base font-roboto">
             <b>Amount:</b> ₹{subscription.amount}
           </p>
-          <div className="flex justify-between">
+          <div className="flex  text-sm lg:text-base flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
             <b>
               Status:{" "}
               <span className="text-[#24461a] font-cinzel font-semibold">
@@ -220,7 +234,8 @@ const pauseMessage = (() => {
                 disabled={isLocked}
                 onClick={() => !isLocked && setShowPauseModal(true)}
                 className={`
-      flex items-center gap-2 px-6 py-1 rounded-full shadow-lg font-fredoka
+      flex items-center justify-center gap-2 px-5 py-2 text-sm sm:text-base
+ rounded-full shadow-lg font-fredoka
       ${
         isLocked
           ? "bg-gray-400 cursor-not-allowed opacity-70"
@@ -230,7 +245,7 @@ const pauseMessage = (() => {
               >
                 {isLocked ? (
                   <>
-                    <Lock size={16} /> Locked
+                    <Lock size={16} /> Modify
                   </>
                 ) : (
                   "Modify"
@@ -240,12 +255,37 @@ const pauseMessage = (() => {
           </div>
 
           {["GOLD", "PLATINUM"].includes(subscription.plan) && (
-            <p className="font-roboto text-sm mt-1">
-              <b>Remaining Modifications:</b>{" "}
-              <span className={isLocked ? "text-red-600" : "text-green-700"}>
-                {remainingPauses}/{maxPauses}
-              </span>
-            </p>
+            <div
+              className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between 
+  gap-3 bg-green-50 rounded-xl px-4 py-3"
+            >
+              {/* LEFT INFO */}
+              <div>
+                <p className="text-xs text-gray-500 font-roboto">
+                  Subscription Modifications
+                </p>
+
+                <p
+                  className={`font-semibold font-cinzel ${
+                    isLocked ? "text-red-600" : "text-green-700"
+                  }`}
+                >
+                  {remainingLabel}
+                </p>
+
+                <p className="text-xs text-gray-500 font-roboto">
+                  Used: {safeUsedDays} / {maxPauseDays} days
+                </p>
+              </div>
+
+              {/* RIGHT STATUS BADGE */}
+              <div
+                className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wide
+      ${isLocked ? "bg-red-100 text-red-700" : "bg-green-200 text-green-800"}`}
+              >
+                {isLocked ? "LIMIT REACHED" : "AVAILABLE"}
+              </div>
+            </div>
           )}
 
           <div>
@@ -258,15 +298,15 @@ const pauseMessage = (() => {
         </div>
 
         {/* PLAN DATES */}
-        <div className="bg-white/80 rounded-2xl p-6 shadow">
+        <div className="bg-white/80 rounded-2xl p-4 sm:p-6 shadow">
           <h2 className="text-[#4a7f34] font-cinzel font-semibold text-lg mb-2">
             SUBSCRIPTION
           </h2>
-          <p className=" font-roboto">
+          <p className="  text-sm lg:text-base font-roboto">
             <b>Activation Date:</b>{" "}
             {new Date(subscription.startDate).toLocaleDateString("en-IN")}
           </p>
-          <p className=" font-roboto">
+          <p className="  text-sm lg:text-base font-roboto">
             <b>Expiry Date:</b>{" "}
             {new Date(subscription.endDate).toLocaleDateString("en-IN")}
           </p>
@@ -277,7 +317,10 @@ const pauseMessage = (() => {
       {/* 🛑 PAUSE MODAL */}
       {showPauseModal && (
         <div className="fixed inset-0 bg-black/60  flex items-center justify-center z-50">
-          <div className="bg-white rounded-3xl p-6 w-[90%] max-w-md shadow-2xl relative">
+          <div
+            className="bg-white rounded-2xl p-4 sm:p-6 
+  w-[95%] max-w-md shadow-2xl relative"
+          >
             {/* ❌ Close Button */}
             <button
               onClick={() => setShowPauseModal(false)}
@@ -287,7 +330,7 @@ const pauseMessage = (() => {
             </button>
 
             {/* 🟢 Title */}
-            <h2 className="text-xl font-cinzel font-bold text-[#2c511f] mb-1">
+            <h2 className="text-lg sm:text-xl font-cinzel font-bold text-[#2c511f] mb-1">
               Pause Subscription
             </h2>
             <p className="text-sm text-gray-500 mb-5 font-roboto">

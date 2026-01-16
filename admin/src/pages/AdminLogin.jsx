@@ -5,23 +5,19 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
 
   const login = async () => {
-    try {
-      const res = await fetch("http://localhost:4000/api/admin-auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+    const res = await fetch("http://localhost:4000/api/admin-auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (data.success) {
-        localStorage.setItem("adminToken", data.token);
-        window.location.href = "/admin-dashboard";
-      } else {
-        alert(data.message || "Invalid login");
-      }
-    } catch (err) {
-      alert("Server error");
+    if (data.success) {
+      localStorage.setItem("adminToken", data.token);
+      window.location.href = "/admin-dashboard";
+    } else {
+      alert("Invalid login");
     }
   };
 
@@ -38,8 +34,8 @@ export default function AdminLogin() {
         />
 
         <input
-          placeholder="Password"
           type="password"
+          placeholder="Password"
           className="border p-2 w-full rounded"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -47,7 +43,7 @@ export default function AdminLogin() {
 
         <button
           onClick={login}
-          className="bg-black text-white w-full py-2 rounded hover:bg-gray-800"
+          className="bg-green-600 text-white w-full py-2 rounded hover:bg-green-700"
         >
           Login
         </button>

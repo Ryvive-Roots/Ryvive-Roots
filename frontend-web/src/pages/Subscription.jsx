@@ -19,23 +19,16 @@ const Subscription = () => {
   };
 
   return (
-    <div>
+    <div className='overflow-hidden'>
       {/* Banner Section */}
       <div className="relative mt-20">
         <img
           src={Banner}
           alt="Subscription Banner"
-          className="w-full h-[95vh] md:h-[90vh] object-cover object-top"
+          className="w-full h-auto  md:h-[90vh] object-cover object-top"
         />
-
-      
-        
-
-
-
       </div>
 
-     
       <WhySubscribe />
       <HowItWorks />
 
@@ -43,9 +36,8 @@ const Subscription = () => {
       <div ref={subscriptionRef}>
         <SubscriptionTypes />
       </div>
-
     </div>
-  )
+  );
 }
 
 export default Subscription;

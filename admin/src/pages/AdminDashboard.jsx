@@ -13,6 +13,14 @@ const allowedPincodes = [
 const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+ 
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    if (!token) {
+      window.location.href = "/";
+    }
+  }, []);
+
 
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");

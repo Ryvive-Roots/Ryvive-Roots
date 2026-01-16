@@ -34,7 +34,7 @@ const Navbar = () => {
           scrolled ? "bg-white-30 backdrop-blur-3xl shadow-md" : "bg-[#FEF7F0]"
         }`}
       >
-        <div className="flex items-center justify-between px-6 md:px-20 py-6">
+        <div className="flex items-center justify-between px-6 md:px-20 py-4">
           {/* LEFT SIDE: Logo + Nav Links */}
           <div className="flex items-center gap-12">
             {/* Logo */}
