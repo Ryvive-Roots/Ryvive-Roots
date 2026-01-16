@@ -29,43 +29,47 @@ const generateInvoice = async (order) => {
   ======================= */
   const fontPath = path.join(__dirname, "../assets/fonts/Poppins-Regular.ttf");
 
+
+ 
+
   doc.registerFont("Poppins", fontPath);
-  doc.font("Poppins").fillColor("#000").fontSize(12);
+  doc.font("Poppins").fillColor("#2a2a2a").fontSize(12);
 
   /* =======================
    INVOICE HEADER
 ======================= */
+ const textColor = "#4c4f28";
 
   // Invoice Number (move UP)
-  doc.fontSize(12).text(order.receiptNumber || "-", 150, 155);
+  doc.fillColor(textColor).fontSize(14).text(order.receiptNumber || "-", 146, 154);
 
   // Invoice Date
-  doc.text(new Date(order.createdAt).toLocaleDateString("en-IN"), 150, 189);
+  doc.text(new Date(order.createdAt).toLocaleDateString("en-IN"), 146, 187);
 
   /* =======================
    CUSTOMER INFO
 ======================= */
-
+doc.fillColor("#2a2a2a").fontSize(14);
   // Customer Name
   doc.text(
     `${order.user?.firstName || ""} ${order.user?.lastName || ""}`,
-    313,
+    304,
     232
   );
 
   // Contact Number
-  doc.text(order.user?.phone || "-", 313, 263);
+  doc.text(order.user?.phone || "-", 304, 263);
 
   /* =======================
    PLAN DETAILS (Table Row)
 ======================= */
 
   // Row Y position aligned to background table
-  const planRowY = 390;
+  const planRowY = 389;
 
-  doc.text(order.subscription?.plan || "-", 60, planRowY);
-  doc.text(`${order.subscription?.duration || 0} Days`, 300, planRowY);
-  doc.text("1", 420, planRowY);
+  doc.text(order.subscription?.plan || "-", 56, planRowY);
+  doc.text(`${order.subscription?.duration || 0} Days`, 320, planRowY);
+  doc.text("1", 423, planRowY);
   doc.text(`₹ ${order.subscription?.amount || 0}`, 490, planRowY);
 
   /* =======================
@@ -87,18 +91,18 @@ const generateInvoice = async (order) => {
   doc.text(`-`, 490, paymentY + 32);
 
   // Delivery Charges
-  doc.text(`Free`, 490, paymentY + 72);
+  doc.text(`Free`, 490, paymentY + 70);
 
   // Payment Mode
-  doc.text(paymentMode, 490, paymentY + 103);
+  doc.text(paymentMode, 490, paymentY + 102);
 
   // Grand Total (Bold & Center Feel)
   doc
-    .fontSize(16)
+    .fontSize(14)
     .font("Poppins")
     .text(`₹ ${amount}`, 490, paymentY + 135);
 
-  doc.fontSize(14);
+  doc.fontSize(12);
 
   // ✅ FINALIZE PDF
   doc.end();

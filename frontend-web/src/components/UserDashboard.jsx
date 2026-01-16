@@ -120,7 +120,7 @@ const UserDashboard = () => {
       ? "No pause days remaining"
       : remainingPauseDays === 1
       ? "1 day remaining"
-      : `${remainingPauseDays} days remaining`;
+      : `${remainingPauseDays} days`;
 
   const getSubscriptionStatus = () => {
     const pause = subscription.pause;

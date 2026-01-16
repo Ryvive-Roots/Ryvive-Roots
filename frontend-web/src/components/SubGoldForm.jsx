@@ -8,13 +8,13 @@ import BgImage from "../assets/Form.png";
 
 
 const allowedPincodes = [
-  { code: "421201", area: "Dombivli East" },
+  { code: "421201", area: "" },
   {
     code: "421202",
-    area: "Dombivli West",
+    area: "",
   },
-  { code: "421203", area: "Dombivli East" },
-  { code: "421204", area: "Khoni, Padle" },
+  { code: "421203", area: "" },
+  { code: "421204", area: "" },
 ];
 
 const inputStyle = `
