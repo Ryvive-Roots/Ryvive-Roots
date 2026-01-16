@@ -1,7 +1,7 @@
 // backend/utils/planConfig.js
 
 // Duration in days (30 days = 1 month)
-const ONE_MONTH = 30;
+const ONE_MONTH = 1;
 
 export const PLANS = {
   SILVER: {

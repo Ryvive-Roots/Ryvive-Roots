@@ -474,7 +474,7 @@ const SilversubForm = () => {
                       <option value="">Select Pincode</option>
                       {allowedPincodes.map((p) => (
                         <option key={p.code}>
-                          {p.code} — {p.area}
+                          {p.code}  {p.area}
                         </option>
                       ))}
                     </select>

@@ -117,10 +117,10 @@ const UserDashboard = () => {
   // ✅ Friendly label text
   const remainingLabel =
     remainingPauseDays === 0
-      ? "No pause days remaining"
+      ? "No pause remaining"
       : remainingPauseDays === 1
-      ? "1 day remaining"
-      : `${remainingPauseDays} days`;
+      ? "1 pause remaining"
+      : `${remainingPauseDays} Pauses`;
 
   const getSubscriptionStatus = () => {
     const pause = subscription.pause;
@@ -274,7 +274,7 @@ const UserDashboard = () => {
                 </p>
 
                 <p className="text-xs text-gray-500 font-roboto">
-                  Used: {safeUsedDays} / {maxPauseDays} days
+                  Used: {safeUsedDays} / {maxPauseDays} pauses
                 </p>
               </div>
 

@@ -41,10 +41,10 @@ const generateInvoice = async (order) => {
  const textColor = "#4c4f28";
 
   // Invoice Number (move UP)
-  doc.fillColor(textColor).fontSize(14).text(order.receiptNumber || "-", 146, 154);
+  doc.fillColor(textColor).fontSize(14).text(order.receiptNumber || "-", 146, 153);
 
   // Invoice Date
-  doc.text(new Date(order.createdAt).toLocaleDateString("en-IN"), 146, 187);
+  doc.text(new Date(order.createdAt).toLocaleDateString("en-IN"), 146, 184);
 
   /* =======================
    CUSTOMER INFO
@@ -53,12 +53,12 @@ doc.fillColor("#2a2a2a").fontSize(14);
   // Customer Name
   doc.text(
     `${order.user?.firstName || ""} ${order.user?.lastName || ""}`,
-    304,
-    232
+    303,
+    225
   );
 
   // Contact Number
-  doc.text(order.user?.phone || "-", 304, 263);
+  doc.text(order.user?.phone || "-", 303, 259);
 
   /* =======================
    PLAN DETAILS (Table Row)
@@ -67,11 +67,11 @@ doc.fillColor("#2a2a2a").fontSize(14);
   // Row Y position aligned to background table
   const planRowY = 389;
 
-  doc.text(order.subscription?.plan || "-", 56, planRowY);
-  doc.text(`${order.subscription?.duration || 0} Days`, 320, planRowY);
+  doc.text(order.subscription?.plan || "-", 55, planRowY);
+  doc.text(`${order.subscription?.duration || 0} Month`, 321, planRowY);
   doc.text("1", 423, planRowY);
   doc.text(`₹ ${order.subscription?.amount || 0}`, 490, planRowY);
-
+doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 415);
   /* =======================
    PAYMENT SUMMARY
 ======================= */

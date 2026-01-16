@@ -50,7 +50,7 @@ const OrderSchema = new mongoose.Schema(
       },
       duration: {
         type: Number,
-        default: 30,
+        default: 1,
       },
       startDate: {
         type: Date,

@@ -114,28 +114,43 @@ const remaining = maxAllowed - order.subscription.pause.used;
       to: "customersupport@ryviveroots.com",
       subject: `Subscription Pause – ${order.subscription.plan} Member`,
       html: `
-Dear Team,
+       <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; line-height: 1.6;">
+  <p>Dear <strong>Team</strong>,</p>
 
-A customer has successfully placed a **subscription pause request** via the dashboard.
+  <p>
+    A customer has successfully placed a
+    <strong>subscription pause request</strong> via the website user dashboard.
+  </p>
 
-**Member Details**
-• Name: ${order.user.firstName} ${order.user.lastName}
-• Membership ID: ${order.membershipId}
-• Plan: ${order.subscription.plan}
-• Phone: ${order.user.phone}
-• Email: ${order.user.email}
+  <p><strong>Member Details</strong></p>
+  <ul style="padding-left: 18px; margin: 8px 0;">
+    <li><strong>Name:</strong> ${order.user.firstName} ${order.user.lastName}</li>
+    <li><strong>Membership ID:</strong> ${order.membershipId}</li>
+    <li><strong>Plan:</strong> ${order.subscription.plan}</li>
+    <li><strong>Phone:</strong> ${order.user.phone}</li>
+    <li><strong>Email:</strong> ${order.user.email}</li>
+     <li><strong>Address:</strong> ${order.address}</li>
+  </ul>
 
-**Pause Information**
-• Pause Start Date: ${pauseStart.toLocaleDateString("en-IN")}
-• Resume Date: ${resumeDate.toLocaleDateString("en-IN")}
-• Delivery Slot: ${order.deliverySlot}
-• Pause Days: ${pauseDays}
+  <p><strong>Pause Information</strong></p>
+  <ul style="padding-left: 18px; margin: 8px 0;">
+    <li><strong>Pause Start Date:</strong> ${pauseStart.toLocaleDateString("en-IN")}</li>
+    <li><strong>Resume Date:</strong> ${resumeDate.toLocaleDateString("en-IN")}</li>
+    <li><strong>Delivery Slot:</strong> ${order.deliverySlot}</li>
+    <li><strong>Pause Days:</strong> ${pauseDays}</li>
+  </ul>
 
-Subscription status updated to **PAUSED**  
-Expiry date extended accordingly.
+  <p>
+    Subscription status updated to <strong>PAUSED</strong>.<br />
+    Expiry date extended accordingly.
+  </p>
 
-Warm regards,  
-**Ryvive Roots – System Notification**
+  <p style="margin-top: 16px;">
+    Warm regards,<br />
+    <strong>Ryvive Roots – System Notification</strong>
+  </p>
+</div>
+
 `,
     });
 

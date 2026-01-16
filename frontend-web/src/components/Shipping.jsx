@@ -27,7 +27,7 @@ const Shipping = () => {
           2. Delivery Schedule
           </h2>
           <p className="text-gray-600 leading-relaxed">
-          Delivery slot and delivery location selection is completed by the Customer at the time of initiating the subscription plan. The Customer may request a change in delivery location and/or delivery slot only on a weekly basis. Such requests must be submitted exclusively on Saturdays, on or before 5:00 PM, by emailing  <span className="font-medium text-black">customersupport@ryviveroots.com</span>. Any approved change shall be applicable for the immediately following subscription week only. Requests received after the stipulated timeline shall not be considered.
+          Delivery slot and delivery location selection is completed by the Customer at the time of initiating the subscription plan. The Customer may request a change in delivery location and/or delivery slot only on a weekly basis. Such requests must be submitted exclusively on Saturdays, on or before 5:00 PM, by emailing  <span className="font-medium text-black/80">customersupport@ryviveroots.com</span>. Any approved change shall be applicable for the immediately following subscription week only. Requests received after the stipulated timeline shall not be considered.
           </p>
           <br />
            <p className="text-gray-600 leading-relaxed">The Customer is required to ensure availability at the registered delivery address during the assigned delivery window.</p>
@@ -44,7 +44,7 @@ const Shipping = () => {
           </p>
              <br />
            <p className="text-gray-600 leading-relaxed">
-            In case of customer unavailability, incorrect address, unreachable contact number, or refusal to accept delivery, the order shall be treated as delivered and <span className="font-medium text-black">shall not be eligible for any refund or redelivery.</span>
+            In case of customer unavailability, incorrect address, unreachable contact number, or refusal to accept delivery, the order shall be treated as delivered and <span className="font-medium text-black/80">shall not be eligible for any refund or redelivery.</span>
            </p>
               <br />
             <p className="text-gray-600 leading-relaxed">Delays due to traffic, weather conditions, government restrictions, or unforeseen operational circumstances shall not entitle the Customer to any refund or compensation.</p>

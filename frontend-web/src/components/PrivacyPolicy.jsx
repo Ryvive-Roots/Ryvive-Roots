@@ -6,7 +6,7 @@ const PrivacyPolicy = () => {
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-8 sm:p-12">
         
         {/* Title */}
-        <h1 className="md:text-3xl text-2xl text-center font-cinzel uppercase font-semibold text-[#243E36] mb-12 text-center">
+        <h1 className="md:text-3xl text-2xl font-cinzel uppercase font-semibold text-[#243E36] mb-12 text-center">
           Privacy Policy – Ryvive Roots LLP
         </h1>
 
@@ -114,7 +114,7 @@ const PrivacyPolicy = () => {
         11. Changes to Privacy Policy
           </h2>
           <p className="text-gray-600 leading-relaxed">
-       We reserve the right to amend or update this Privacy Policy at any time. Any changes will be communicated to customers and will become effective <span className="font-medium text-black">48 hours after being posted or notified.</span> </p>
+       We reserve the right to amend or update this Privacy Policy at any time. Any changes will be communicated to customers and will become effective <span className="font-medium text-black/80">48 hours after being posted or notified.</span> </p>
         </section>
 
 
