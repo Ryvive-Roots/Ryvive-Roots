@@ -48,10 +48,11 @@ const OrderSchema = new mongoose.Schema(
         type: Number,
         required: true,
       },
-      duration: {
+      durationMonths: {
         type: Number,
-        default: 1,
+        default: 1, // ✅ 1 month
       },
+
       startDate: {
         type: Date,
         default: Date.now,

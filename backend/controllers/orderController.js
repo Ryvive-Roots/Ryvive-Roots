@@ -33,23 +33,24 @@ export const placeOrder = async (req, res) => {
       });
     }
 
-   let user = await User.findOne({ phone: formData.phone });
+    let user = await User.findOne({ phone: formData.phone });
 
-   if (!user) {
-     user = await User.create({
-       firstName: formData.firstName,
-       lastName: formData.lastName,
-       email: formData.email,
-       phone: formData.phone,
-       membershipId: null, // ✅ safe initially
-     });
-   }
+    if (!user) {
+      user = await User.create({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        membershipId: null, // ✅ safe initially
+      });
+    }
 
-
-    // 3️⃣ CALCULATE DATES
+    // 3️⃣ CALCULATE DATES (MONTH BASED)
     const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + selectedPlan.duration);
+
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + selectedPlan.durationMonths);
+
 
     // 2️⃣ CREATE MEMBERSHIP ID
     const membershipId = await generateMembershipId(Order);
@@ -83,7 +84,7 @@ export const placeOrder = async (req, res) => {
       subscription: {
         plan,
         amount: selectedPlan.price,
-        duration: selectedPlan.duration,
+        durationMonths: selectedPlan.durationMonths,
         startDate,
         endDate,
         pause: { used: 0, history: [] },
@@ -107,8 +108,6 @@ export const placeOrder = async (req, res) => {
       },
       { new: true }
     );
-
-
 
     // 7️⃣ Generate Invoice PDF
     const invoicePath = await generateInvoice(order);

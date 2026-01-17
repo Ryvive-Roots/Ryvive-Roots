@@ -1,19 +1,16 @@
 // backend/utils/planConfig.js
 
-// Duration in days (30 days = 1 month)
-const ONE_MONTH = 1;
-
 export const PLANS = {
   SILVER: {
     price: 4999,
-    duration: ONE_MONTH,
+    durationMonths: 1, // ✅ 1 calendar month
   },
   GOLD: {
     price: 5999,
-    duration: ONE_MONTH,
+    durationMonths: 1, // ✅ 1 calendar month
   },
   PLATINUM: {
     price: 6999,
-    duration: ONE_MONTH,
+    durationMonths: 1, // ✅ 1 calendar month
   },
 };

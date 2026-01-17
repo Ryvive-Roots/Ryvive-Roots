@@ -1,7 +1,7 @@
 export const goldPauseEmail = ({
   customerName,
   pauseStartDate,
-  resumeDate,
+  ResumeDate,
   timeSlot,
   remainingPauses,
 }) => ({
@@ -20,24 +20,24 @@ export const goldPauseEmail = ({
 
     <ul>
       <li><strong>Pause Start Date:</strong> ${pauseStartDate}</li>
-      <li><strong>Resume Date:</strong> ${resumeDate}</li>
+      <li><strong>Service Resume Date:</strong> ${ResumeDate}</li>
       <li><strong>Scheduled Delivery Time Slot:</strong> ${timeSlot}</li>
     </ul>
 
     <p>
-      As a Gold member, you are entitled to <strong>2 pauses per month</strong>.<br/>
-      After this request, your <strong>remaining pauses for the month are:</strong> ${remainingPauses}
+      As a Gold member, you are entitled to a maximum of <strong>2 pause requests</strong> under your plan.<br/>
+      After this request, your <strong>remaining available pauses:</strong> ${remainingPauses}
     </p>
 
     <p>
-      During the pause period, <strong>all deliveries will be temporarily stopped</strong>.
-      Your subscription will <strong>automatically resume</strong> on the date mentioned above,
-      and your meals will continue as per your selected time slot.
+      During the pause period, <strong>all deliveries will remain temporarily suspended</strong>.
+      Your subscription will <strong>automatically resume on the date mentioned above</strong>,
+      and deliveries will continue as per your selected time slot.
     </p>
 
     <p>
-      If you wish to modify your pause dates or need assistance, please contact us at
-      <strong>customersupport@ryviveroots.com</strong>
+      If you need any assistance or wish to modify your pause schedule, please contact us at
+      <strong>customersupport@ryviveroots.com</strong>.
     </p>
 
     <p>
@@ -53,11 +53,10 @@ export const goldPauseEmail = ({
   `,
 });
 
-
 export const platinumPauseEmail = ({
   customerName,
   pauseStartDate,
-  resumeDate,
+  ResumeDate,
   timeSlot,
   remainingPauses,
 }) => ({
@@ -77,18 +76,18 @@ export const platinumPauseEmail = ({
 
     <ul>
       <li><strong>Pause Start Date:</strong> ${pauseStartDate}</li>
-    <li><strong>Resume Date:</strong> ${resumeDate}</li>
+      <li><strong>Service Resume Date:</strong> ${ResumeDate}</li>
       <li><strong>Scheduled Delivery Time Slot:</strong> ${timeSlot}</li>
     </ul>
 
     <p>
-      As a Platinum member, you are entitled to <strong>3 pauses per month</strong>.<br/>
-      After this request, your <strong>remaining pauses for the month are:</strong> ${remainingPauses}
+      As a Platinum member, you are entitled to a maximum of <strong>3 pause requests</strong> under your plan.<br/>
+      After this request, your <strong>remaining available pauses:</strong> ${remainingPauses}
     </p>
 
     <p>
-      All deliveries will remain <strong>on hold during the pause period</strong> and
-      your subscription will <strong>automatically resume</strong> on the stated end date,
+      All deliveries will remain <strong>on hold during the pause period</strong>.
+      Your subscription will <strong>automatically resume on the above mentioned date</strong>,
       with your meal schedule continuing seamlessly.
     </p>
 

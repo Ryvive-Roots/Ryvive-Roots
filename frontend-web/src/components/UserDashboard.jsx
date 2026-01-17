@@ -9,42 +9,75 @@ const UserDashboard = () => {
 
   const [showPauseModal, setShowPauseModal] = useState(false);
   const [pauseStartDate, setPauseStartDate] = useState("");
-  const [pauseDays, setPauseDays] = useState(1);
+const [pauseFromDate, setPauseFromDate] = useState("");
+const [pauseToDate, setPauseToDate] = useState("");
 
-  const getResumeDate = () => {
-    if (!pauseStartDate) return "";
+  const calculatePauseDays = () => {
+    if (!pauseFromDate || !pauseToDate) return 0;
 
-    const resume = new Date(pauseStartDate);
-    resume.setDate(resume.getDate() + pauseDays);
+    const from = new Date(pauseFromDate);
+    const to = new Date(pauseToDate);
 
-    return resume.toLocaleDateString("en-IN");
+    const diffTime = to.getTime() - from.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+    return diffDays > 0 ? diffDays : 0;
   };
 
-  const confirmPause = async () => {
-    const membershipId = localStorage.getItem("membershipId");
+  const pauseDays = calculatePauseDays();
 
-    const res = await fetch("http://localhost:4000/api/subscription/pause", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        membershipId,
-        pauseStartDate,
-        pauseDays,
-      }),
-    });
 
-    const data = await res.json();
+ const getResumeDate = () => {
+   if (!pauseToDate) return "";
+   return new Date(pauseToDate).toLocaleDateString("en-IN");
+ };
 
-    if (data.success) {
-      alert("Subscription paused successfully");
-      setShowPauseModal(false);
-      window.location.reload();
-    } else {
-      alert(data.message);
-    }
-  };
+
+ const confirmPause = async () => {
+   if (!pauseFromDate || !pauseToDate) {
+     alert("Please select pause dates.");
+     return;
+   }
+
+   if (pauseDays <= 0) {
+     alert("Invalid pause date selection.");
+     return;
+   }
+
+   if (pauseDays > 15) {
+     alert("Pause duration cannot exceed 15 days.");
+     return;
+   }
+
+   if (remainingPauseCount === 0) {
+     alert("No pauses remaining.");
+     return;
+   }
+
+   const membershipId = localStorage.getItem("membershipId");
+
+   const res = await fetch("http://localhost:4000/api/subscription/pause", {
+     method: "POST",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify({
+       membershipId,
+       pauseStartDate: pauseFromDate,
+       pauseDays,
+       pauseToDate,
+     }),
+   });
+
+   const data = await res.json();
+
+   if (data.success) {
+     alert("Subscription paused successfully");
+     setShowPauseModal(false);
+     window.location.reload();
+   } else {
+     alert(data.message);
+   }
+ };
+
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -89,38 +122,29 @@ const UserDashboard = () => {
 
   const { user, subscription, membershipId } = order;
 
-  // ✅ Pause limits per plan
-  // ✅ Max pause days allowed per plan
-  const PAUSE_DAYS_LIMIT = {
-    GOLD: 2, // 2 days pause allowed
-    PLATINUM: 3, // 3 days pause allowed
+  // ✅ Pause count per plan
+  const PAUSE_COUNT_LIMIT = {
+    GOLD: 2,
+    PLATINUM: 3,
   };
 
-  // ✅ Calculate used pause days
- const usedPauseDays =
-   subscription.pause?.history?.reduce(
-     (total, item) => total + Number(item.days || 0),
-     0
-   ) || 0;
+  // ✅ Max days per pause
+  const MAX_PAUSE_DAYS = 15;
 
- const maxPauseDays = PAUSE_DAYS_LIMIT[subscription.plan] || 0;
+  // ✅ Used pauses
+  const usedPauseCount = subscription.pause?.history?.length || 0;
 
- // ✅ Prevent UI overflow
- const safeUsedDays = Math.min(usedPauseDays, maxPauseDays);
+  const maxPauseCount = PAUSE_COUNT_LIMIT[subscription.plan] || 0;
 
- const remainingPauseDays = Math.max(maxPauseDays - safeUsedDays, 0);
-
+  const remainingPauseCount = Math.max(maxPauseCount - usedPauseCount, 0);
 
   // ✅ Lock condition
-  const isLocked = remainingPauseDays === 0;
+  const isLocked = remainingPauseCount === 0;
 
-  // ✅ Friendly label text
-  const remainingLabel =
-    remainingPauseDays === 0
-      ? "No pause remaining"
-      : remainingPauseDays === 1
-      ? "1 pause remaining"
-      : `${remainingPauseDays} Pauses`;
+  // ✅ Label
+  const remainingLabel = isLocked
+    ? "No pauses remaining"
+    : `${remainingPauseCount} pauses remaining`;
 
   const getSubscriptionStatus = () => {
     const pause = subscription.pause;
@@ -143,6 +167,14 @@ const UserDashboard = () => {
 
     return "ACTIVE"; // ✅ Pause completed
   };
+  const getMaxToDate = () => {
+    if (!pauseFromDate) return null;
+
+    const maxDate = new Date(pauseFromDate);
+    maxDate.setDate(maxDate.getDate() + 14); // 15 days inclusive
+    return maxDate.toISOString().split("T")[0];
+  };
+
 
   const dynamicStatus = getSubscriptionStatus();
 
@@ -154,6 +186,15 @@ const UserDashboard = () => {
   const pausedUntil = latestPause
     ? new Date(latestPause.resumeDate).toLocaleDateString("en-IN")
     : null;
+  
+  const getResumeNextDay = () => {
+    if (!pauseToDate) return "";
+
+    const resume = new Date(pauseToDate);
+    resume.setDate(resume.getDate() + 1);
+    return resume.toLocaleDateString("en-IN");
+  };
+
 
   const pauseMessage = (() => {
     if (!latestPause) return null;
@@ -274,7 +315,7 @@ const UserDashboard = () => {
                 </p>
 
                 <p className="text-xs text-gray-500 font-roboto">
-                  Used: {safeUsedDays} / {maxPauseDays} pauses
+                  Used: {usedPauseCount} / {maxPauseCount} pauses
                 </p>
               </div>
 
@@ -338,44 +379,60 @@ const UserDashboard = () => {
             </p>
 
             {/* 📅 Pause Start Date */}
+            {/* 📅 Pause From Date */}
             <div className="mb-4">
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Pause Start Date
+                Pause From
               </label>
               <input
                 type="date"
                 min={new Date().toISOString().split("T")[0]}
-                value={pauseStartDate}
-                onChange={(e) => setPauseStartDate(e.target.value)}
+                value={pauseFromDate}
+                onChange={(e) => setPauseFromDate(e.target.value)}
                 className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-green-600"
               />
             </div>
 
-            {/* ⏳ Pause Duration */}
+            {/* 📅 Pause To Date */}
             <div className="mb-4">
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Pause Duration
+                Pause To
               </label>
-              <select
-                value={pauseDays}
-                onChange={(e) => setPauseDays(Number(e.target.value))}
-                className="w-full border rounded-xl p-3 font-roboto focus:ring-2 focus:ring-green-600"
-              >
-                <option value={1}>1 Day</option>
-                <option value={2}>2 Days</option>
-                <option value={3}>3 Days</option>
-              </select>
+              <input
+                type="date"
+                min={pauseFromDate || new Date().toISOString().split("T")[0]}
+                max={getMaxToDate()}
+                value={pauseToDate}
+                onChange={(e) => setPauseToDate(e.target.value)}
+                className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-green-600"
+              />
             </div>
 
+            {/* ⏳ Auto Calculated Duration */}
+            {pauseDays > 0 && (
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Pause Duration
+                </label>
+                <div className="w-full border rounded-xl p-3 bg-gray-50 font-semibold text-green-700">
+                  {pauseDays} Day{pauseDays > 1 ? "s" : ""}
+                </div>
+              </div>
+            )}
+
             {/* 📆 Summary */}
-            {pauseStartDate && (
+            {pauseFromDate && pauseToDate && pauseDays > 0 && (
               <div className="bg-green-50 rounded-xl p-4 text-sm font-roboto mb-5">
                 <p className="text-gray-700">
-                  <b>Pause On:</b>{" "}
-                  {new Date(pauseStartDate).toLocaleDateString("en-IN")}
+                  <b>Pause From:</b>{" "}
+                  {new Date(pauseFromDate).toLocaleDateString("en-IN")}
+                </p>
+                <p className="text-gray-700">
+                  <b>Pause To:</b>{" "}
+                  {new Date(pauseToDate).toLocaleDateString("en-IN")}
                 </p>
                 <p className="text-green-700 font-semibold">
-                  <b>Resume On:</b> {getResumeDate()}
+                  Service resumes on {getResumeNextDay()}
                 </p>
               </div>
             )}

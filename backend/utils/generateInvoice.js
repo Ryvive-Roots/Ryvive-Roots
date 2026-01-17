@@ -68,10 +68,10 @@ doc.fillColor("#2a2a2a").fontSize(14);
   const planRowY = 389;
 
   doc.text(order.subscription?.plan || "-", 55, planRowY);
-  doc.text(`${order.subscription?.duration || 0} Month`, 321, planRowY);
+  doc.text(`${order.subscription?.durationMonths || 0} Month`, 321, planRowY);
   doc.text("1", 423, planRowY);
   doc.text(`₹ ${order.subscription?.amount || 0}`, 490, planRowY);
-doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 415);
+doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 422);
   /* =======================
    PAYMENT SUMMARY
 ======================= */
