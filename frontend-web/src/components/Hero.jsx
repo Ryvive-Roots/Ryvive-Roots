@@ -30,6 +30,13 @@ const HeroSection = () => {
     cloudinaryImages.Chaat,
   
   ];
+  const imageAlts = [
+    "Healthy fresh salad bowl at Ryvive Roots cafe",
+    "Grilled sandwich made with fresh ingredients at Ryvive Roots",
+    "Cold pressed fresh fruit juice at Ryvive Roots cafe",
+    "Healthy Indian chaat prepared with natural ingredients at Ryvive Roots",
+  ];
+
   const sliderRef = useRef(null);
   const navigate = useNavigate();
 
@@ -87,14 +94,16 @@ const HeroSection = () => {
         >
           <img
             src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765279187/RasBerrie_xxk64h.png"
-            alt="texture background"
-            className="absolute bottom-[-10px] left-0  md:w-[300px] w-[200px] md:h-[300px] h-[120px] object-contain opacity-70 pointer-events-none select-none"
-          />{" "}
+            alt="Decorative raspberry texture background for healthy food cafe design"
+            className="absolute bottom-[-10px] left-0 md:w-[300px] w-[200px] md:h-[300px] h-[120px] object-contain opacity-70 pointer-events-none select-none"
+          />
+
           <img
             src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765279304/berries_k9vjje.png"
-            alt="berries decoration"
+            alt="Fresh berries illustration symbolizing natural and organic ingredients"
             className="absolute top-[10px] right-[-2px] md:w-[200px] w-[150px] md:h-[250px] h-[120px] object-contain opacity-90 pointer-events-none select-none"
           />
+
           <div className="relative pt-30 sm:pt-0 p-14 md:pl-80">
             <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold uppercase font-cinzel text-[#4b3b2a] leading-tight mb-6">
               Welcome <br /> to{" "}
@@ -135,6 +144,7 @@ const HeroSection = () => {
               <div key={i} className="w-full h-[50vh] lg:h-[90vh]">
                 <img
                   src={img}
+                  alt={imageAlts[i]}
                   className="w-full h-full object-cover object-top"
                 />
               </div>
@@ -143,12 +153,15 @@ const HeroSection = () => {
 
           <div className="absolute bottom-0 left-0 flex justify-center items-center z-20">
             <button
+              aria-label="Previous slide"
               onClick={() => sliderRef.current?.slickPrev()}
               className="bg-[#FEF7F0] text-center flex items-center justify-center text-[#B38E6A] w-20 h-20 hover:bg-[#B38E6A] hover:text-white transition"
             >
               <FaChevronLeft />
             </button>
+
             <button
+              aria-label="Next slide"
               onClick={() => sliderRef.current?.slickNext()}
               className="bg-[#FEF7F0] text-center flex items-center justify-center text-[#B38E6A] w-20 h-20 hover:bg-[#B38E6A] hover:text-white transition"
             >
@@ -175,8 +188,10 @@ const HeroSection = () => {
       >
         <img
           src={Texture2}
+          alt="Organic texture design representing eco-friendly and natural food theme"
           className="absolute bottom-0 left-0 w-full h-[100px] object-cover opacity-90"
         />
+
         <div className="absolute inset-0 bg-black/10"></div>
       </section>
 
@@ -238,7 +253,7 @@ Book a Consultation
         <div className="relative w-full flex flex-col lg:flex-row items-center lg:items-start gap-0 md:gap-10 justify-center">
           <motion.img
             src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765360072/sustainable_r2gifi.png"
-            alt="Subscription"
+            alt="Eco-friendly sustainable food packaging used by Ryvive Roots healthy cafe"
             variants={imageVariant}
             className="relative -top-20 translate-x-0 shadow-2xl lg:translate-x-40 w-[500px] lg:w-[550px] h-[300px] lg:h-[400px] object-cover"
           />
