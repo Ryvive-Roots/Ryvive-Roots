@@ -8,7 +8,6 @@ const UserDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   const [showPauseModal, setShowPauseModal] = useState(false);
-  const [pauseStartDate, setPauseStartDate] = useState("");
   const [pauseFromDate, setPauseFromDate] = useState("");
   const [pauseToDate, setPauseToDate] = useState("");
 

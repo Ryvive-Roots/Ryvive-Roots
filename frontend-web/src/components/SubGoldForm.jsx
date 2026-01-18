@@ -474,7 +474,7 @@ const GoldsubForm = () => {
                       <option value="">Select Pincode</option>
                       {allowedPincodes.map((p) => (
                         <option key={p.code}>
-                          {p.code}  {p.area}
+                          {p.code} {p.area}
                         </option>
                       ))}
                     </select>
@@ -562,7 +562,7 @@ const GoldsubForm = () => {
                     </div>
 
                     {/* Place Order Button */}
-                    <button
+                    {/* <button
                       disabled={loadingOrder}
                       onClick={async () => {
                         setLoadingOrder(true);
@@ -579,6 +579,12 @@ const GoldsubForm = () => {
     ${loadingOrder ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"}`}
                     >
                       {loadingOrder ? "PLACING ORDER..." : "PLACE ORDER"}
+                    </button> */}
+                    <button
+                      disabled={true}
+                      className="w-full py-4 rounded-xl bg-gray-400 text-white font-fredoka cursor-not-allowed opacity-70"
+                    >
+                      PLACE ORDER 🔒
                     </button>
 
                     {/* Trust Note */}
