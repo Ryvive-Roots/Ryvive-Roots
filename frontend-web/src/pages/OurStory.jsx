@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import Banner from "../assets/StoryBanner.jpg";
+
 import What from "../assets/what.jpg";
-import { GiFruitTree, GiLotus, GiForkKnifeSpoon } from "react-icons/gi";
 import Story from "../assets/wellness.png";
 import Storyy from "../assets/Storryy.jpeg";
 import Value from "../assets/chef.png";
@@ -115,81 +114,39 @@ const OurStory = () => {
             Our Story
           </h1>
 
-       
-            <p  className=" text-sm font-roboto py-2">
-              Ryvive Roots was born from a simple question: Can food truly
-              nourish us anymore? Everywhere we ate, we found frozen,
-              artificial, and over-processed ingredients that lacked both
-              freshness and purpose. We missed real food—the kind that energizes
-              the body and clears the mind. So we created Ryvive Roots: a place
-              where food is made the way it’s meant to be. Every dish is
-              prepared fresh from scratch, with in-house dressings and zero
-              artificial flavours, colours, or sauces. Just honest ingredients,
-              chosen with intention. We believe health is not a trend—it’s a
-              revival. Our menu is designed to support digestion, immunity,
-              brain function, and overall balance, working with your body, not
-              against it. Sustainability matters to us too. That’s why every
-              order is served in eco-friendly sugarcane-based packaging—because
-              true wellness includes caring for the planet. Ryvive Roots means
-              reconnecting with real nourishment. Live. Relive. Believe. Live
-              better, relive your natural energy, and believe in the power of
-              authentic food. This isn’t just a meal—it’s a return to what’s
-              real. 
-            </p>
-         
-
-        
+          <p className=" text-sm font-roboto py-2">
+            Ryvive Roots was born from a simple question: Can food truly nourish
+            us anymore? Everywhere we ate, we found frozen, artificial, and
+            over-processed ingredients that lacked both freshness and purpose.
+            We missed real food—the kind that energizes the body and clears the
+            mind. So we created Ryvive Roots: a place where food is made the way
+            it’s meant to be. Every dish is prepared fresh from scratch, with
+            in-house dressings and zero artificial flavours, colours, or sauces.
+            Just honest ingredients, chosen with intention. We believe health is
+            not a trend—it’s a revival. Our menu is designed to support
+            digestion, immunity, brain function, and overall balance, working
+            with your body, not against it. Sustainability matters to us too.
+            That’s why every order is served in eco-friendly sugarcane-based
+            packaging—because true wellness includes caring for the planet.
+            Ryvive Roots means reconnecting with real nourishment. Live. Relive.
+            Believe. Live better, relive your natural energy, and believe in the
+            power of authentic food. This isn’t just a meal—it’s a return to
+            what’s real.
+          </p>
         </div>
-        <div className="w-full md:w-1/2">
-          <img src={Storyy} alt="" />
+        <div className="w-full md:w-1/2 ">
+          <img src={Storyy} className="md:h-[50vh] h-auto" alt="" />
         </div>
       </div>
 
       <div className="w-full flex flex-col md:flex-row items-start justify-center gap-10 xl:px-24 lg:px-16 px-4 pb-20 ">
-        <div className="w-full md:w-1/2">
-          <img src={What} alt="" />
+        <div className="w-full  md:w-1/2">
+          <img src={What} className="md:h-[50vh] h-auto" alt="" />
         </div>
         <WhatIsRyviveRoots />
       </div>
 
-      {/* === Progress Stats Cards Section === */}
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 py-16 bg-white"
-        initial={{ opacity: 0, y: 80 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, ease: "easeOut" }}
-        viewport={{ once: true }}
-      >
-        {/* Box 1 - Progress Info */}
-        {/* <div className="bg-[#e7dbcf] p-10 flex flex-col justify-center text-left hover:scale-105 transition-transform duration-300">
-    <h4 className="text-sm uppercase text-[#6c5840] font-semibold mb-2 tracking-wide">
-      Progress
-    </h4>
-    <h2 className="text-xl md:text-2xl font-semibold text-[#895C40] leading-snug">
-      Every day we
-      <br />
-      Get Better for You
-    </h2>
-  </div> */}
-
-        {/* Box 2 - Served Dishes */}
-        {/* <div className="bg-[#d5bda3] p-8 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform duration-300">
-    <h2 className="text-5xl font-bold text-white mb-2">5934</h2>
-    <p className="text-white">Served Dishes</p>
-  </div> */}
-
-        {/* Box 3 - Served Customers */}
-        {/* <div className="bg-[#b89b7b] p-8 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform duration-300">
-    <h2 className="text-5xl font-bold text-[#fff] mb-2">9211</h2>
-    <p className="text-[#f7f3ec]">Served Customers</p>
-  </div> */}
-
-        {/* Box 4 - Served Projects */}
-        {/* <div className="bg-[#a28363] p-8 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform duration-300">
-    <h2 className="text-5xl font-bold text-[#fff] mb-2">8672</h2>
-    <p className="text-[#f7f3ec]">Served Projects</p>
-  </div> */}
-      </motion.div>
+     
 
       <AboutPromise />
     </section>

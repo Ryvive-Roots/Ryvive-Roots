@@ -7,7 +7,7 @@ const PrivacyPolicy = () => {
         
         {/* Title */}
         <h1 className="md:text-3xl text-2xl font-cinzel uppercase font-semibold text-[#243E36] mb-12 text-center">
-          Privacy Policy – Ryvive Roots LLP
+          Privacy Policy 
         </h1>
 
         <p className="text-gray-600 font-roboto mb-8 leading-relaxed">

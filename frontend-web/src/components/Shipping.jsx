@@ -6,7 +6,7 @@ const Shipping = () => {
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-8 sm:p-12">
         
         {/* Title */}
-        <h1 className="md:text-3xl text-2xl text-center font-cinzel uppercase font-semibold text-[#243E36] mb-12 text-center">
+        <h1 className="md:text-3xl text-2xl font-cinzel uppercase font-semibold text-[#243E36] mb-12 text-center">
          SHIPPING & DELIVERY POLICY
         </h1>
 
