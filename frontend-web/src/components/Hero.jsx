@@ -99,7 +99,7 @@ const HeroSection = () => {
           />
 
           <img
-            src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765279304/berries_k9vjje.png"
+            src="https://res.cloudinary.com/dvugjpjoj/image/upload/w_500,f_auto,q_auto/v1765279304/berries_k9vjje.png"
             alt="Fresh berries illustration symbolizing natural and organic ingredients"
             className="absolute top-[10px] right-[-2px] md:w-[200px] w-[150px] md:h-[250px] h-[120px] object-contain opacity-90 pointer-events-none select-none"
           />
