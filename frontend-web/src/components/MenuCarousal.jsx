@@ -11,7 +11,7 @@ const MenuCarousel = () => {
      Juice: "https://ik.imagekit.io/aaejjrx7t/3MSB4038.JPG",
      Salad: "https://ik.imagekit.io/aaejjrx7t/3MSB3918.JPG",
      Pasta:
-       "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765350520/Pasta_be09n6.jpg",
+       "https://ik.imagekit.io/aaejjrx7t/3MSB3903.JPG",
      Sandwitch: "https://ik.imagekit.io/aaejjrx7t/3MSB4143.JPG",
      Wraps: "https://ik.imagekit.io/aaejjrx7t/3MSB4127.JPG",
    };
