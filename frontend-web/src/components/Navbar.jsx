@@ -100,6 +100,9 @@ const Navbar = () => {
 
           {/* MOBILE MENU BUTTON */}
           <button
+            aria-label={
+              menuOpen ? "Close navigation menu" : "Open navigation menu"
+            }
             onClick={() => setMenuOpen(!menuOpen)}
             className="lg:hidden block"
           >
@@ -129,11 +132,12 @@ const Navbar = () => {
             })}
 
             <a
-              href="/subscription"
+              href="/login"
               onClick={() => setMenuOpen(false)}
-              className="block bg-[#B38E6A] text-white text-center py-2 rounded-full font-semibold"
+              className="bg-[#895C40] inline-flex w-fit items-center gap-2 rounded-full text-white px-8 py-3"
             >
-              Start Your Plan
+              <IoPersonOutline className="text-xl" />
+              login
             </a>
           </div>
         )}
