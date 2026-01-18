@@ -6,14 +6,15 @@ import { useNavigate } from "react-router-dom";
 
 const MenuCarousel = () => {
   const navigate = useNavigate();
-   const cloudinaryImages = { 
+   const cloudinaryImages = {
      Soup: "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765283057/soup_qxivj6.jpg",
-     Juice : "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765350053/kiwiJuice_n8lsue.jpg",
-      Salad: "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765347810/Salad3_guopxm.webp",
-      Pasta: "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765350520/Pasta_be09n6.jpg",
-       Sandwitch: "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765276783/Sandwitch_zyfnbq.jpg",
-       Wraps: "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765350641/wrap_w1rao3.jpg"
-  }
+     Juice: "https://ik.imagekit.io/aaejjrx7t/3MSB4038.JPG",
+     Salad: "https://ik.imagekit.io/aaejjrx7t/3MSB3918.JPG",
+     Pasta:
+       "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765350520/Pasta_be09n6.jpg",
+     Sandwitch: "https://ik.imagekit.io/aaejjrx7t/3MSB4143.JPG",
+     Wraps: "https://ik.imagekit.io/aaejjrx7t/3MSB4127.JPG",
+   };
 
   const cards = [
     {
