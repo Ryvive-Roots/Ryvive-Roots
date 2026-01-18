@@ -93,7 +93,7 @@ const HeroSection = () => {
           className="relative flex md:flex-row flex-col md:items-center min-h-auto lg:h-[90vh] md:justify-center overflow-hidden"
         >
           <img
-            src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765279187/RasBerrie_xxk64h.png"
+            src="https://ik.imagekit.io/aaejjrx7t/RasBerrie.png?updatedAt=1768752205361"
             alt="Decorative raspberry texture background for healthy food cafe design"
             className="absolute bottom-[-10px] left-0 md:w-[300px] w-[200px] md:h-[300px] h-[120px] object-contain opacity-70 pointer-events-none select-none"
           />
