@@ -37,34 +37,40 @@ const Footer = () => {
         {/* Logo + Description */}
         <motion.div variants={itemVariants} className="text-left">
           <img src={Logo} alt="logo" className="w-50 mb-4" />
-          <motion.p className="text-black/75 max-w-xs font-semibold" variants={itemVariants}>
-           Experience a menu crafted with balance, freshness, and honest flavours.
-Wholesome food made to nourish your body and make you feel good every day.
+          <motion.p
+            className="text-black/75 max-w-xs font-semibold"
+            variants={itemVariants}
+          >
+            Experience a menu crafted with balance, freshness, and honest
+            flavours. Wholesome food made to nourish your body and make you feel
+            good every day.
           </motion.p>
           {/* Social Icons */}
           <motion.div
             className="flex gap-4 my-6 text-2xl"
             variants={containerVariants}
           >
-          
-
             <motion.a
-              href="https://www.instagram.com/lorinzazenix_digital.agency"
+              href="https://www.instagram.com/ryvive__roots/"
               target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Visit Ryvive Roots on Instagram"
               className="cursor-pointer hover:text-[#895C40] transition-colors duration-200 text-black"
               variants={itemVariants}
             >
               <FaInstagram />
             </motion.a>
 
-            <motion.a
+            {/* <motion.a
               href="https://www.linkedin.com/company/lorinzazenix"
               target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Visit Ryvive Roots on LinkedIn"
               className="cursor-pointer hover:text-[#895C40] transition-colors duration-200 text-black"
               variants={itemVariants}
             >
               <FaLinkedin />
-            </motion.a>
+            </motion.a> */}
           </motion.div>
         </motion.div>
 
@@ -108,7 +114,7 @@ Wholesome food made to nourish your body and make you feel good every day.
             className="uppercase font-cormorant-text font-semibold mb-6 text-lg tracking-wide font-spectral-sc-regular text-black"
             variants={itemVariants}
           >
-          Help & Policies
+            Help & Policies
           </motion.h3>
 
           <motion.ul
@@ -118,9 +124,14 @@ Wholesome food made to nourish your body and make you feel good every day.
             {[
               { name: "Privacy Policy", path: "/privacy-policy" },
               { name: "Terms & Conditions", path: "/terms-conditions" },
-              { name: "Cancellation & Refund Policy", path: "/cancellation-refund" },
-              { name: "Shipping & Delivery Policy", path: "/shipping-delivery" },
-           
+              {
+                name: "Cancellation & Refund Policy",
+                path: "/cancellation-refund",
+              },
+              {
+                name: "Shipping & Delivery Policy",
+                path: "/shipping-delivery",
+              },
             ].map((link, index) => (
               <motion.li key={index} variants={itemVariants}>
                 <a
@@ -153,7 +164,9 @@ Wholesome food made to nourish your body and make you feel good every day.
               variants={itemVariants}
             >
               <FaPhoneAlt className="text-[#895C40] text-lg" />
-              <span className="text-black/75 font-semibold">+91 9076000468 / 9765600701</span>
+              <span className="text-black/75 font-semibold">
+                +91 9076000468 / 9765600701
+              </span>
             </motion.div>
             <hr className="border-gray-300" />
 
@@ -163,7 +176,9 @@ Wholesome food made to nourish your body and make you feel good every day.
               variants={itemVariants}
             >
               <MdEmail className="text-[#895C40] text-lg" />
-              <span className="text-black/75 font-semibold">contact@ryviveroots.com</span>
+              <span className="text-black/75 font-semibold">
+                contact@ryviveroots.com
+              </span>
             </motion.div>
             <hr className="border-gray-300" />
 

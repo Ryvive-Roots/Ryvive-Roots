@@ -103,7 +103,9 @@ const MenuCarousel = () => {
               </div>
 
               <div className="p-5">
-                <p className="text-gray-600 font-manrope text-sm">{card.text}</p>
+                <p className="text-gray-600 font-manrope text-sm">
+                  {card.text}
+                </p>
               </div>
             </div>
           </div>
@@ -112,10 +114,11 @@ const MenuCarousel = () => {
 
       {/* Next Button */}
       <button
+        aria-label="Go to menu"
         onClick={() => navigate("/menu")}
         className="absolute top-1/2 right-2 md:-right-6 transform -translate-y-1/2 
-        bg-[#4b3b2a] text-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center
-        rounded-full shadow-xl hover:scale-110 transition"
+  bg-[#4b3b2a] text-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center
+  rounded-full shadow-xl hover:scale-110 transition"
       >
         <FaArrowRight size={18} />
       </button>
