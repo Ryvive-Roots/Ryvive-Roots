@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import BgImage from "../assets/bg.png";
 
 import Silver from "../assets/SilverF.png";
-import Gold from "../assets/goldF.png";
+import Gold from "../assets/GoldF.png";
 import Plat from "../assets/platinumF.png";
 import ScrollToTop from "./ScrollToTop";
 
