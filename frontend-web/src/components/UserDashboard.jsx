@@ -9,8 +9,8 @@ const UserDashboard = () => {
 
   const [showPauseModal, setShowPauseModal] = useState(false);
   const [pauseStartDate, setPauseStartDate] = useState("");
-const [pauseFromDate, setPauseFromDate] = useState("");
-const [pauseToDate, setPauseToDate] = useState("");
+  const [pauseFromDate, setPauseFromDate] = useState("");
+  const [pauseToDate, setPauseToDate] = useState("");
 
   const calculatePauseDays = () => {
     if (!pauseFromDate || !pauseToDate) return 0;
@@ -26,89 +26,90 @@ const [pauseToDate, setPauseToDate] = useState("");
 
   const pauseDays = calculatePauseDays();
 
+  const getResumeDate = () => {
+    if (!pauseToDate) return "";
+    return new Date(pauseToDate).toLocaleDateString("en-IN");
+  };
 
- const getResumeDate = () => {
-   if (!pauseToDate) return "";
-   return new Date(pauseToDate).toLocaleDateString("en-IN");
- };
+  const confirmPause = async () => {
+    if (!pauseFromDate || !pauseToDate) {
+      alert("Please select pause dates.");
+      return;
+    }
 
+    if (pauseDays <= 0) {
+      alert("Invalid pause date selection.");
+      return;
+    }
 
- const confirmPause = async () => {
-   if (!pauseFromDate || !pauseToDate) {
-     alert("Please select pause dates.");
-     return;
-   }
+    if (pauseDays > 15) {
+      alert("Pause duration cannot exceed 15 days.");
+      return;
+    }
 
-   if (pauseDays <= 0) {
-     alert("Invalid pause date selection.");
-     return;
-   }
+    if (remainingPauseCount === 0) {
+      alert("No pauses remaining.");
+      return;
+    }
 
-   if (pauseDays > 15) {
-     alert("Pause duration cannot exceed 15 days.");
-     return;
-   }
+    const membershipId = localStorage.getItem("membershipId");
 
-   if (remainingPauseCount === 0) {
-     alert("No pauses remaining.");
-     return;
-   }
+    const res = await fetch("http://localhost:4000/api/subscription/pause", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        membershipId,
+        pauseStartDate: pauseFromDate,
+        pauseDays,
+        pauseToDate,
+      }),
+    });
 
-   const membershipId = localStorage.getItem("membershipId");
+    const data = await res.json();
 
-   const res = await fetch("http://localhost:4000/api/subscription/pause", {
-     method: "POST",
-     headers: { "Content-Type": "application/json" },
-     body: JSON.stringify({
-       membershipId,
-       pauseStartDate: pauseFromDate,
-       pauseDays,
-       pauseToDate,
-     }),
-   });
+    if (data.success) {
+      alert("Subscription paused successfully");
+      setShowPauseModal(false);
+      window.location.reload();
+    } else {
+      alert(data.message);
+    }
+  };
 
-   const data = await res.json();
+ useEffect(() => {
+   const fetchDashboard = async () => {
+     const membershipId = localStorage.getItem("membershipId");
 
-   if (data.success) {
-     alert("Subscription paused successfully");
-     setShowPauseModal(false);
-     window.location.reload();
-   } else {
-     alert(data.message);
-   }
- };
+     if (!membershipId) {
+       window.location.replace("/login");
+       return;
+     }
 
+     try {
+       const res = await fetch(
+         `http://localhost:4000/api/user/orders?membershipId=${membershipId}`,
+       );
 
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      const membershipId = localStorage.getItem("membershipId");
+       const data = await res.json();
 
-      if (!membershipId) {
-        window.location.replace("/login");
-        return;
-      }
+       if (data.success && data.orders.length > 0) {
+         setOrder(data.orders[0]);
+       }
+     } catch (error) {
+       console.error("Dashboard fetch error:", error);
+     } finally {
+       setLoading(false);
+     }
+   };
 
-      try {
-        const res = await fetch(
-          `http://localhost:4000/api/user/orders?membershipId=${membershipId}`
-        );
+   fetchDashboard(); // initial load
 
-        const data = await res.json();
+   // ✅ Auto refresh every 30 seconds
+   const interval = setInterval(fetchDashboard, 30000);
 
-        if (data.success && data.orders.length > 0) {
-          setOrder(data.orders[0]);
-        } else {
-          alert("No active subscription found");
-        }
-      } catch (error) {
-        console.error("Dashboard fetch error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+   return () => clearInterval(interval);
+ }, []);
 
-    fetchDashboard();
-  }, []);
 
   if (loading) {
     return (
@@ -137,14 +138,6 @@ const [pauseToDate, setPauseToDate] = useState("");
   const maxPauseCount = PAUSE_COUNT_LIMIT[subscription.plan] || 0;
 
   const remainingPauseCount = Math.max(maxPauseCount - usedPauseCount, 0);
-
-  // ✅ Lock condition
-  const isLocked = remainingPauseCount === 0;
-
-  // ✅ Label
-  const remainingLabel = isLocked
-    ? "No pauses remaining"
-    : `${remainingPauseCount} pauses remaining`;
 
   const getSubscriptionStatus = () => {
     const pause = subscription.pause;
@@ -175,9 +168,23 @@ const [pauseToDate, setPauseToDate] = useState("");
     return maxDate.toISOString().split("T")[0];
   };
 
+  const backendStatus = subscription.status; // UNDER_PROCESS / ACTIVE / EXPIRED
+  const pauseStatus = getSubscriptionStatus(); // PAUSED or ACTIVE (pause logic)
 
-  const dynamicStatus = getSubscriptionStatus();
+  // Final status priority
+  const finalStatus =
+    backendStatus === "UNDER_PROCESS"
+      ? "UNDER_PROCESS"
+      : pauseStatus === "PAUSED"
+        ? "PAUSED"
+        : backendStatus;
 
+  const isLocked = remainingPauseCount === 0 || finalStatus === "UNDER_PROCESS";
+
+  // ✅ Label
+  const remainingLabel = isLocked
+    ? "No pauses remaining"
+    : `${remainingPauseCount} pauses remaining`;
   const latestPause =
     subscription.pause?.history?.length > 0
       ? subscription.pause.history[subscription.pause.history.length - 1]
@@ -186,7 +193,7 @@ const [pauseToDate, setPauseToDate] = useState("");
   const pausedUntil = latestPause
     ? new Date(latestPause.resumeDate).toLocaleDateString("en-IN")
     : null;
-  
+
   const getResumeNextDay = () => {
     if (!pauseToDate) return "";
 
@@ -194,7 +201,6 @@ const [pauseToDate, setPauseToDate] = useState("");
     resume.setDate(resume.getDate() + 1);
     return resume.toLocaleDateString("en-IN");
   };
-
 
   const pauseMessage = (() => {
     if (!latestPause) return null;
@@ -205,14 +211,28 @@ const [pauseToDate, setPauseToDate] = useState("");
 
     if (days === 1) {
       return `⏸ Pause scheduled for ${start.toLocaleDateString(
-        "en-IN"
+        "en-IN",
       )}. Service will resume the next day.`;
     }
 
     return `⏸ Pause scheduled from ${start.toLocaleDateString(
-      "en-IN"
+      "en-IN",
     )} to ${resume.toLocaleDateString("en-IN")}`;
   })();
+
+  const formatDate = (date) => {
+    if (!date) return "-";
+    return new Date(date).toLocaleDateString("en-IN");
+  };
+
+  const getRemainingDays = (endDate) => {
+    if (!endDate) return 0;
+
+    const diff = new Date(endDate).getTime() - Date.now();
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+
+    return days > 0 ? days : 0;
+  };
 
   return (
     <div className="relative min-h-screen px-6 md:px-20 mt-28 ">
@@ -265,8 +285,19 @@ const [pauseToDate, setPauseToDate] = useState("");
           <div className="flex  text-sm lg:text-base flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
             <b>
               Status:{" "}
-              <span className="text-[#24461a] font-cinzel font-semibold">
-                {dynamicStatus}
+              <span
+                className={`font-cinzel font-semibold
+    ${
+      finalStatus === "UNDER_PROCESS"
+        ? "text-orange-500"
+        : finalStatus === "ACTIVE"
+          ? "text-green-700"
+          : finalStatus === "PAUSED"
+            ? "text-yellow-600"
+            : "text-gray-500"
+    }`}
+              >
+                {finalStatus.replace("_", " ")}
               </span>
             </b>{" "}
             {/* 🟢 MODIFICATION BUTTON (IMAGE STYLE) */}
@@ -295,39 +326,40 @@ const [pauseToDate, setPauseToDate] = useState("");
             )}
           </div>
 
-          {["GOLD", "PLATINUM"].includes(subscription.plan) && (
-            <div
-              className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between 
-  gap-3 bg-green-50 rounded-xl px-4 py-3"
-            >
-              {/* LEFT INFO */}
-              <div>
-                <p className="text-xs text-gray-500 font-roboto">
-                  Subscription Modifications
-                </p>
-
-                <p
-                  className={`font-semibold font-cinzel ${
-                    isLocked ? "text-red-600" : "text-green-700"
-                  }`}
-                >
-                  {remainingLabel}
-                </p>
-
-                <p className="text-xs text-gray-500 font-roboto">
-                  Used: {usedPauseCount} / {maxPauseCount} pauses
-                </p>
-              </div>
-
-              {/* RIGHT STATUS BADGE */}
+          {["GOLD", "PLATINUM"].includes(subscription.plan) &&
+            finalStatus !== "UNDER_PROCESS" && (
               <div
-                className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wide
-      ${isLocked ? "bg-red-100 text-red-700" : "bg-green-200 text-green-800"}`}
+                className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between 
+        gap-3 bg-green-50 rounded-xl px-4 py-3"
               >
-                {isLocked ? "LIMIT REACHED" : "AVAILABLE"}
+                {/* LEFT INFO */}
+                <div>
+                  <p className="text-xs text-gray-500 font-roboto">
+                    Subscription Modifications
+                  </p>
+
+                  <p
+                    className={`font-semibold font-cinzel ${
+                      isLocked ? "text-red-600" : "text-green-700"
+                    }`}
+                  >
+                    {remainingLabel}
+                  </p>
+
+                  <p className="text-xs text-gray-500 font-roboto">
+                    Used: {usedPauseCount} / {maxPauseCount} pauses
+                  </p>
+                </div>
+
+                {/* RIGHT STATUS BADGE */}
+                <div
+                  className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wide
+          ${isLocked ? "bg-red-100 text-red-700" : "bg-green-200 text-green-800"}`}
+                >
+                  {isLocked ? "LIMIT REACHED" : "AVAILABLE"}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           <div>
             {pauseMessage && (
@@ -339,18 +371,41 @@ const [pauseToDate, setPauseToDate] = useState("");
         </div>
 
         {/* PLAN DATES */}
-        <div className="bg-white/80 rounded-2xl p-4 sm:p-6 shadow">
+        {/* PLAN DATES */}
+        <div className="bg-white/90 rounded-2xl p-4 sm:p-6 shadow">
           <h2 className="text-[#4a7f34] font-cinzel font-semibold text-lg mb-2">
             SUBSCRIPTION
           </h2>
-          <p className="  text-sm lg:text-base font-roboto">
-            <b>Activation Date:</b>{" "}
-            {new Date(subscription.startDate).toLocaleDateString("en-IN")}
-          </p>
-          <p className="  text-sm lg:text-base font-roboto">
-            <b>Expiry Date:</b>{" "}
-            {new Date(subscription.endDate).toLocaleDateString("en-IN")}
-          </p>
+
+          {/* UNDER PROCESS */}
+          {finalStatus === "UNDER_PROCESS" && (
+            <p className="text-sm lg:text-base font-roboto text-orange-400">
+              ⏳ Your subscription will be activated within 48 hours following
+              confirmation of payment.
+            </p>
+          )}
+
+          {/* ACTIVE */}
+          {finalStatus === "ACTIVE" && (
+            <>
+              <p className="text-sm lg:text-base font-roboto">
+                <b>Activation Date:</b> {formatDate(subscription.activationAt)}
+              </p>
+
+              <p className="text-sm lg:text-base font-roboto">
+                <b>Expiry Date:</b> {formatDate(subscription.endDate)}
+              </p>
+
+             
+            </>
+          )}
+
+          {/* EXPIRED */}
+          {finalStatus === "EXPIRED" && (
+            <p className="text-sm lg:text-base font-roboto text-gray-500">
+              ⚠️ Your subscription has expired.
+            </p>
+          )}
         </div>
       </div>
 
@@ -450,6 +505,6 @@ const [pauseToDate, setPauseToDate] = useState("");
       )}
     </div>
   );
-};
+};;;
 
 export default UserDashboard;

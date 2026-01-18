@@ -53,9 +53,16 @@ const OrderSchema = new mongoose.Schema(
         default: 1, // ✅ 1 month
       },
 
+      // ⏳ ACTIVATION AFTER 48 HOURS
+      activationAt: {
+        type: Date,
+        required: true,
+      },
+
+      // 📆 Subscription starts ONLY after activation
       startDate: {
         type: Date,
-        default: Date.now,
+        required: true,
       },
       endDate: {
         type: Date,
@@ -74,8 +81,8 @@ const OrderSchema = new mongoose.Schema(
 
       status: {
         type: String,
-        enum: ["ACTIVE", "PAUSED", "CANCELLED", "EXPIRED"],
-        default: "ACTIVE",
+        enum: ["UNDER_PROCESS", "ACTIVE", "PAUSED", "CANCELLED", "EXPIRED"],
+        default: "UNDER_PROCESS", // 🟠 default now
       },
     },
 
@@ -90,7 +97,7 @@ const OrderSchema = new mongoose.Schema(
       default: "CASH",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // ✅ SAFE EXPORT (CORRECT)

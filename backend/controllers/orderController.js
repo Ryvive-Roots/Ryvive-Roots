@@ -1,4 +1,4 @@
-import Order from "../models/Order.js";
+import Order from "../models/order.js";
 import User from "../models/User.js";
 import { PLANS } from "../utils/planConfig.js";
 import generateMembershipId from "../utils/generateMembershipId.js";
@@ -45,12 +45,18 @@ export const placeOrder = async (req, res) => {
       });
     }
 
-    // 3️⃣ CALCULATE DATES (MONTH BASED)
-    const startDate = new Date();
+    // 🕒 CURRENT TIME
+    const now = new Date();
 
+    // ⏳ ACTIVATE AFTER 48 HOURS
+    const activationAt = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+
+    // 📆 SUBSCRIPTION STARTS ONLY AFTER ACTIVATION
+    const startDate = activationAt;
+
+    // 📅 END DATE = START DATE + PLAN MONTHS
     const endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + selectedPlan.durationMonths);
-
 
     // 2️⃣ CREATE MEMBERSHIP ID
     const membershipId = await generateMembershipId(Order);
@@ -85,10 +91,14 @@ export const placeOrder = async (req, res) => {
         plan,
         amount: selectedPlan.price,
         durationMonths: selectedPlan.durationMonths,
-        startDate,
+
+        activationAt, // ⏳ NEW
+        startDate, // starts after 48 hrs
         endDate,
+
         pause: { used: 0, history: [] },
-        status: "ACTIVE",
+
+        status: "UNDER_PROCESS", // 🟠 default now
       },
 
       paymentStatus: "PAID",
@@ -106,7 +116,7 @@ export const placeOrder = async (req, res) => {
         email: order.user.email,
         phone: order.user.phone, // ✅ ADD THIS
       },
-      { new: true }
+      { new: true },
     );
 
     // 7️⃣ Generate Invoice PDF
@@ -237,3 +247,7 @@ export const placeOrder = async (req, res) => {
     });
   }
 };
+
+
+
+
