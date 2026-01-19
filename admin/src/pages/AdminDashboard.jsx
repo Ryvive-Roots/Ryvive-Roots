@@ -46,7 +46,7 @@ const AdminDashboard = () => {
 
   // Fetch Orders
   const fetchOrders = async () => {
-    const res = await fetch("http://localhost:4000/api/admin/orders");
+    const res = await fetch("http://62.72.58.209/api/admin/orders");
     const data = await res.json();
     if (data.success) setOrders(data.orders);
     setLoading(false);
@@ -81,7 +81,7 @@ const AdminDashboard = () => {
     };
 
     try {
-      const res = await fetch("http://localhost:4000/api/admin/manual-order", {
+      const res = await fetch("http://62.72.58.209/api/admin/manual-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

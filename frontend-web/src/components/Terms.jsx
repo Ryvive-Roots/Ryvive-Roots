@@ -335,33 +335,12 @@ const Terms = () => {
             </section>
 
             {/* 12 */}
-            <section>
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                12. Cancellation & Refund Policy
-              </h2>
-
-              <p>
-                All subscriptions are
-                <span className="font-medium text-black/80">
-                  {" "}
-                  non-cancellable and non-transferable
-                </span>{" "}
-                once payment has been completed. Refunds are not provided for
-                missed meals, partial usage, customer unavailability, or paused
-                days. Refunds are considered only in cases of duplicate payment,
-                failed payment with successful debit, or service unavailability
-                from RYVIVE ROOTS. Approved refunds shall be processed within
-                <span className="font-medium text-black/80">
-                  {" "}
-                  seven (7) to ten (10) business days.
-                </span>
-              </p>
-            </section>
+          
 
             {/* 13 */}
             <section>
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                13. Operational & Communication Policy
+                12. Operational & Communication Policy
               </h2>
 
               <p>
@@ -378,7 +357,7 @@ const Terms = () => {
             {/* 14 */}
             <section>
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                14. Service Modifications
+                13. Service Modifications
               </h2>
 
               <p>
@@ -394,7 +373,7 @@ const Terms = () => {
             {/* 15 */}
             <section>
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                15. Service Suspension / Termination
+                14. Service Suspension / Termination
               </h2>
 
               <p>
@@ -407,7 +386,7 @@ const Terms = () => {
             {/* 16 */}
             <section>
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                16. Intellectual Property
+                15. Intellectual Property
               </h2>
 
               <p>
@@ -425,7 +404,7 @@ const Terms = () => {
             {/* 17 */}
             <section>
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                17. Force Majeure
+                16. Force Majeure
               </h2>
 
               <p>
@@ -439,7 +418,7 @@ const Terms = () => {
             {/* 18 */}
             <section>
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                18. Limitation of Liability
+                17. Limitation of Liability
               </h2>
 
               <p>
@@ -454,26 +433,12 @@ const Terms = () => {
             </section>
 
             {/* 19 */}
-            <section>
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                19. Governing Law & Jurisdiction
-              </h2>
-
-              <p>
-                These Terms & Conditions shall be governed by and construed in
-                accordance with the laws of India. The courts of
-                <span className="font-medium text-black/80">
-                  {" "}
-                  Maharashtra
-                </span>{" "}
-                shall have exclusive jurisdiction.
-              </p>
-            </section>
+            
 
             {/* 20 */}
             <section>
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                20. Severability
+                18. Severability
               </h2>
 
               <p>
@@ -484,33 +449,12 @@ const Terms = () => {
             </section>
 
             {/* 21 */}
-            <section>
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                21. Grievance Redressal
-              </h2>
-
-              <p>
-                In accordance with the Consumer Protection Act, 2019, RYVIVE
-                ROOTS has established a grievance redressal mechanism.
-                <span className="font-medium text-black/80">
-                  {" "}
-                  Email: management@ryviveroots.com
-                </span>
-              </p>
-
-              <p>
-                All grievances will be acknowledged and addressed within
-                <span className="font-medium text-black/80">
-                  {" "}
-                  seven (7) working days.
-                </span>
-              </p>
-            </section>
+          
 
             {/* 22 */}
             <section>
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                22. Acceptance of Terms
+                19. Acceptance of Terms
               </h2>
 
               <p>

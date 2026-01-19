@@ -118,7 +118,7 @@ const SilversubForm = () => {
     try {
       // 1️⃣ Create Razorpay Order (Backend)
       const orderRes = await fetch(
-        "http://localhost:4000/api/payment/create-order",
+        "http://62.72.58.209/api/payment/create-order",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -145,7 +145,7 @@ const SilversubForm = () => {
         handler: async function (response) {
           // 3️⃣ Verify Payment
           const verifyRes = await fetch(
-            "http://localhost:4000/api/payment/verify",
+            "http://62.72.58.209/api/payment/verify",
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -188,7 +188,7 @@ const SilversubForm = () => {
    try {
      console.log("Placing order...");
 
-     const res = await fetch("http://localhost:4000/api/orders/place-order", {
+     const res = await fetch("http://62.72.58.209/api/orders/place-order", {
        method: "POST",
        headers: { "Content-Type": "application/json" },
        body: JSON.stringify({
