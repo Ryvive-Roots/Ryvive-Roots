@@ -72,7 +72,7 @@ doc.fillColor("#2a2a2a").fontSize(14);
   doc.text("1", 423, planRowY);
   doc.text(`₹ ${order.subscription?.amount || 0}`, 490, planRowY);
 doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 422);
-  /* =======================
+   /* =======================
    PAYMENT SUMMARY
 ======================= */
 
