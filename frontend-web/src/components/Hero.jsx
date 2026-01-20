@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import Slider from "react-slick";
 import { motion } from "framer-motion";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
@@ -14,6 +14,7 @@ import Bowl from "../assets/bowl.JPG";
 import HJuice from "../assets/HJuice.JPG"
 import Chaat from "../assets/Chaat.JPG"
 import Sandwitch1 from "../assets/Sandwitch1.JPG"
+
 
 const HeroSection = () => {
   const cloudinaryImages = {
@@ -81,6 +82,19 @@ const HeroSection = () => {
       transition: { duration: 0.9, ease: "easeOut", delay: 0.2 },
     },
   };
+
+    const parallaxRef = useRef(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!parallaxRef.current) return;
+      const scrollY = window.scrollY;
+      parallaxRef.current.style.backgroundPositionY = `${scrollY * 0.4}px`;
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <>
@@ -166,18 +180,19 @@ const HeroSection = () => {
         />
         <div className="absolute inset-0 bg-black/10"></div>
       </section> */}
-      <section
-        className="relative bg-fixed bg-center bg-cover bg-top h-[30vh] md:h-[40vh]"
-        style={{ backgroundImage: `url(${Para})` }}
-      >
-        <img
-          src={Texture2}
-          alt="Organic texture design representing eco-friendly and natural food theme"
-          className="absolute bottom-0 left-0 w-full h-[100px] object-cover opacity-90"
-        />
+       <section
+      ref={parallaxRef}
+      className="relative overflow-hidden bg-center bg-cover bg-top h-[30vh] md:h-[40vh]"
+      style={{ backgroundImage: `url(${Para})` }}
+    >
+      <img
+        src={Texture2}
+        alt="Organic texture design representing eco-friendly and natural food theme"
+        className="absolute bottom-0 left-0 w-full h-[100px] object-cover opacity-90"
+      />
 
-        <div className="absolute inset-0 bg-black/10"></div>
-      </section>
+      <div className="absolute inset-0 bg-black/10"></div>
+    </section>
 
       {/* PROMO SECTION - ANIMATED LEFT + RIGHT */}
       {/* <motion.section
