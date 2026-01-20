@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import SubscriptionTypes from '../components/SubscriptionsTypes';
 import WhySubscribe from '../components/WhySubscription';
 import HowItWorks from '../components/HowWorks';
-import Banner from "../assets/BannerSub.png";
+import Banner from "../assets/Banner.png";
 
 const Subscription = () => {
 

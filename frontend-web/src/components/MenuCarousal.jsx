@@ -23,7 +23,7 @@ const MenuCarousel = () => {
     { img: cloudinaryImages.Salad, title: "Healthy Salads", text: "A refreshing mix of greens crafted for pure balance. Light, nutritious, and made to keep you feeling fresh." },
     { img: cloudinaryImages.Juice, title: "Healthy Juices", text: "Wholesome blends made from the freshest ingredients. A natural boost to energize your day, one sip at a time." },
     { img: cloudinaryImages.Pasta, title: "Healthy Pasta", text: "Comfort food with a clean, healthy twist. Flavorful, satisfying, and perfect for every craving." },
-    { img: cloudinaryImages.Sandwitch, title: "Healthy Sandwitch", text: "Packed with proteins and fresh veggies, perfect for clean eating and daily nourishment." },
+    { img: cloudinaryImages.Sandwitch, title: "Healthy Sandwich", text: "Packed with proteins and fresh veggies, perfect for clean eating and daily nourishment." },
     { img: cloudinaryImages.Wraps, title: "Healthy Wraps", text: "Packed with proteins and fresh veggies, perfect for clean eating and daily nourishment." },
     { img: cloudinaryImages.Soup, title: "Healthy Soup", text: "Packed with proteins and fresh veggies, perfect for clean eating and daily nourishment." },
   ];
@@ -31,15 +31,24 @@ const MenuCarousel = () => {
   return (
     <div className="relative w-full">
       {/* Custom Arrows */}
-      <button className="menu-prev hidden md:flex absolute left-0 top-1/2 -translate-y-1/2
-        bg-white shadow-lg w-10 h-10 rounded-full items-center justify-center hover:scale-110 transition z-10">
-        <FaChevronLeft />
-      </button>
+      <button
+  aria-label="Previous menu"
+  className="menu-prev hidden md:flex absolute left-0 top-1/2 -translate-y-1/2
+    bg-white shadow-lg w-10 h-10 rounded-full items-center justify-center
+    hover:scale-110 transition z-10"
+>
+  <FaChevronLeft aria-hidden="true" />
+</button>
 
-      <button className="menu-next hidden md:flex absolute right-0 top-1/2 -translate-y-1/2
-        bg-white shadow-lg w-10 h-10 rounded-full items-center justify-center hover:scale-110 transition z-10">
-        <FaChevronRight />
-      </button>
+<button
+  aria-label="Next menu"
+  className="menu-next hidden md:flex absolute right-0 top-1/2 -translate-y-1/2
+    bg-white shadow-lg w-10 h-10 rounded-full items-center justify-center
+    hover:scale-110 transition z-10"
+>
+  <FaChevronRight aria-hidden="true" />
+</button>
+
 
       {/* Go To Menu */}
       <button

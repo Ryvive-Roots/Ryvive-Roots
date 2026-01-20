@@ -110,7 +110,7 @@ export default function WhySubscribe() {
                 variants={cardVariants}
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                className="group bg-white/70 border border-white/60 rounded-2xl p-8 
+                className="group bg-white/70 border border-white/60 rounded-2xl p-6
                            shadow-md hover:shadow-[0_8px_30px_rgba(137,92,64,0.35)]
                            transition-all"
               >

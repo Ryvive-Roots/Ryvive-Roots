@@ -151,23 +151,7 @@ const HeroSection = () => {
             ))}
           </Slider>
 
-          <div className="absolute bottom-0 left-0 flex justify-center items-center z-20">
-            <button
-              aria-label="Previous slide"
-              onClick={() => sliderRef.current?.slickPrev()}
-              className="bg-[#FEF7F0] text-center flex items-center justify-center text-[#B38E6A] w-20 h-20 hover:bg-[#B38E6A] hover:text-white transition"
-            >
-              <FaChevronLeft />
-            </button>
-
-            <button
-              aria-label="Next slide"
-              onClick={() => sliderRef.current?.slickNext()}
-              className="bg-[#FEF7F0] text-center flex items-center justify-center text-[#B38E6A] w-20 h-20 hover:bg-[#B38E6A] hover:text-white transition"
-            >
-              <FaChevronRight />
-            </button>
-          </div>
+         
         </motion.div>
       </section>
 
