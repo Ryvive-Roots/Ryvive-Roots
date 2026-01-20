@@ -1,8 +1,8 @@
-cd /var/www/Ryvive-Roots
-ls -a
-git pull origin main
-cd frontend-web
-npm install
-npm run build
-sudo cp -r dist/* /var/www/ryviveroots-frontend/
-sudo systemctl reload nginx
+1. cd /var/www/Ryvive-Roots
+2. ls -a
+3. git pull origin main
+4. cd frontend-web
+5. npm install
+6. npm run build
+7. sudo cp -r dist/* /var/www/ryviveroots-frontend/
+8. sudo systemctl reload nginx
