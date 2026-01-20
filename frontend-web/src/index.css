@@ -17,8 +17,45 @@
 
 html, body {
   overflow-x: hidden;
+  overflow-y: auto;   /* ✅ enable vertical scrollbar */
   max-width: 100%;
 }
+
+/* Keeps scrollbar space stable (no layout jump) */
+html {
+  scrollbar-gutter: stable;
+}
+
+
+/* ============================
+   Custom Brown Scrollbar
+============================ */
+
+/* Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f5eee8;   /* light cream */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #4b3b2a; /* brand brown */
+  border-radius: 10px;
+  border: 2px solid #f5eee8;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #3a2d20; /* darker brown hover */
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #4b3b2a #f5eee8;
+}
+
 
 
 

@@ -51,8 +51,8 @@ const reasons = [
   },
   {
     icon: Costomize,
-    title: "Flexible Swap + Pause Benefit",
-    desc: "You choose what you eat — up to 3 swaps/week + 7 days pause/month.",
+    title: "Flexible Pause Benefit",
+    desc: "Ryvive Gold - 2 Pause, Ryvive Platinum - 3 Pause",
   },
  
 ];
