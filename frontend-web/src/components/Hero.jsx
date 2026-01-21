@@ -10,10 +10,10 @@ import ScrollingText from "./Usps";
 import MenuCarousel from "./MenuCarousal";
 import { useNavigate } from "react-router-dom";
 import TestimonialsSection from "./Testimonials";
-import Bowl from "../assets/bowl.JPG";
-import HJuice from "../assets/HJuice.JPG"
-import Chaat from "../assets/Chaat.JPG"
-import Sandwitch1 from "../assets/Sandwitch1.JPG"
+import Bowl from "../assets/bowl.webp";
+import HJuice from "../assets/HJuice.webp"
+import Chaat from "../assets/Chaat.webp"
+import Sandwitch1 from "../assets/Sandwitch1.webp"
 
 
 const HeroSection = () => {
@@ -182,7 +182,7 @@ const HeroSection = () => {
       </section> */}
        <section
       ref={parallaxRef}
-      className="relative overflow-hidden bg-center bg-cover bg-top h-[30vh] md:h-[40vh]"
+      className="relative overflow-hidden  bg-center bg-cover  h-[30vh] md:h-[40vh]"
       style={{ backgroundImage: `url(${Para})` }}
     >
       <img
