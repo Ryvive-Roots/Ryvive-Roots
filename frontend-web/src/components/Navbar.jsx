@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import Logo from "../assets/logo.png";
+import Logo from "../assets/optimized/logo.png";
 import { RiMenuUnfold4Fill } from "react-icons/ri";
 import { motion } from "framer-motion";
 import { IoPersonOutline } from "react-icons/io5"; 
@@ -40,7 +40,7 @@ const Navbar = () => {
             {/* Logo */}
             <a href="/" className="flex items-center">
               <img
-                src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765350869/logo_mfyxgl.png"
+                src={Logo}
                 alt="Logo"
                 className="w-48 object-contain"
               />
