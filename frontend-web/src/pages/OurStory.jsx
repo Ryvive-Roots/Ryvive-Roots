@@ -8,7 +8,7 @@ import Value from "../assets/chef.png";
 import Mission from "../assets/valuei.png";
 import WhatIsRyviveRoots from "../components/WhatRevive";
 import AboutPromise from "../components/OurPromise";
-import BgImage from "../assets/StoryBgg.png";
+import BgImage from "../assets/optimized/StoryBgg.webp";
 
 const OurStory = () => {
     const [showMore, setShowMore] = useState(false);
