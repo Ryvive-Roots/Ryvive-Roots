@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import Ras from "../assets/optimized/RasBerrie.png";
-import Berrie from "../assets/optimized/berries.png";
+import Ras from "../assets/optimized/RasBerrie.webp";
+import Berrie from "../assets/optimized/Berrie.webp";
 import Bowl from "../assets/bowl.webp";
 import HJuice from "../assets/HJuicee.jpg"
 import Chaat from "../assets/Chaat.webp"
