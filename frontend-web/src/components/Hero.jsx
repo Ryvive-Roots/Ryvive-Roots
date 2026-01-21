@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Slider from "react-slick";
 import { motion } from "framer-motion";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
@@ -6,10 +7,9 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Texture2 from "../assets/pattern-2.png";
 import Para from "../assets/para.jpg";
-import ScrollingText from "./Usps";
-import MenuCarousel from "./MenuCarousal";
-import { useNavigate } from "react-router-dom";
-import TestimonialsSection from "./Testimonials";
+const ScrollingText = lazy(() => import("./Usps"));
+const MenuCarousel = lazy(() => import("./MenuCarousal"));
+const TestimonialsSection = lazy(() => import("./Testimonials"));
 import Bowl from "../assets/bowl.webp";
 import HJuice from "../assets/HJuice.webp"
 import Chaat from "../assets/Chaat.webp"
@@ -85,16 +85,26 @@ const HeroSection = () => {
 
     const parallaxRef = useRef(null);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!parallaxRef.current) return;
-      const scrollY = window.scrollY;
-      parallaxRef.current.style.backgroundPositionY = `${scrollY * 0.4}px`;
-    };
+ useEffect(() => {
+  let ticking = false;
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const handleScroll = () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        if (parallaxRef.current) {
+          const scrollY = window.scrollY;
+          parallaxRef.current.style.backgroundPositionY = `${scrollY * 0.3}px`;
+        }
+        ticking = false;
+      });
+      ticking = true;
+    }
+  };
+
+  window.addEventListener("scroll", handleScroll, { passive: true });
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
+
 
   return (
     <>
@@ -108,12 +118,14 @@ const HeroSection = () => {
         >
           <img
             src="https://ik.imagekit.io/aaejjrx7t/RasBerrie.png?updatedAt=1768752205361"
+             loading="lazy"
             alt="Decorative raspberry texture background for healthy food cafe design"
             className="absolute bottom-[-10px] left-0 md:w-[300px] w-[200px] md:h-[300px] h-[120px] object-contain opacity-70 pointer-events-none select-none"
           />
 
           <img
             src="https://res.cloudinary.com/dvugjpjoj/image/upload/w_500,f_auto,q_auto/v1765279304/berries_k9vjje.png"
+             loading="lazy"
             alt="Fresh berries illustration symbolizing natural and organic ingredients"
             className="absolute top-[10px] right-[-2px] md:w-[200px] w-[150px] md:h-[250px] h-[120px] object-contain opacity-90 pointer-events-none select-none"
           />
@@ -293,7 +305,10 @@ Book a Consultation
         </div>
       </motion.section>
 
-      <ScrollingText />
+      <Suspense fallback={<div className="h-20" />}>
+  <ScrollingText />
+</Suspense>
+
 
       {/* MENU SECTION with Fade Up */}
       <section className="text-center">
@@ -311,13 +326,19 @@ Book a Consultation
             Explore a menu crafted for balance, freshness and flavour.
           </p>
 
-          <MenuCarousel />
+         <Suspense fallback={<div className="h-[300px]" />}>
+  <MenuCarousel />
+</Suspense>
+
         </motion.div>
       </section>
 
       {/* PARALLAX SECTION */}
 
-      <TestimonialsSection />
+     <Suspense fallback={<div className="h-[300px]" />}>
+  <TestimonialsSection />
+</Suspense>
+
     </>
   );
 };
