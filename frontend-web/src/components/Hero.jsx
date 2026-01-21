@@ -5,15 +5,19 @@ import { motion } from "framer-motion";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import Texture2 from "../assets/pattern-2.png";
-import Para from "../assets/para.jpg";
-const ScrollingText = lazy(() => import("./Usps"));
-const MenuCarousel = lazy(() => import("./MenuCarousal"));
-const TestimonialsSection = lazy(() => import("./Testimonials"));
+import Ras from "../assets/optimized/RasBerrie.png";
+import Berrie from "../assets/optimized/berries.png";
 import Bowl from "../assets/bowl.webp";
 import HJuice from "../assets/HJuicee.jpg"
 import Chaat from "../assets/Chaat.webp"
 import Sandwitch1 from "../assets/Sandwitch2.webp"
+import Texture2 from "../assets/pattern-2.png";
+import Para from "../assets/para.jpg";
+
+const ScrollingText = lazy(() => import("./Usps"));
+const MenuCarousel = lazy(() => import("./MenuCarousal"));
+const TestimonialsSection = lazy(() => import("./Testimonials"));
+
 
 
 const HeroSection = () => {
@@ -117,14 +121,14 @@ const HeroSection = () => {
           className="relative flex md:flex-row flex-col md:items-center min-h-auto lg:h-[90vh] md:justify-center overflow-hidden"
         >
           <img
-            src="https://ik.imagekit.io/aaejjrx7t/RasBerrie.png?updatedAt=1768752205361"
+            src={Ras}
              loading="lazy"
             alt="Decorative raspberry texture background for healthy food cafe design"
             className="absolute bottom-[-10px] left-0 md:w-[300px] w-[200px] md:h-[300px] h-[120px] object-contain opacity-70 pointer-events-none select-none"
           />
 
           <img
-            src="https://res.cloudinary.com/dvugjpjoj/image/upload/w_500,f_auto,q_auto/v1765279304/berries_k9vjje.png"
+            src={Berrie}
              loading="lazy"
             alt="Fresh berries illustration symbolizing natural and organic ingredients"
             className="absolute top-[10px] right-[-2px] md:w-[200px] w-[150px] md:h-[250px] h-[120px] object-contain opacity-90 pointer-events-none select-none"
