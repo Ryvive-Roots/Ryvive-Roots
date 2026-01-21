@@ -3,6 +3,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
 import { FaArrowRight, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import Soup from "../assets/optimized/Soup.webp"
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -11,7 +12,7 @@ const MenuCarousel = () => {
   const navigate = useNavigate();
 
   const cloudinaryImages = {
-    Soup: "https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765283057/soup_qxivj6.jpg",
+    Soup: Soup,
     Juice: "https://ik.imagekit.io/aaejjrx7t/3MSB4038.JPG",
     Salad: "https://ik.imagekit.io/aaejjrx7t/3MSB3918.JPG",
     Pasta: "https://ik.imagekit.io/aaejjrx7t/3MSB3903.JPG",
