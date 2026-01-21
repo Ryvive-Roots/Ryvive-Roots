@@ -11,9 +11,9 @@ const ScrollingText = lazy(() => import("./Usps"));
 const MenuCarousel = lazy(() => import("./MenuCarousal"));
 const TestimonialsSection = lazy(() => import("./Testimonials"));
 import Bowl from "../assets/bowl.webp";
-import HJuice from "../assets/HJuice.webp"
+import HJuice from "../assets/HJuicee.jpg"
 import Chaat from "../assets/Chaat.webp"
-import Sandwitch1 from "../assets/Sandwitch1.webp"
+import Sandwitch1 from "../assets/Sandwitch2.webp"
 
 
 const HeroSection = () => {
