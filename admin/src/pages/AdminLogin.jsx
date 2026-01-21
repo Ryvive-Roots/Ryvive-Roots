@@ -5,7 +5,7 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
 
   const login = async () => {
-    const res = await fetch("https://api.ryviveroots.com/admin-auth/login", {
+    const res = await fetch("https://api.ryviveroots.com/api/admin-auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
