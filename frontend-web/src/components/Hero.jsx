@@ -2,7 +2,6 @@ import { lazy, Suspense, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Slider from "react-slick";
 import { motion } from "framer-motion";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Ras from "../assets/optimized/RasBerrie.webp";
@@ -12,7 +11,7 @@ import HJuice from "../assets/HJuicee.jpg"
 import Chaat from "../assets/Chaat.webp"
 import Sandwitch1 from "../assets/Sandwitch2.webp"
 import Texture2 from "../assets/pattern-2.png";
-import Para from "../assets/para.jpg";
+import Para from "../assets/optimized/para.webp";
 
 const ScrollingText = lazy(() => import("./Usps"));
 const MenuCarousel = lazy(() => import("./MenuCarousal"));

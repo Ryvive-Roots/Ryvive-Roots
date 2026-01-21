@@ -10,15 +10,17 @@ import "swiper/css/navigation";
 
 const MenuCarousel = () => {
   const navigate = useNavigate();
+  const IMAGE_TRANSFORM = "?tr=w-480,h-360,q-70,f-webp";
 
-  const cloudinaryImages = {
-    Soup: Soup,
-    Juice: "https://ik.imagekit.io/aaejjrx7t/3MSB4038.JPG",
-    Salad: "https://ik.imagekit.io/aaejjrx7t/3MSB3918.JPG",
-    Pasta: "https://ik.imagekit.io/aaejjrx7t/3MSB3903.JPG",
-    Sandwitch: "https://ik.imagekit.io/aaejjrx7t/3MSB4143.JPG",
-    Wraps: "https://ik.imagekit.io/aaejjrx7t/3MSB4127.JPG",
-  };
+ const cloudinaryImages = {
+  Soup: Soup, // already optimized locally ✅
+
+  Juice: `https://ik.imagekit.io/aaejjrx7t/3MSB4038.JPG${IMAGE_TRANSFORM}`,
+  Salad: `https://ik.imagekit.io/aaejjrx7t/3MSB3918.JPG${IMAGE_TRANSFORM}`,
+  Pasta: `https://ik.imagekit.io/aaejjrx7t/3MSB3903.JPG${IMAGE_TRANSFORM}`,
+  Sandwitch: `https://ik.imagekit.io/aaejjrx7t/3MSB4143.JPG${IMAGE_TRANSFORM}`,
+  Wraps: `https://ik.imagekit.io/aaejjrx7t/3MSB4127.JPG${IMAGE_TRANSFORM}`,
+};
 
   const cards = [
     { img: cloudinaryImages.Salad, title: "Healthy Salads", text: "A refreshing mix of greens crafted for pure balance. Light, nutritious, and made to keep you feeling fresh." },
@@ -91,6 +93,8 @@ const MenuCarousel = () => {
                 <img
                   src={card.img}
                   alt={card.title}
+                   loading="lazy"
+  decoding="async"
                   className="w-full h-64 sm:h-60 md:h-52 object-cover transition-transform duration-500 group-hover:scale-110"
                 />
 
