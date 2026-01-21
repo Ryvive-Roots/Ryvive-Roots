@@ -3,7 +3,7 @@ import { FaPhoneAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { FaLocationDot } from "react-icons/fa6";
 import { motion } from "framer-motion";
-import Logo from "../assets/logo.png";
+import Logo from "../assets/optimized/logo.png";
 
 const containerVariants = {
   hidden: { opacity: 0, y: 30 },
