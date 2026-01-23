@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import Slider from "react-slick";
+const Slider = lazy(() => import("react-slick"));
 import { motion } from "framer-motion";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -169,6 +169,7 @@ const HeroSection = () => {
           transition={{ duration: 1, ease: "easeOut" }}
           className="relative w-full lg:w-[40%] h-[50vh] lg:h-[90vh]"
         >
+          <Suspense fallback={<div className="h-[50vh]" />}>
           <Slider ref={sliderRef} {...settings}>
            {images.map((img, i) => (
   <div key={i} className="w-full h-[50vh] lg:h-[90vh]">
@@ -183,6 +184,7 @@ const HeroSection = () => {
 ))}
 
           </Slider>
+          </Suspense>
 
          
         </motion.div>
