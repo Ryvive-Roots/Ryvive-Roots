@@ -6,7 +6,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Ras from "../assets/optimized/RasBerrie.webp";
 import Berrie from "../assets/optimized/Berrie.webp";
-import Bowl from "../assets/bowl.webp";
+import Bowl from "../assets/bowl.avif";
 import HJuice from "../assets/optimized/HJuice.webp"
 import Chaat from "../assets/Chaat.webp"
 import Sandwitch1 from "../assets/Sandwitch2.webp"
@@ -120,16 +120,16 @@ const HeroSection = () => {
         >
           <img
             src={Ras}
-             loading="eager"
-  fetchPriority="high"     
+            loading="lazy"
+    
             alt="Decorative raspberry texture background for healthy food cafe design"
             className="absolute bottom-[-10px] left-0 md:w-[300px] w-[200px] md:h-[300px] h-[120px] object-contain opacity-70 pointer-events-none select-none"
           />
 
           <img
             src={Berrie}
-             loading="eager"
-  fetchPriority="high"
+            loading="lazy"
+
             alt="Fresh berries illustration symbolizing natural and organic ingredients"
             className="absolute top-[10px] right-[-2px] md:w-[200px] w-[150px] md:h-[250px] h-[120px] object-contain opacity-90 pointer-events-none select-none"
           />
@@ -170,17 +170,18 @@ const HeroSection = () => {
           className="relative w-full lg:w-[40%] h-[50vh] lg:h-[90vh]"
         >
           <Slider ref={sliderRef} {...settings}>
-            {images.map((img, i) => (
-              <div key={i} className="w-full h-[50vh] lg:h-[90vh]">
-                <img
-                  src={img}
-                  alt={imageAlts[i]}
-                   loading="eager"
-  fetchPriority="high"
-                  className="w-full h-full object-cover object-top"
-                />
-              </div>
-            ))}
+           {images.map((img, i) => (
+  <div key={i} className="w-full h-[50vh] lg:h-[90vh]">
+    <img
+      src={img}
+      alt={imageAlts[i]}
+      loading={i === 0 ? "eager" : "lazy"}
+      fetchPriority={i === 0 ? "high" : "auto"}
+      className="w-full h-full object-cover object-top"
+    />
+  </div>
+))}
+
           </Slider>
 
          
