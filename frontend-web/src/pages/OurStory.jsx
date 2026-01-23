@@ -42,7 +42,7 @@ const OurStory = () => {
   {/* Background Image */}
   <img
     src={BgImage}
-    alt="fresh healthy food bowls in dombivli "
+    alt="fresh healthy food bowls in dombivli"
     className="
       absolute inset-0 
       w-full h-full 
