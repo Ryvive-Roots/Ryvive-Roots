@@ -7,16 +7,15 @@ import "slick-carousel/slick/slick-theme.css";
 import Ras from "../assets/optimized/RasBerrie.webp";
 import Berrie from "../assets/optimized/Berrie.webp";
 import Bowl from "../assets/bowl.webp";
-import HJuice from "../assets/HJuicee.jpg"
+import HJuice from "../assets/optimized/HJuice.webp"
 import Chaat from "../assets/Chaat.webp"
 import Sandwitch1 from "../assets/Sandwitch2.webp"
-import Texture2 from "../assets/pattern-2.png";
+import Texture2 from "../assets/optimized/pattern-2.png";
 import Para from "../assets/optimized/para.webp";
 
 const ScrollingText = lazy(() => import("./Usps"));
 const MenuCarousel = lazy(() => import("./MenuCarousal"));
 const TestimonialsSection = lazy(() => import("./Testimonials"));
-
 
 
 const HeroSection = () => {

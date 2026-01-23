@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 
-import What from "../assets/what.jpg";
-import Story from "../assets/wellness.png";
-import Storyy from "../assets/Storryy.jpeg";
-import Value from "../assets/chef.png";
-import Mission from "../assets/valuei.png";
+import What from "../assets/optimized/what.jpg";
+import Story from "../assets/optimized/wellness.png";
+import Storyy from "../assets/optimized/Storryy.jpeg";
+import Value from "../assets/optimized/chef.png";
+import Mission from "../assets/optimized/valuei.png";
 import WhatIsRyviveRoots from "../components/WhatRevive";
 import AboutPromise from "../components/OurPromise";
 import BgImage from "../assets/optimized/StoryBgg.webp";
@@ -42,7 +42,7 @@ const OurStory = () => {
   {/* Background Image */}
   <img
     src={BgImage}
-    alt="Our Story Background"
+    alt="fresh healthy food bowls in dombivli "
     className="
       absolute inset-0 
       w-full h-full 
@@ -138,13 +138,13 @@ const OurStory = () => {
           </p>
         </div>
         <div className="w-full md:w-1/2 ">
-          <img src={Storyy} className="md:h-[50vh] h-auto" alt="" />
+          <img src={Storyy} className="md:h-[50vh] h-auto" alt="satvik vegetarian healthy meals and fresh juice at ryvive roots cafe dombivli" />
         </div>
       </div>
 
       <div className="w-full flex flex-col md:flex-row items-start justify-center gap-10 xl:px-24 lg:px-16 px-4 pb-20 ">
         <div className="w-full  md:w-1/2">
-          <img src={What} className="md:h-[50vh] h-auto" alt="" />
+          <img src={What} className="md:h-[50vh] h-auto" alt="ryvive roots healthy food cafe serving fresh salad bowls and juice in dombivli" />
         </div>
         <WhatIsRyviveRoots />
       </div>
