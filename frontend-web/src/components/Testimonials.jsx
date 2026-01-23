@@ -82,12 +82,13 @@ export default function TestimonialsSection() {
                 <img
                   src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765349846/Testimonials_c7f8qf.png"
                   alt="testimonial"
+                   loading="lazy"
                   className="rounded-full shadow-md w-full aspect-[5/6] object-cover"
                 />
 
                 {/* Center Content */}
                 <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-6 space-y-3">
-                  <img src={Coma} className="w-10 h-10" alt="quote" />
+                  <img src={Coma} className="w-10 h-10" alt="quote"  loading="lazy" />
 
                   <p className="text-[#895C40] text-sm leading-relaxed font-merriweather max-h-[130px] overflow-y-auto">
                     {item.text}

@@ -120,14 +120,16 @@ const HeroSection = () => {
         >
           <img
             src={Ras}
-             loading="lazy"
+             loading="eager"
+  fetchPriority="high"     
             alt="Decorative raspberry texture background for healthy food cafe design"
             className="absolute bottom-[-10px] left-0 md:w-[300px] w-[200px] md:h-[300px] h-[120px] object-contain opacity-70 pointer-events-none select-none"
           />
 
           <img
             src={Berrie}
-             loading="lazy"
+             loading="eager"
+  fetchPriority="high"
             alt="Fresh berries illustration symbolizing natural and organic ingredients"
             className="absolute top-[10px] right-[-2px] md:w-[200px] w-[150px] md:h-[250px] h-[120px] object-contain opacity-90 pointer-events-none select-none"
           />
@@ -173,6 +175,8 @@ const HeroSection = () => {
                 <img
                   src={img}
                   alt={imageAlts[i]}
+                   loading="eager"
+  fetchPriority="high"
                   className="w-full h-full object-cover object-top"
                 />
               </div>
@@ -201,6 +205,7 @@ const HeroSection = () => {
     >
       <img
         src={Texture2}
+         loading="lazy"
         alt="Organic texture design representing eco-friendly and natural food theme"
         className="absolute bottom-0 left-0 w-full h-[100px] object-cover opacity-90"
       />
@@ -267,6 +272,7 @@ Book a Consultation
           <motion.img
             src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765360072/sustainable_r2gifi.png"
             alt="Eco-friendly sustainable food packaging used by Ryvive Roots healthy cafe"
+             loading="lazy"
             variants={imageVariant}
             className="relative -top-20 translate-x-0 shadow-2xl lg:translate-x-40 w-[500px] lg:w-[550px] h-[300px] lg:h-[400px] object-cover"
           />
