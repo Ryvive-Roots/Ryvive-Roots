@@ -34,11 +34,11 @@ import Cancellation from "./components/Cancellation"
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden ">
+    <div className="min-h-[100svh] flex flex-col overflow-x-hidden ">
       <Navbar />
       <ScrollToTop />
       <WhatsAppButton />
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-x-hidden">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/our-story" element={<OurStory />} />
