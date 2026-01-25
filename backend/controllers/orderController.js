@@ -46,17 +46,28 @@ export const placeOrder = async (req, res) => {
     }
 
     // 🕒 CURRENT TIME
-    const now = new Date();
+ // 🕒 CURRENT TIME
+const now = new Date();
 
-    // ⏳ ACTIVATE AFTER 48 HOURS
-    const activationAt = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+// ✅ Always generate activation date safely
+const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
-    // 📆 SUBSCRIPTION STARTS ONLY AFTER ACTIVATION
-    const startDate = activationAt;
+// ✅ Clone date properly (important)
+const startDate = new Date(activationAt);
 
-    // 📅 END DATE = START DATE + PLAN MONTHS
-    const endDate = new Date(startDate);
-    endDate.setMonth(endDate.getMonth() + selectedPlan.durationMonths);
+// ✅ Force months as number
+const months = Number(selectedPlan.durationMonths) || 1;
+
+// ✅ Calculate end date safely
+const endDate = new Date(startDate);
+endDate.setMonth(endDate.getMonth() + months);
+
+// 🧪 Debug (keep temporarily)
+console.log("🧪 activationAt:", activationAt);
+console.log("🧪 startDate:", startDate);
+console.log("🧪 endDate:", endDate);
+console.log("🧪 months:", months);
+
 
     // 2️⃣ CREATE MEMBERSHIP ID
     const membershipId = await generateMembershipId(Order);
@@ -90,7 +101,7 @@ export const placeOrder = async (req, res) => {
       subscription: {
         plan,
         amount: selectedPlan.price,
-        durationMonths: selectedPlan.durationMonths,
+        durationMonths: months,
 
         activationAt, // ⏳ NEW
         startDate, // starts after 48 hrs
