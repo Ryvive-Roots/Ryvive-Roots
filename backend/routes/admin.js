@@ -69,9 +69,14 @@ router.post("/manual-order", async (req, res) => {
     const receiptNumber = await generateReceiptNumber(Order);
 
     // ✅ Calculate Dates
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + selectedPlan.duration);
+   // ✅ Calculate Dates
+const activationAt = new Date();
+activationAt.setDate(activationAt.getDate() + 2); // ⏳ activate after 48 hours
+
+const startDate = new Date(activationAt); // subscription starts after activation
+const endDate = new Date(startDate);
+endDate.setMonth(endDate.getMonth() + selectedPlan.durationMonths);
+
 
     // ✅ Create Order
     const order = await Order.create({
@@ -100,7 +105,8 @@ router.post("/manual-order", async (req, res) => {
       subscription: {
         plan,
         amount: selectedPlan.price,
-        duration: selectedPlan.duration,
+        durationMonths: selectedPlan.durationMonths,
+         activationAt,  
         startDate,
         endDate,
         status: "ACTIVE",
