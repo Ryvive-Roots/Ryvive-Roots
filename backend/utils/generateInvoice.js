@@ -79,7 +79,11 @@ doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 422);
   const amount = order.subscription?.amount || 0;
 
   // Auto Detect Payment Mode
-  const paymentMode = order.paymentMethod === "CASH" ? "Cash" : "Online";
+ const paymentMode =
+  order.paymentMethod === "CASH"
+    ? "Cash"
+    : order.paymentMethod || "Online";
+
 
   // Start Y for payment section
   const paymentY = 500;

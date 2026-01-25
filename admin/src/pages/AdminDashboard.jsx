@@ -32,6 +32,7 @@ const AdminDashboard = () => {
     email: "",
     plan: "",
     slot: "",
+    paymentMethod: "CASH", 
     address: {
       pincode: "",
       area: "",
@@ -78,6 +79,7 @@ const AdminDashboard = () => {
       },
       plan: manualUser.plan,
       slot: manualUser.slot,
+      paymentMethod: manualUser.paymentMethod, 
     };
 
     try {
@@ -122,42 +124,51 @@ const AdminDashboard = () => {
 
   if (loading) return <p className="p-6">Loading orders...</p>;
 
-  const getPauseStatusText = (order) => {
-    const pause = order.subscription?.pause;
+ const getPauseStatusText = (order) => {
+  // 🟡 UNDER PROCESS CHECK (ADD THIS)
+  if (order.subscription?.status === "UNDER_PROCESS") {
+    return "🟡 UNDER PROCESS";
+  }
 
-    if (!pause || !pause.history || pause.history.length === 0) {
-      return "🟢 ACTIVE";
-    }
+  const pause = order.subscription?.pause;
 
-    const latest = pause.history[pause.history.length - 1];
-
-    const start = new Date(latest.startDate);
-    const resume = new Date(latest.resumeDate);
-    const days = latest.days || 1;
-    const today = new Date();
-
-    const startText = start.toLocaleDateString("en-IN");
-    const resumeText = resume.toLocaleDateString("en-IN");
-
-    // 🟠 CURRENTLY PAUSED
-    if (today >= start && today <= resume) {
-      if (days === 1) {
-        return `⏸ PAUSED • ${startText} (1 day)`;
-      }
-      return `⏸ PAUSED • ${startText} → ${resumeText}`;
-    }
-
-    // 🔵 PAUSE SCHEDULED (FUTURE)
-    if (today < start) {
-      if (days === 1) {
-        return `🟢 ACTIVE • ⏳ Pause scheduled ${startText} (1 day)`;
-      }
-      return `🟢 ACTIVE • ⏳ Pause scheduled ${startText} → ${resumeText}`;
-    }
-
-    // 🟢 PAST PAUSE FINISHED
+  if (!pause || !pause.history || pause.history.length === 0) {
     return "🟢 ACTIVE";
-  };
+  }
+
+  const latest = pause.history[pause.history.length - 1];
+
+  const start = new Date(latest.startDate);
+  const resume = new Date(latest.resumeDate);
+  const days = latest.days || 1;
+  const today = new Date();
+
+  const startText = start.toLocaleDateString("en-IN");
+  const resumeText = resume.toLocaleDateString("en-IN");
+
+  // 🟠 CURRENTLY PAUSED
+  if (today >= start && today <= resume) {
+    if (days === 1) {
+      return `⏸ PAUSED • ${startText} (1 day)`;
+    }
+    return `⏸ PAUSED • ${startText} → ${resumeText}`;
+  }
+
+  // 🔵 PAUSE SCHEDULED (FUTURE)
+  if (today < start) {
+    if (days === 1) {
+      return `🟢 ACTIVE • ⏳ Pause scheduled ${startText} (1 day)`;
+    }
+    return `🟢 ACTIVE • ⏳ Pause scheduled ${startText} → ${resumeText}`;
+  }
+
+  // 🟢 PAST PAUSE FINISHED
+  return "🟢 ACTIVE";
+};
+
+
+ 
+
 
   return (
     <div className="p-4 md:p-8 max-w-[1400px] mx-auto">
@@ -298,6 +309,19 @@ const AdminDashboard = () => {
                 </option>
               </optgroup>
             </select>
+
+            {/* 💳 PAYMENT METHOD */}
+<select
+  className="border p-2 w-full rounded"
+  value={manualUser.paymentMethod}
+  onChange={(e) =>
+    setManualUser({ ...manualUser, paymentMethod: e.target.value })
+  }
+>
+  <option value="CASH"> Cash</option>
+ <option value="ONLINE">Online</option>
+</select>
+
 
             {/* 📍 ADDRESS */}
             <div className="border rounded p-2 space-y-2 bg-gray-50">
