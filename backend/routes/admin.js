@@ -73,7 +73,9 @@ router.post("/manual-order", async (req, res) => {
 const now = new Date();
 
 // ✅ Always force valid activation date
-const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+const activationAt =
+  new Date(Date.now() + 48 * 60 * 60 * 1000) || new Date();
+
 
 // ✅ Clone date properly (important)
 const startDate = new Date(activationAt);
