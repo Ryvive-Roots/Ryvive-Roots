@@ -50,7 +50,9 @@ export const placeOrder = async (req, res) => {
 const now = new Date();
 
 // ✅ Always generate activation date safely
-const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+const activationAt =
+  new Date(Date.now() + 48 * 60 * 60 * 1000) || new Date();
+
 
 // ✅ Clone date properly (important)
 const startDate = new Date(activationAt);

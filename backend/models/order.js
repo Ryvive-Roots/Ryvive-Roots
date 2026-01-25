@@ -54,11 +54,12 @@ const OrderSchema = new mongoose.Schema(
       },
 
       // ⏳ ACTIVATION AFTER 48 HOURS
-    activationAt: {
+   activationAt: {
   type: Date,
   required: true,
-  default: () => new Date(Date.now() + 48 * 60 * 60 * 1000),
+  default: Date.now,
 },
+
 
 
       // 📆 Subscription starts ONLY after activation
