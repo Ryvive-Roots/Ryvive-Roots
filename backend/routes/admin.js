@@ -72,16 +72,24 @@ router.post("/manual-order", async (req, res) => {
   // 🕒 CURRENT TIME
 const now = new Date();
 
-// ⏳ ACTIVATE AFTER 48 HOURS
-const activationAt = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+// ✅ Always force valid activation date
+const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
-// 📆 SUBSCRIPTION STARTS ONLY AFTER ACTIVATION
-const startDate = activationAt;
+// ✅ Clone date properly (important)
+const startDate = new Date(activationAt);
 
-// 📅 END DATE = START DATE + PLAN MONTHS
+// ✅ Ensure months is always a number
+const months = Number(selectedPlan.durationMonths) || 1;
+
 const endDate = new Date(startDate);
-const months = selectedPlan.durationMonths || 1;
 endDate.setMonth(endDate.getMonth() + months);
+
+// 🧪 DEBUG (temporary – helps confirm)
+console.log("🧪 activationAt:", activationAt);
+console.log("🧪 startDate:", startDate);
+console.log("🧪 endDate:", endDate);
+console.log("🧪 months:", months);
+
 
 
 
