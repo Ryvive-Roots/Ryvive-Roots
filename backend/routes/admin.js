@@ -69,13 +69,21 @@ router.post("/manual-order", async (req, res) => {
     const receiptNumber = await generateReceiptNumber(Order);
 
     // ✅ Calculate Dates
-   // ✅ Calculate Dates
-const activationAt = new Date();
-activationAt.setDate(activationAt.getDate() + 2); // ⏳ activate after 48 hours
+  // 🕒 CURRENT TIME
+const now = new Date();
 
-const startDate = new Date(activationAt); // subscription starts after activation
+// ⏳ ACTIVATE AFTER 48 HOURS
+const activationAt = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+
+// 📆 SUBSCRIPTION STARTS ONLY AFTER ACTIVATION
+const startDate = activationAt;
+
+// 📅 END DATE = START DATE + PLAN MONTHS
 const endDate = new Date(startDate);
-endDate.setMonth(endDate.getMonth() + selectedPlan.durationMonths);
+const months = selectedPlan.durationMonths || 1;
+endDate.setMonth(endDate.getMonth() + months);
+
+
 
 
     // ✅ Create Order
@@ -103,15 +111,15 @@ endDate.setMonth(endDate.getMonth() + selectedPlan.durationMonths);
       deliverySlot: slot,
 
       subscription: {
-        plan,
-        amount: selectedPlan.price,
-        durationMonths: selectedPlan.durationMonths,
-         activationAt,  
-        startDate,
-        endDate,
-        status: "ACTIVE",
-      },
-
+  plan,
+  amount: selectedPlan.price,
+  durationMonths: months,
+  activationAt,
+  startDate,
+  endDate,
+  pause: { used: 0, history: [] },
+  status: "UNDER_PROCESS",   // optional
+},
       paymentStatus: "PAID",
       paymentMethod: "CASH",
     });
