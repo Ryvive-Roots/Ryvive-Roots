@@ -273,7 +273,7 @@ Book a Consultation
         <div className="relative w-full flex flex-col lg:flex-row items-center lg:items-start gap-0 md:gap-10 justify-center">
           <motion.img
             src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765360072/sustainable_r2gifi.png"
-            alt="Eco-friendly sustainable food packaging used by Ryvive Roots healthy cafe"
+            alt="Fresh healthy salad bowl in eco friendly sustainable packaging by Ryvive Roots in Dombivli"
              loading="lazy"
             variants={imageVariant}
             className="relative -top-20 translate-x-0 shadow-2xl lg:translate-x-40 w-[500px] lg:w-[550px] h-[300px] lg:h-[400px] object-cover"
