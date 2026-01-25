@@ -33,7 +33,7 @@ router.get("/orders", async (req, res) => {
 =========================== */
 router.post("/manual-order", async (req, res) => {
   try {
-    const { user, plan, slot } = req.body;
+    const { user, plan, slot, paymentMethod  } = req.body;
 
     if (!user?.firstName || !user?.phone) {
       return res.status(400).json({
@@ -131,7 +131,7 @@ console.log("🧪 months:", months);
   status: "UNDER_PROCESS",   // optional
 },
       paymentStatus: "PAID",
-      paymentMethod: "CASH",
+     paymentMethod: paymentMethod || "CASH",
     });
 
     console.log("✅ MANUAL ORDER SAVED:", order.membershipId);
