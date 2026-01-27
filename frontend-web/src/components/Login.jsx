@@ -18,7 +18,7 @@ const Login = () => {
     try {
       setLoading(true);
 
-      const res = await fetch("http://localhost:4000/api/auth/login", {
+      const res = await fetch("https://api.ryviveroots.com/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -94,20 +94,21 @@ const Login = () => {
         {/* LOGIN FORM */}
         <div className="mt-6 space-y-5 text-white">
           {/* Membership ID */}
-          <input
-            placeholder="Membership ID"
-            value={membershipId}
-            disabled
-            className="
+         <input
+  placeholder="Membership ID"
+  value={membershipId}
+  onChange={(e) => setMembershipId(e.target.value)}
+  className="
     w-full px-4 py-3 
-    bg-white/30
+    bg-transparent
     border border-white 
     rounded-full 
     text-white
-    cursor-not-allowed
     placeholder-white
+    focus:ring-2 focus:ring-[#895C40] outline-none
   "
-          />
+/>
+
 
           {/* Email or Phone */}
           <input

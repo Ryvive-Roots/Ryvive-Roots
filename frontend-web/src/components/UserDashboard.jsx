@@ -53,7 +53,7 @@ const UserDashboard = () => {
 
     const membershipId = localStorage.getItem("membershipId");
 
-    const res = await fetch("http://62.72.58.209/api/subscription/pause", {
+    const res = await fetch("https://api.ryviveroots.com/api/subscription/pause", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -86,7 +86,7 @@ const UserDashboard = () => {
 
      try {
        const res = await fetch(
-         `http://62.72.58.209/api/user/orders?membershipId=${membershipId}`,
+         `https://api.ryviveroots.com/api/user/orders?membershipId=${membershipId}`,
        );
 
        const data = await res.json();
