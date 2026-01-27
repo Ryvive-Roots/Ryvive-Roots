@@ -2,11 +2,12 @@ import mongoose from "mongoose";
 
 const OrderSchema = new mongoose.Schema(
   {
-    membershipId: {
-      type: String,
-      unique: true,
-      required: true,
-    },
+   membershipId: {
+  type: String,
+  required: true,
+  index: true,   // ✅ fast search, NOT unique
+},
+
     receiptNumber: {
       type: String,
       unique: true,
