@@ -65,7 +65,39 @@ router.post("/manual-order", async (req, res) => {
     }
 
     // ✅ Generate IDs
-    const membershipId = await generateMembershipId(Order);
+    let existingUser = await User.findOne({
+  $or: [
+    { phone: user.phone },
+    { email: user.email }
+  ]
+});
+
+let membershipId;
+
+if (existingUser && existingUser.membershipId) {
+  // ♻️ reuse old membershipId
+  membershipId = existingUser.membershipId;
+} else {
+  // 🆕 generate new membershipId
+  membershipId = await generateMembershipId(Order);
+}
+
+// 🛑 Prevent accidental duplicate order (double click protection)
+const tenSecondsAgo = new Date(Date.now() - 10 * 1000);
+
+const recentOrder = await Order.findOne({
+  membershipId,
+  createdAt: { $gte: tenSecondsAgo },
+});
+
+if (recentOrder) {
+  return res.status(429).json({
+    success: false,
+    message: "Order already submitted. Please wait a few seconds.",
+  });
+}
+
+
     const receiptNumber = await generateReceiptNumber(Order);
 
     // ✅ Calculate Dates
@@ -135,6 +167,8 @@ console.log("🧪 months:", months);
     });
 
     console.log("✅ MANUAL ORDER SAVED:", order.membershipId);
+
+    
     await User.findOneAndUpdate(
       { membershipId: order.membershipId },
       {

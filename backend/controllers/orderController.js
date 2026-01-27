@@ -33,17 +33,39 @@ export const placeOrder = async (req, res) => {
       });
     }
 
-    let user = await User.findOne({ phone: formData.phone });
+   let user = await User.findOne({
+  $or: [
+    { phone: formData.phone },
+    { email: formData.email }
+  ]
+});
 
-    if (!user) {
-      user = await User.create({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-        membershipId: null, // ✅ safe initially
-      });
-    }
+let membershipId;
+
+if (user && user.membershipId) {
+  // ♻️ reuse existing membership
+  membershipId = user.membershipId;
+} else {
+  // 🆕 generate membership
+  membershipId = await generateMembershipId(Order);
+
+  if (user) {
+    // 🩹 fix old users without membershipId
+    user.membershipId = membershipId;
+    await user.save();
+  } else {
+    // 🆕 create new user
+    user = await User.create({
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      phone: formData.phone,
+      membershipId,
+    });
+  }
+}
+
+
 
     // 🕒 CURRENT TIME
  // 🕒 CURRENT TIME
@@ -71,8 +93,21 @@ console.log("🧪 endDate:", endDate);
 console.log("🧪 months:", months);
 
 
-    // 2️⃣ CREATE MEMBERSHIP ID
-    const membershipId = await generateMembershipId(Order);
+    const tenSecondsAgo = new Date(Date.now() - 10 * 1000);
+
+const recentOrder = await Order.findOne({
+  membershipId,
+  createdAt: { $gte: tenSecondsAgo },
+});
+
+if (recentOrder) {
+  return res.status(429).json({
+    success: false,
+    message: "Order already submitted. Please wait a few seconds.",
+  });
+}
+
+    
     // 🔢 Generate Receipt Number
     const receiptNumber = await generateReceiptNumber(Order);
 

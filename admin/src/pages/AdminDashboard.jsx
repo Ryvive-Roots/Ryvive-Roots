@@ -13,6 +13,8 @@ const allowedPincodes = [
 const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
  
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -57,53 +59,67 @@ const AdminDashboard = () => {
     fetchOrders();
   }, []);
 
-  const handleManualSubmit = async () => {
-    if (
-      !manualUser.firstName ||
-      !manualUser.phone ||
-      !manualUser.plan ||
-      !manualUser.slot ||
-      !manualUser.address.pincode
-    ) {
-      alert("Please fill all required fields");
-      return;
-    }
+ const handleManualSubmit = async () => {
+  if (saving) return; // 🛑 prevent double click
 
-    const payload = {
-      user: {
-        firstName: manualUser.firstName,
-        lastName: manualUser.lastName,
-        phone: manualUser.phone,
-        email: manualUser.email,
-        address: manualUser.address,
-      },
-      plan: manualUser.plan,
-      slot: manualUser.slot,
-      paymentMethod: manualUser.paymentMethod, 
-    };
+  if (
+    !manualUser.firstName ||
+    !manualUser.phone ||
+    !manualUser.plan ||
+    !manualUser.slot ||
+    !manualUser.address.pincode
+  ) {
+    alert("Please fill all required fields");
+    return;
+  }
 
-    try {
-      const res = await fetch("https://api.ryviveroots.com/api/admin/manual-order", {
+  const payload = {
+    user: {
+      firstName: manualUser.firstName,
+      lastName: manualUser.lastName,
+      phone: manualUser.phone,
+      email: manualUser.email,
+      address: manualUser.address,
+    },
+    plan: manualUser.plan,
+    slot: manualUser.slot,
+    paymentMethod: manualUser.paymentMethod,
+  };
+
+  try {
+    setSaving(true); // 🔒 lock button
+
+    const res = await fetch(
+      "https://api.ryviveroots.com/api/admin/manual-order",
+      {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        alert("Member added successfully!");
-        setShowForm(false);
-        resetForm();
-        fetchOrders();
-      } else {
-        alert("Failed to add member");
       }
-    } catch (error) {
-      console.error(error);
-      alert("Server error");
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to add member");
     }
-  };
+
+    if (data.success) {
+      alert("✅ Member added successfully!");
+      setShowForm(false);
+      resetForm();
+      fetchOrders();
+    } else {
+      alert(data.message || "❌ Failed to add member");
+    }
+  } catch (error) {
+    console.error("Manual order error:", error);
+    alert(error.message || "❌ Server error. Please try again.");
+  } finally {
+    setSaving(false); // 🔓 unlock button
+  }
+};
+
 
   // 🔍 Search + Filter
   const filteredOrders = orders.filter((order) => {
@@ -432,12 +448,14 @@ const AdminDashboard = () => {
                 Cancel
               </button>
 
-              <button
-                onClick={handleManualSubmit}
-                className="bg-green-600 text-white px-4 py-2 rounded"
-              >
-                Save
-              </button>
+             <button
+  onClick={handleManualSubmit}
+  disabled={saving}
+  className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-60"
+>
+  {saving ? "Saving..." : "Save"}
+</button>
+
             </div>
           </div>
         </div>
