@@ -7,7 +7,7 @@ import Silver from "../assets/SilverF.png";
 import Gold from "../assets/GoldF.png";
 import Plat from "../assets/platinumF.png";
 
-import SilverMobile from "../assets/optimized/silverMo.png";
+import SilverMobile from "../assets/optimized/silverP.png";
 import GoldMobile from "../assets/optimized/goldMo.png";
 import PlatMobile from "../assets/optimized/platinumMo.png";
 
