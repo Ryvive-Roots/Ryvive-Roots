@@ -22,100 +22,66 @@ const SubscriptionTypes = () => {
       <ScrollToTop />
 
       {/* MAIN WRAPPER */}
-      <div
-        className="
-          relative w-full min-h-screen
-          flex flex-col md:flex-row
-          items-center md:items-end
-          overflow-hidden
-          bg-[#f0f7ec] md:bg-transparent
-        "
-      >
-        {/* BACKGROUND IMAGE (DESKTOP ONLY) */}
+      <div className="relative w-full min-h-screen overflow-hidden bg-[#f0f7ec] md:bg-transparent">
+
+        {/* BACKGROUND */}
         <img
           src={BgImage}
           alt="background"
           className="hidden md:block absolute inset-0 w-full h-full object-top object-cover -z-10"
         />
 
-        {/* CARD CONTAINER */}
-        <div
-          className="
-            relative w-full
-            max-w-[1600px] mx-auto
-            flex flex-col md:block
-            items-center
-            py-10 md:py-0
-          "
-        >
-          {/* ================= SILVER ================= */}
+        {/* ================= DESKTOP CARDS ================= */}
+        <div className="hidden md:block absolute inset-0">
+
+          {/* SILVER — LEFT */}
           <motion.div
             whileHover={{ scale: 1.04 }}
             onClick={() => navigate("/subscription/silver")}
-            className="md:absolute md:bottom-0 md:left-[-3%] z-10 cursor-pointer"
+            className="absolute bottom-0 mb-3 left-[-3%] z-10 cursor-pointer"
           >
-            {/* Desktop */}
             <img
               src={Silver}
-              alt="Silver healthy meal plan"
-              className="hidden md:block mb-3 h-[480px] lg:h-[520px] 2xl:h-[620px] object-contain"
-            />
-
-            {/* Mobile */}
-            <img
-              src={SilverMobile}
               alt="Silver plan"
-              className="block md:hidden w-full px-3 sm:px-4 object-contain"
+              className="h-[480px] lg:h-[520px] 2xl:h-[660px] object-contain"
             />
           </motion.div>
 
-          {/* ================= GOLD ================= */}
+          {/* GOLD — CENTER */}
           <motion.div
             whileHover={{ scale: 1.08 }}
             onClick={() => navigate("/subscription/gold")}
-            className="
-              md:absolute md:bottom-0 md:left-1/2
-              md:-translate-x-1/2
-              z-20 cursor-pointer
-              2xl:scale-105
-            "
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 z-20 cursor-pointer"
           >
-            {/* Desktop */}
             <img
               src={Gold}
-              alt="Gold healthy meal subscription plan"
-              className="hidden md:block h-[520px] lg:h-[580px] 2xl:h-[700px] object-contain"
-            />
-
-            {/* Mobile */}
-            <img
-              src={GoldMobile}
               alt="Gold plan"
-              className="block md:hidden w-full px-3 sm:px-4 object-contain"
+              className="h-[520px] lg:h-[580px] 2xl:h-[730px] object-contain"
             />
           </motion.div>
 
-          {/* ================= PLATINUM ================= */}
+          {/* PLATINUM — RIGHT */}
           <motion.div
             whileHover={{ scale: 1.04 }}
             onClick={() => navigate("/subscription/platinum")}
-            className="md:absolute md:bottom-0 md:right-[-3%] z-10 cursor-pointer"
+            className="absolute bottom-0 right-[-3%] z-10 cursor-pointer"
           >
-            {/* Desktop */}
             <img
               src={Plat}
-              alt="Platinum healthy meal subscription plan"
-              className="hidden md:block h-[560px] lg:h-[620px] 2xl:h-[760px] object-contain"
-            />
-
-            {/* Mobile */}
-            <img
-              src={PlatMobile}
               alt="Platinum plan"
-              className="block md:hidden w-full px-3 sm:px-4 object-contain"
+              className="h-[560px] lg:h-[620px] 2xl:h-[770px] object-contain"
             />
           </motion.div>
+
         </div>
+
+        {/* ================= MOBILE CARDS ================= */}
+        <div className="md:hidden flex flex-col items-center gap-6 py-10">
+          <img src={SilverMobile} alt="Silver" className="w-full px-4" />
+          <img src={GoldMobile} alt="Gold" className="w-full px-4" />
+          <img src={PlatMobile} alt="Platinum" className="w-full px-4" />
+        </div>
+
       </div>
     </>
   );
