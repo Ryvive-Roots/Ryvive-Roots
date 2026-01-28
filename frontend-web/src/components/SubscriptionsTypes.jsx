@@ -38,7 +38,7 @@ const SubscriptionTypes = () => {
           <motion.div
             whileHover={{ scale: 1.04 }}
             onClick={() => navigate("/subscription/silver")}
-            className="absolute bottom-0 mb-3 left-[-3%] z-10 cursor-pointer"
+            className="absolute bottom-0 mb-3 2xl:mb-0 left-[-3%] z-10 cursor-pointer"
           >
             <img
               src={Silver}
