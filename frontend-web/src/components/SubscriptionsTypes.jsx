@@ -1,11 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+
 import BgImage from "../assets/bg.png";
 
-import Silver from "../assets/SilverF.png";
-import Gold from "../assets/GoldF.png";
-import Plat from "../assets/platinumF.png";
+import Silver from "../assets/optimized/silverD.png";
+import Gold from "../assets/optimized/goldD.png";
+import Plat from "../assets/optimized/platinumD.png";
 
 import SilverMobile from "../assets/optimized/silverP.png";
 import GoldMobile from "../assets/optimized/goldP.png";
@@ -34,102 +35,85 @@ const SubscriptionTypes = () => {
         <img
           src={BgImage}
           alt="background"
-          className="hidden md:block absolute inset-0 w-full h-full object-cover -z-10"
+          className="hidden md:block absolute inset-0 w-full h-full object-top object-cover -z-10"
         />
 
-        {/* Cards Layer */}
+        {/* CARD CONTAINER */}
         <div
           className="
             relative w-full
+            max-w-[1600px] mx-auto
             flex flex-col md:block
-            items-center gap-6
+            items-center
             py-10 md:py-0
           "
         >
           {/* ================= SILVER ================= */}
           <motion.div
-            whileHover={{ scale: 1.03 }}
+            whileHover={{ scale: 1.04 }}
             onClick={() => navigate("/subscription/silver")}
-            className="md:absolute md:bottom-0 md:left-0 z-10 cursor-pointer"
+            className="md:absolute md:bottom-0 md:left-[-3%] z-10 cursor-pointer"
           >
-            {/* Desktop Image */}
+            {/* Desktop */}
             <img
               src={Silver}
-              alt="Silver healthy meal plan with easy digestion meals and fres33h juices in Dombivli"
-              className="hidden md:block h-[500px] object-contain"
+              alt="Silver healthy meal plan"
+              className="hidden md:block mb-3 h-[480px] lg:h-[520px] 2xl:h-[620px] object-contain"
             />
 
-            {/* Mobile Image */}
-           <img
-  src={SilverMobile}
-  alt="Silver plan"
-  className="
-    block md:hidden
-    w-full
-    px-3 sm:px-4
-    object-contain
-  "
-/>
-
-
+            {/* Mobile */}
+            <img
+              src={SilverMobile}
+              alt="Silver plan"
+              className="block md:hidden w-full px-3 sm:px-4 object-contain"
+            />
           </motion.div>
 
           {/* ================= GOLD ================= */}
           <motion.div
-            whileHover={{ scale: 1.06 }}
+            whileHover={{ scale: 1.08 }}
             onClick={() => navigate("/subscription/gold")}
             className="
               md:absolute md:bottom-0 md:left-1/2
               md:-translate-x-1/2
               z-20 cursor-pointer
+              2xl:scale-105
             "
           >
-            {/* Desktop Image */}
+            {/* Desktop */}
             <img
               src={Gold}
-              alt="Gold healthy meal subscription plan with protein meals and fresh juices in Dombivli"
-              className="hidden md:block h-[550px] object-contain"
+              alt="Gold healthy meal subscription plan"
+              className="hidden md:block h-[520px] lg:h-[580px] 2xl:h-[700px] object-contain"
             />
 
-            {/* Mobile Image */}
-           <img
-  src={GoldMobile}
-  alt="Gold plan"
-  className="
-    block md:hidden
-    w-full
-    px-3 sm:px-4
-    object-contain
-  "
-/>
-
+            {/* Mobile */}
+            <img
+              src={GoldMobile}
+              alt="Gold plan"
+              className="block md:hidden w-full px-3 sm:px-4 object-contain"
+            />
           </motion.div>
 
           {/* ================= PLATINUM ================= */}
           <motion.div
-            whileHover={{ scale: 1.03 }}
+            whileHover={{ scale: 1.04 }}
             onClick={() => navigate("/subscription/platinum")}
-            className="md:absolute md:bottom-0 md:right-0 z-10 cursor-pointer"
+            className="md:absolute md:bottom-0 md:right-[-3%] z-10 cursor-pointer"
           >
-            {/* Desktop Image */}
+            {/* Desktop */}
             <img
               src={Plat}
-              alt="Platinum healthy meal subscription plan with chef’s signature meals and fresh juices"
-              className="hidden md:block h-[600px] object-contain"
+              alt="Platinum healthy meal subscription plan"
+              className="hidden md:block h-[560px] lg:h-[620px] 2xl:h-[760px] object-contain"
             />
 
-            {/* Mobile Image */}
-           <img
-  src={PlatMobile}
-  alt="Platinum plan"
-  className="
-    block md:hidden
-    w-full
-    px-3 sm:px-4
-    object-contain
-  "
-/>
-
+            {/* Mobile */}
+            <img
+              src={PlatMobile}
+              alt="Platinum plan"
+              className="block md:hidden w-full px-3 sm:px-4 object-contain"
+            />
           </motion.div>
         </div>
       </div>
