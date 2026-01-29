@@ -10,8 +10,8 @@ import Bowl from "../assets/bowl.avif";
 import HJuice from "../assets/optimized/HJuice.webp"
 import Chaat from "../assets/Chaat.webp"
 import Sandwitch1 from "../assets/Sandwitch2.webp"
-import Texture2 from "../assets/optimized/pattern-2.png";
-import Para from "../assets/optimized/para.webp";
+import BgDesktop from "../assets/optimized/HeroL.png";
+import BgMobile from "../assets/optimized/BgMobile.png";
 
 const ScrollingText = lazy(() => import("./Usps"));
 const MenuCarousel = lazy(() => import("./MenuCarousal"));
@@ -110,60 +110,67 @@ const HeroSection = () => {
 
   return (
     <>
-      <section className="flex cursor-pointer flex-col lg:flex-row items-center justify-between bg-[#FEF7F0] overflow-hidden">
+      <section className="flex cursor-pointer flex-col lg:flex-row items-center justify-between  overflow-hidden">
         {/* LEFT TEXT WITH ANIMATION */}
-        <motion.div
-          initial={{ x: -120, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className="relative flex md:flex-row flex-col md:items-center min-h-auto lg:h-[90vh] md:justify-center overflow-hidden"
-        >
-          <img
-            src={Ras}
-            loading="lazy"
-    
-            alt="Decorative raspberry texture background for healthy food cafe design"
-            className="absolute bottom-[-10px] left-0 md:w-[300px] w-[200px] md:h-[300px] h-[120px] object-contain opacity-70 pointer-events-none select-none"
-          />
+     <motion.div
+  initial={{ x: -120, opacity: 0 }}
+  animate={{ x: 0, opacity: 1 }}
+  transition={{ duration: 1, ease: "easeOut" }}
+  className="relative w-full min-h-[90vh] flex items-start md:items-center overflow-hidden"
+>
+  {/* 📱 Mobile Background Image */}
+<img
+  src={BgMobile}
+  alt="Hero Mobile Background"
+  loading="eager"
+  fetchPriority="high"
+  decoding="async"
+  className="absolute inset-0 w-full h-full object-cover -z-10 block md:hidden"
+/>
 
-          <img
-            src={Berrie}
-            loading="lazy"
+{/* 🖥 Desktop Background Image */}
+<img
+  src={BgDesktop}
+  alt="Hero Desktop Background"
+  loading="eager"
+  fetchPriority="high"
+  decoding="async"
+  className="absolute inset-0 w-full h-full object-cover -z-10 hidden md:block"
+/>
 
-            alt="Fresh berries illustration symbolizing natural and organic ingredients"
-            className="absolute top-[10px] right-[-2px] md:w-[200px] w-[150px] md:h-[250px] h-[120px] object-contain opacity-90 pointer-events-none select-none"
-          />
 
-          <div className="relative pt-30 sm:pt-0 p-14 md:pl-80">
-            <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold uppercase font-cinzel text-[#4b3b2a] leading-tight mb-6">
-              Welcome <br /> to{" "}
-              <span className="text-[#243E36]">Ryvive Roots</span>
-            </h1>
-            <p className="text-gray-600 text-sm md:text-lg font-merriweather mb-8 max-w-lg">
-              Explore a menu crafted for balance, freshness, and flavour.
-              Simple, honest food made to make you feel good.
-            </p>
-            <motion.button
-              whileHover={{
-                scale: 1.05,
-                y: -2,
-                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.20)",
-              }}
-              whileTap={{ scale: 0.97 }}
-              transition={{
-                duration: 0.15, // ⚡ super quick animation
-                ease: "easeOut",
-              }}
-              onClick={() => navigate("/our-story")}
-              className="bg-[#895C40] cursor-pointer text-white px-8 py-3 mb-16 md:mb-0 transition-all"
-            >
-              Our Story
-            </motion.button>
-          </div>
-        </motion.div>
+
+  {/* 📝 Text Content */}
+  <div className="relative px-6 pt-24 md:pt-0 md:px-20 text-left">
+    <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold uppercase font-cinzel text-[#4b3b2a] leading-tight mb-6">
+      Welcome <br /> to{" "}
+      <span className="text-[#243E36]">Ryvive Roots</span>
+    </h1>
+
+    <p className="text-gray-700 max-w-xl text-sm md:text-lg font-merriweather mb-8">
+      Explore a menu crafted for balance, freshness, and flavour. Feel good about your food every bit.
+    </p>
+
+    <motion.button
+      whileHover={{
+        scale: 1.05,
+        y: -2,
+        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.20)",
+      }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ duration: 0.15, ease: "easeOut" }}
+      onClick={() => navigate("/our-story")}
+      className="bg-[#895C40] cursor-pointer text-white px-8 py-3 transition-all"
+    >
+      Our Story
+    </motion.button>
+  </div>
+</motion.div>
+
+
 
         {/* RIGHT SLIDER WITH ANIMATION */}
-        <motion.div
+        {/* <motion.div
           initial={{ x: 150, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 1, ease: "easeOut" }}
@@ -186,7 +193,7 @@ const HeroSection = () => {
           </Slider>
          
          
-        </motion.div>
+        </motion.div> */}
       </section>
 
       {/* PARALLAX SECTION */}
@@ -200,7 +207,7 @@ const HeroSection = () => {
         />
         <div className="absolute inset-0 bg-black/10"></div>
       </section> */}
-       <section
+       {/* <section
       ref={parallaxRef}
       className="relative overflow-hidden  bg-center bg-cover  h-[30vh] md:h-[40vh]"
       style={{ backgroundImage: `url(${Para})` }}
@@ -213,7 +220,7 @@ const HeroSection = () => {
       />
 
       <div className="absolute inset-0 bg-black/10"></div>
-    </section>
+    </section> */}
 
       {/* PROMO SECTION - ANIMATED LEFT + RIGHT */}
       {/* <motion.section
