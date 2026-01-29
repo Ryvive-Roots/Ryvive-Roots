@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import Slider from "react-slick";
+
 import { motion } from "framer-motion";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -11,7 +11,7 @@ import Chaat from "../assets/Chaat.webp"
 import Sandwitch1 from "../assets/Sandwitch2.webp"
 
 import BgDesktop from "../assets/optimized/HeroL.webp";
-import BgMobile from "../assets/optimized/BgMobile.webp";
+import BgMobile from "../assets/optimized/BgMobile-small.webp";
 import useIsMobile from "./useIsMobile";
 
 
