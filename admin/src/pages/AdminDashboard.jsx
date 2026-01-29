@@ -517,13 +517,13 @@ const AdminDashboard = () => {
                   {order.subscription?.startDate
                     ? new Date(
                         order.subscription?.startDate
-                      ).toLocaleDateString()
+                      ).toLocaleDateString("en-GB")
                     : "-"}
                 </td>
 
                 <td className="p-3 border">
                   {order.subscription?.endDate
-                    ? new Date(order.subscription?.endDate).toLocaleDateString()
+                    ? new Date(order.subscription?.endDate).toLocaleDateString("en-GB")
                     : "-"}
                 </td>
                 <td className="px-4 py-2 text-sm font-medium">
@@ -579,13 +579,13 @@ const AdminDashboard = () => {
               <span>
                 <b>Start:</b>{" "}
                 {order.subscription?.startDate
-                  ? new Date(order.subscription.startDate).toLocaleDateString()
+                  ? new Date(order.subscription.startDate).toLocaleDateString("en-GB")
                   : "-"}
               </span>
               <span>
                 <b>End:</b>{" "}
                 {order.subscription?.endDate
-                  ? new Date(order.subscription.endDate).toLocaleDateString()
+                  ? new Date(order.subscription.endDate).toLocaleDateString("en-GB")
                   : "-"}
               </span>
               <div className="text-sm font-medium">
