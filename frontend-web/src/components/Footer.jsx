@@ -1,29 +1,37 @@
-import { FaInstagram, FaLinkedin } from "react-icons/fa";
+import { FaInstagram } from "react-icons/fa";
 import { FaPhoneAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { FaLocationDot } from "react-icons/fa6";
 import { motion } from "framer-motion";
-import Logo from "../assets/optimized/logo.png";
+import Logo from "../assets/optimized/logo.webp";
+import useIsMobile from "./useIsMobile";
 
+// ✅ GPU-safe animation variants
 const containerVariants = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    y: 0,
     transition: {
-      duration: 2,
-      ease: "easeOut",
-      staggerChildren: 0.3,
+      staggerChildren: 0.15,
     },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
+  hidden: {
+    opacity: 0,
+    transform: "translateY(20px)",
+  },
+  visible: {
+    opacity: 1,
+    transform: "translateY(0px)",
+    transition: { duration: 0.5, ease: "easeOut" },
+  },
 };
 
 const Footer = () => {
+  const isMobile = useIsMobile();
+
   return (
     <motion.footer
       className="bg-[#ffffff] shadow-2xl font-montserrat text-black py-12"
@@ -34,59 +42,38 @@ const Footer = () => {
     >
       {/* TOP SECTION */}
       <div className="flex md:flex-row flex-col gap-10 md:justify-between px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]">
+
         {/* Logo + Description */}
         <motion.div variants={itemVariants} className="text-left">
-          <img src={Logo} alt="logo" className="w-50 mb-4" />
-          <motion.p
-            className="text-black/75 max-w-xs font-semibold"
-            variants={itemVariants}
-          >
+          <img src={Logo} alt="Ryvive Roots Logo" className="w-50 mb-4" />
+
+          <p className="text-black/75 max-w-xs font-semibold">
             Experience a menu crafted with balance, freshness, and honest
             flavours. Wholesome food made to nourish your body and make you feel
             good every day.
-          </motion.p>
+          </p>
+
           {/* Social Icons */}
-          <motion.div
-            className="flex gap-4 my-6 text-2xl"
-            variants={containerVariants}
-          >
-            <motion.a
+          <div className="flex gap-4 my-6 text-2xl">
+            <a
               href="https://www.instagram.com/ryvive__roots/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Visit Ryvive Roots on Instagram"
               className="cursor-pointer hover:text-[#895C40] transition-colors duration-200 text-black"
-              variants={itemVariants}
             >
               <FaInstagram />
-            </motion.a>
-
-            {/* <motion.a
-              href="https://www.linkedin.com/company/lorinzazenix"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Visit Ryvive Roots on LinkedIn"
-              className="cursor-pointer hover:text-[#895C40] transition-colors duration-200 text-black"
-              variants={itemVariants}
-            >
-              <FaLinkedin />
-            </motion.a> */}
-          </motion.div>
+            </a>
+          </div>
         </motion.div>
 
         {/* Quick Links */}
         <motion.div variants={itemVariants} className="text-left">
-          <motion.h3
-            className="uppercase font-cormorant-text font-semibold mb-6 text-lg tracking-wide font-spectral-sc-regular text-black"
-            variants={itemVariants}
-          >
+          <h3 className="uppercase font-semibold mb-6 text-lg tracking-wide text-black">
             Quick Links
-          </motion.h3>
+          </h3>
 
-          <motion.ul
-            className="space-y-3 text-sm font-montserrat"
-            variants={containerVariants}
-          >
+          <ul className="space-y-3 text-sm font-montserrat">
             {[
               { name: "Home", path: "/" },
               { name: "Our Story", path: "/our-story" },
@@ -96,97 +83,73 @@ const Footer = () => {
               { name: "Career", path: "/career" },
               { name: "Contact Us", path: "/contact" },
             ].map((link, index) => (
-              <motion.li key={index} variants={itemVariants}>
+              <li key={index}>
                 <a
                   href={link.path}
                   className="uppercase hover:text-[#895C40] font-semibold transition-colors duration-200 text-black/75"
                 >
                   {link.name}
                 </a>
-              </motion.li>
+              </li>
             ))}
-          </motion.ul>
+          </ul>
         </motion.div>
 
-        {/* Quick Links */}
+        {/* Help & Policies */}
         <motion.div variants={itemVariants} className="text-left">
-          <motion.h3
-            className="uppercase font-cormorant-text font-semibold mb-6 text-lg tracking-wide font-spectral-sc-regular text-black"
-            variants={itemVariants}
-          >
+          <h3 className="uppercase font-semibold mb-6 text-lg tracking-wide text-black">
             Help & Policies
-          </motion.h3>
+          </h3>
 
-          <motion.ul
-            className="space-y-3 text-sm font-montserrat"
-            variants={containerVariants}
-          >
+          <ul className="space-y-3 text-sm font-montserrat">
             {[
               { name: "Privacy Policy", path: "/privacy-policy" },
               { name: "Terms & Conditions", path: "/terms-conditions" },
-              {
-                name: "Cancellation & Refund Policy",
-                path: "/cancellation-refund",
-              },
-              {
-                name: "Shipping & Delivery Policy",
-                path: "/shipping-delivery",
-              },
+              { name: "Cancellation & Refund Policy", path: "/cancellation-refund" },
+              { name: "Shipping & Delivery Policy", path: "/shipping-delivery" },
             ].map((link, index) => (
-              <motion.li key={index} variants={itemVariants}>
+              <li key={index}>
                 <a
                   href={link.path}
                   className="uppercase hover:text-[#895C40] font-semibold transition-colors duration-200 text-black/75"
                 >
                   {link.name}
                 </a>
-              </motion.li>
+              </li>
             ))}
-          </motion.ul>
+          </ul>
         </motion.div>
 
         {/* Contact */}
         <motion.div variants={itemVariants} className="text-left">
-          <motion.h3
-            className="uppercase font-cormorant-text font-semibold mb-6 text-lg tracking-wide font-spectral-sc-regular text-black"
-            variants={itemVariants}
-          >
+          <h3 className="uppercase font-semibold mb-6 text-lg tracking-wide text-black">
             Contact
-          </motion.h3>
+          </h3>
 
-          <motion.div
-            className="text-sm font-montserrat space-y-4 text-black"
-            variants={containerVariants}
-          >
+          <div className="text-sm font-montserrat space-y-4 text-black">
+
             {/* Phone */}
-            <motion.div
-              className="flex items-center space-x-3"
-              variants={itemVariants}
-            >
+            <div className="flex items-center space-x-3">
               <FaPhoneAlt className="text-[#895C40] text-lg" />
               <span className="text-black/75 font-semibold">
                 +91 9076000468 / 9765600701
               </span>
-            </motion.div>
+            </div>
+
             <hr className="border-gray-300" />
 
             {/* Email */}
-            <motion.div
-              className="flex items-center space-x-3"
-              variants={itemVariants}
-            >
+            <div className="flex items-center space-x-3">
               <MdEmail className="text-[#895C40] text-lg" />
               <span className="text-black/75 font-semibold">
                 contact@ryviveroots.com
               </span>
-            </motion.div>
+            </div>
+
             <hr className="border-gray-300" />
 
             {/* Address */}
-            <motion.div
-              className="flex items-start space-x-3"
-              variants={itemVariants}
-            >
+            <div className="flex items-start space-x-3">
               <FaLocationDot className="text-[#895C40] text-lg mt-1" />
               <div className="text-black/75 font-semibold">
                 <p>Shop No 01, Saraswati Bhuvan,</p>
@@ -194,22 +157,20 @@ const Footer = () => {
                 <p>Opp. Hotel Nav Gomantak,</p>
                 <p>Dombivli, Maharashtra 421201.</p>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+
+          </div>
         </motion.div>
       </div>
 
       {/* BOTTOM SECTION */}
       <motion.div
         className="flex md:flex-row flex-col mt-10 items-center justify-center border-t border-gray-300 px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]"
-        variants={containerVariants}
+        variants={itemVariants}
       >
-        <motion.div
-          className="font-spectral-sc-regular pt-6 text-base text-black/75 font-semibold "
-          variants={itemVariants}
-        >
+        <div className="font-spectral-sc-regular pt-6 text-base text-black/75 font-semibold">
           &copy; {new Date().getFullYear()} Ryvive Roots. All rights reserved.
-        </motion.div>
+        </div>
       </motion.div>
     </motion.footer>
   );
