@@ -1,9 +1,9 @@
 import React, { useRef } from 'react'
-import { motion } from "framer-motion";
+
 import SubscriptionTypes from '../components/SubscriptionsTypes';
 import WhySubscribe from '../components/WhySubscription';
 import HowItWorks from '../components/HowWorks';
-import Banner from "../assets/optimized/Banner.png";
+import Banner from "../assets/optimized/Banner.webp";
 
 const Subscription = () => {
 

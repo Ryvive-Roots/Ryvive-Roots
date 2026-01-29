@@ -12,6 +12,7 @@ import Sandwitch1 from "../assets/Sandwitch2.webp"
 
 import BgDesktop from "../assets/optimized/HeroL.webp";
 import BgMobile from "../assets/optimized/BgMobile.webp";
+import useIsMobile from "./useIsMobile";
 
 
 const ScrollingText = lazy(() => import("./Usps"));
@@ -20,6 +21,9 @@ const TestimonialsSection = lazy(() => import("./Testimonials"));
 
 
 const HeroSection = () => {
+
+  const isMobile = useIsMobile();
+
   const cloudinaryImages = {
     Sandwitch: Sandwitch1,
     Juice:HJuice,
@@ -58,42 +62,45 @@ const HeroSection = () => {
   };
 
   // Animation variants
-  const containerVariant = {
-    hidden: { opacity: 0, y: 40 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.8, ease: "easeOut" },
-    },
-  };
+ const containerVariant = {
+  hidden: { opacity: 0, transform: "translateY(40px)" },
+  visible: {
+    opacity: 1,
+    transform: "translateY(0px)",
+    transition: { duration: 0.5, ease: "easeOut" },
+  },
+};
+
 
   const imageVariant = {
-    hidden: { opacity: 0, x: -50, scale: 0.95 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      scale: 1,
-      transition: { duration: 0.9, ease: "easeOut" },
-    },
-  };
+  hidden: { opacity: 0, transform: "translateX(-50px)", scale: 0.95 },
+  visible: {
+    opacity: 1,
+    transform: "translateX(0px)",
+    scale: 1,
+    transition: { duration: 0.9, ease: "easeOut" },
+  },
+};
 
-  const textVariant = {
-    hidden: { opacity: 0, x: 50 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: { duration: 0.9, ease: "easeOut", delay: 0.2 },
-    },
-  };
+const textVariant = {
+  hidden: { opacity: 0, transform: "translateX(50px)" },
+  visible: {
+    opacity: 1,
+    transform: "translateX(0px)",
+    transition: { duration: 0.9, ease: "easeOut", delay: 0.2 },
+  },
+};
+
 
     const parallaxRef = useRef(null);
 
- useEffect(() => {
-  let ticking = false;
+useEffect(() => {
+  if (isMobile) return;
 
+  let ticking = false;
   const handleScroll = () => {
     if (!ticking) {
-      window.requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
         if (parallaxRef.current) {
           const scrollY = window.scrollY;
           parallaxRef.current.style.backgroundPositionY = `${scrollY * 0.3}px`;
@@ -106,27 +113,32 @@ const HeroSection = () => {
 
   window.addEventListener("scroll", handleScroll, { passive: true });
   return () => window.removeEventListener("scroll", handleScroll);
-}, []);
+}, [isMobile]);
+
 
 
   return (
     <>
-      <section className="flex cursor-pointer flex-col lg:flex-row items-center justify-between  overflow-hidden">
+      <section className="flex cursor-pointer flex-col lg:flex-row items-center justify-between  overflow-x-hidden">
         {/* LEFT TEXT WITH ANIMATION */}
-      <div className="relative w-full min-h-[90vh] flex items-start md:items-center overflow-hidden">
+     <div className="relative w-full min-h-[90vh] flex items-start md:items-center overflow-x-hidden">
+
       
       {/* 🌄 Responsive Background Image */}
       <picture className="absolute inset-0 -z-10 w-full h-full">
         <source media="(max-width: 768px)" srcSet={BgMobile} />
         <source media="(min-width: 769px)" srcSet={BgDesktop} />
-        <img
-          src={BgDesktop}
-          alt="Hero Background"
-          loading="eager"
-          fetchPriority="high"
-          decoding="async"
-          className="w-full h-full object-cover"
-        />
+      <img
+  src={BgDesktop}
+  alt="Hero Background"
+  loading="eager"
+  fetchPriority="high"
+  decoding="async"
+  width="1920"
+  height="1080"
+  className="w-full h-full object-cover"
+/>
+
       </picture>
 
       {/* 📝 Text Content */}
@@ -134,9 +146,13 @@ const HeroSection = () => {
 
         {/* Heading */}
         <motion.h1
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+        initial={
+    isMobile
+      ? { opacity: 0 }
+      : { opacity: 0, transform: "translateY(30px)" }
+  }
+  animate={{ opacity: 1, transform: "translateY(0px)" }}
+  transition={{ duration: isMobile ? 0.3 : 0.7, ease: "easeOut", delay: 0.2 }}
           className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold uppercase font-cinzel text-[#ba9453] leading-tight mb-6"
         >
           Welcome <br /> to{" "}
@@ -145,9 +161,13 @@ const HeroSection = () => {
 
         {/* Paragraph */}
         <motion.p
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
+      initial={
+    isMobile
+      ? { opacity: 0 }
+      : { opacity: 0, transform: "translateY(30px)" }
+  }
+  animate={{ opacity: 1, transform: "translateY(0px)" }}
+  transition={{ duration: isMobile ? 0.3 : 0.7, ease: "easeOut", delay: 0.5 }}
           className="text-[#6f5849] max-w-xl text-sm md:text-lg font-merriweather mb-8"
         >
           Explore a menu crafted for balance, freshness, and flavour. Feel good about your food every bit.
@@ -155,9 +175,13 @@ const HeroSection = () => {
 
         {/* Button */}
         <motion.button
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: 0.8 }}
+          initial={
+    isMobile
+      ? { opacity: 0 }
+      : { opacity: 0, transform: "translateY(30px)" }
+  }
+  animate={{ opacity: 1, transform: "translateY(0px)" }}
+  transition={{ duration: isMobile ? 0.3 : 0.7, ease: "easeOut", delay: 0.7 }}
           whileHover={{
             scale: 1.05,
             y: -2,
