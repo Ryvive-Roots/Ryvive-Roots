@@ -2,15 +2,15 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
-import BgImage from "../assets/bg.png";
+import BgImage from "../assets/optimized/bg.webp";
 
-import Silver from "../assets/optimized/silverD.png";
-import Gold from "../assets/optimized/goldD.png";
-import Plat from "../assets/optimized/platinumD.png";
+import Silver from "../assets/optimized/silverD.webp";
+import Gold from "../assets/optimized/goldD.webp";
+import Plat from "../assets/optimized/platinumD.webp";
 
-import SilverMobile from "../assets/optimized/silverP.png";
-import GoldMobile from "../assets/optimized/goldP.png";
-import PlatMobile from "../assets/optimized/platinumP.png";
+import SilverMobile from "../assets/optimized/silverP.webp";
+import GoldMobile from "../assets/optimized/goldP.webp";
+import PlatMobile from "../assets/optimized/platinumP.webp";
 
 import ScrollToTop from "./ScrollToTop";
 

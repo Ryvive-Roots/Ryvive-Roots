@@ -4,14 +4,15 @@ import Slider from "react-slick";
 import { motion } from "framer-motion";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import Ras from "../assets/optimized/RasBerrie.webp";
-import Berrie from "../assets/optimized/Berrie.webp";
+
 import Bowl from "../assets/bowl.avif";
 import HJuice from "../assets/optimized/HJuice.webp"
 import Chaat from "../assets/Chaat.webp"
 import Sandwitch1 from "../assets/Sandwitch2.webp"
-import BgDesktop from "../assets/optimized/HeroL.png";
-import BgMobile from "../assets/optimized/BgMobile.png";
+
+import BgDesktop from "../assets/optimized/HeroL.webp";
+import BgMobile from "../assets/optimized/BgMobile.webp";
+
 
 const ScrollingText = lazy(() => import("./Usps"));
 const MenuCarousel = lazy(() => import("./MenuCarousal"));
@@ -112,60 +113,65 @@ const HeroSection = () => {
     <>
       <section className="flex cursor-pointer flex-col lg:flex-row items-center justify-between  overflow-hidden">
         {/* LEFT TEXT WITH ANIMATION */}
-     <motion.div
-  initial={{ x: -120, opacity: 0 }}
-  animate={{ x: 0, opacity: 1 }}
-  transition={{ duration: 1, ease: "easeOut" }}
-  className="relative w-full min-h-[90vh] flex items-start md:items-center overflow-hidden"
->
-  {/* 📱 Mobile Background Image */}
-<img
-  src={BgMobile}
-  alt="Hero Mobile Background"
-  loading="eager"
-  fetchPriority="high"
-  decoding="async"
-  className="absolute inset-0 w-full h-full object-cover -z-10 block md:hidden"
-/>
+      <div className="relative w-full min-h-[90vh] flex items-start md:items-center overflow-hidden">
+      
+      {/* 🌄 Responsive Background Image */}
+      <picture className="absolute inset-0 -z-10 w-full h-full">
+        <source media="(max-width: 768px)" srcSet={BgMobile} />
+        <source media="(min-width: 769px)" srcSet={BgDesktop} />
+        <img
+          src={BgDesktop}
+          alt="Hero Background"
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
+          className="w-full h-full object-cover"
+        />
+      </picture>
 
-{/* 🖥 Desktop Background Image */}
-<img
-  src={BgDesktop}
-  alt="Hero Desktop Background"
-  loading="eager"
-  fetchPriority="high"
-  decoding="async"
-  className="absolute inset-0 w-full h-full object-cover -z-10 hidden md:block"
-/>
+      {/* 📝 Text Content */}
+      <div className="relative px-6 pt-24 md:pt-0 md:px-20 text-left">
 
+        {/* Heading */}
+        <motion.h1
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+          className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold uppercase font-cinzel text-[#ba9453] leading-tight mb-6"
+        >
+          Welcome <br /> to{" "}
+          <span className="text-[#243f36]">Ryvive Roots</span>
+        </motion.h1>
 
+        {/* Paragraph */}
+        <motion.p
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
+          className="text-[#6f5849] max-w-xl text-sm md:text-lg font-merriweather mb-8"
+        >
+          Explore a menu crafted for balance, freshness, and flavour. Feel good about your food every bit.
+        </motion.p>
 
-  {/* 📝 Text Content */}
-  <div className="relative px-6 pt-24 md:pt-0 md:px-20 text-left">
-    <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold uppercase font-cinzel text-[#4b3b2a] leading-tight mb-6">
-      Welcome <br /> to{" "}
-      <span className="text-[#243E36]">Ryvive Roots</span>
-    </h1>
+        {/* Button */}
+        <motion.button
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.8 }}
+          whileHover={{
+            scale: 1.05,
+            y: -2,
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.20)",
+          }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => navigate("/our-story")}
+          className="bg-[#6f5849] font-merriweather rounded-4xl cursor-pointer text-white px-8 py-3 transition-all"
+        >
+          Our Story
+        </motion.button>
 
-    <p className="text-gray-700 max-w-xl text-sm md:text-lg font-merriweather mb-8">
-      Explore a menu crafted for balance, freshness, and flavour. Feel good about your food every bit.
-    </p>
-
-    <motion.button
-      whileHover={{
-        scale: 1.05,
-        y: -2,
-        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.20)",
-      }}
-      whileTap={{ scale: 0.97 }}
-      transition={{ duration: 0.15, ease: "easeOut" }}
-      onClick={() => navigate("/our-story")}
-      className="bg-[#895C40] cursor-pointer text-white px-8 py-3 transition-all"
-    >
-      Our Story
-    </motion.button>
-  </div>
-</motion.div>
+      </div>
+    </div>
 
 
 
