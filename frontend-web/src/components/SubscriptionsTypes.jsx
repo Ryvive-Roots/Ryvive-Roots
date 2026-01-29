@@ -43,7 +43,7 @@ const SubscriptionTypes = () => {
             <img
               src={Silver}
               alt="Silver plan"
-              className="h-[480px] lg:h-[520px] 2xl:h-[660px] object-contain"
+              className="h-[480px] lg:h-[520px] 2xl:h-[640px] object-contain"
             />
           </motion.div>
 

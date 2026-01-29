@@ -265,7 +265,7 @@ const AdminDashboard = () => {
               }
             />
             <input
-              placeholder="Customer Email (optional)"
+              placeholder="Customer Email"
               className="border p-2 w-full rounded"
               value={manualUser.email || ""}
               onChange={(e) =>
