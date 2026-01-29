@@ -128,16 +128,17 @@ useEffect(() => {
       <picture className="absolute inset-0 -z-10 w-full h-full">
         <source media="(max-width: 768px)" srcSet={BgMobile} />
         <source media="(min-width: 769px)" srcSet={BgDesktop} />
-      <img
+     <img
   src={BgDesktop}
   alt="Hero Background"
-  loading="eager"
-  fetchPriority="high"
+  loading={isMobile ? "eager" : "lazy"}
+  fetchPriority={isMobile ? "high" : "auto"}
   decoding="async"
-  width="1920"
-  height="1080"
+  width="1200"
+  height="1600"
   className="w-full h-full object-cover"
 />
+
 
       </picture>
 
