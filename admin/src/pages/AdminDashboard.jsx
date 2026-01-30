@@ -570,6 +570,7 @@ const AdminDashboard = () => {
             </p>
 
             <p className="text-sm">
+             <span className=" font-bold text-black"> Address : </span>
               {order.address?.house || "-"},{order.address?.street || "-"},
               {order.address?.landmark || "-"},{order.address?.city || "-"} -{" "}
               <b>{order.address?.pincode || "-"}</b>
@@ -605,7 +606,7 @@ const AdminDashboard = () => {
             </div>
 
             <div className="text-right font-semibold text-green-700">
-              💳 {order.paymentMethod || "CASH"}
+               <span className=" font-bold text-black"> Payment Mode : </span> {order.paymentMethod || "CASH"}
             </div>
           </div>
         ))}
