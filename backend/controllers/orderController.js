@@ -5,113 +5,78 @@ import generateMembershipId from "../utils/generateMembershipId.js";
 import sendEmail from "../utils/sendEmail.js";
 import generateInvoice from "../utils/generateInvoice.js";
 import generateReceiptNumber from "../utils/generateReceiptNumber.js";
+import TempPayment from "../models/TempPayment.js";
 
 
-
-export const placeOrder = async (req, res) => {
+export const easebuzzSuccess = async (req, res) => {
   try {
-    const { formData, plan, paymentMethod } = req.body;
+    const { status, txnid, easepayid } = req.body;
 
-    console.log("📦 ORDER DATA:", formData, plan);
-
-    console.log(req.body);
-
-    // ❌ Validate input
-    if (!formData || !plan) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing data",
-      });
+    if (status !== "success") {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/payment-failed`
+      );
     }
 
-    // ❌ Validate plan
+    // 1️⃣ Fetch temp payment
+    const tempPayment = await TempPayment.findOne({ txnid });
+
+    if (!tempPayment) {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/payment-failed`
+      );
+    }
+
+    tempPayment.status = "SUCCESS";
+    await tempPayment.save();
+
+    const { formData, plan, amount } = tempPayment;
     const selectedPlan = PLANS[plan];
-    if (!selectedPlan) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid plan selected",
+
+    // 2️⃣ USER + MEMBERSHIP
+    let user = await User.findOne({
+      $or: [{ phone: formData.phone }, { email: formData.email }],
+    });
+
+    let membershipId =
+      user?.membershipId || (await generateMembershipId(Order));
+
+    if (!user) {
+      user = await User.create({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        membershipId,
       });
     }
 
-   let user = await User.findOne({
-  $or: [
-    { phone: formData.phone },
-    { email: formData.email }
-  ]
-});
+    // 3️⃣ Subscription dates
+   const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
-let membershipId;
-
-if (user && user.membershipId) {
-  // ♻️ reuse existing membership
-  membershipId = user.membershipId;
-} else {
-  // 🆕 generate membership
-  membershipId = await generateMembershipId(Order);
-
-  if (user) {
-    // 🩹 fix old users without membershipId
-    user.membershipId = membershipId;
-    await user.save();
-  } else {
-    // 🆕 create new user
-    user = await User.create({
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      phone: formData.phone,
-      membershipId,
-    });
-  }
-}
-
-
-
-    // 🕒 CURRENT TIME
- // 🕒 CURRENT TIME
-const now = new Date();
-
-// ✅ Always generate activation date safely
-const activationAt =
-  new Date(Date.now() + 48 * 60 * 60 * 1000) || new Date();
-
-
-// ✅ Clone date properly (important)
 const startDate = new Date(activationAt);
 
-// ✅ Force months as number
-const months = Number(selectedPlan.durationMonths) || 1;
-
-// ✅ Calculate end date safely
 const endDate = new Date(startDate);
-endDate.setMonth(endDate.getMonth() + months);
-
-// 🧪 Debug (keep temporarily)
-console.log("🧪 activationAt:", activationAt);
-console.log("🧪 startDate:", startDate);
-console.log("🧪 endDate:", endDate);
-console.log("🧪 months:", months);
+endDate.setMonth(
+  endDate.getMonth() + selectedPlan.durationMonths
+);
 
 
-    const tenSecondsAgo = new Date(Date.now() - 10 * 1000);
-
-const recentOrder = await Order.findOne({
-  membershipId,
-  createdAt: { $gte: tenSecondsAgo },
-});
-
-if (recentOrder) {
-  return res.status(429).json({
-    success: false,
-    message: "Order already submitted. Please wait a few seconds.",
-  });
-}
-
-    
-    // 🔢 Generate Receipt Number
+    // 4️⃣ Receipt
     const receiptNumber = await generateReceiptNumber(Order);
 
-    // 4️⃣ CREATE ORDER ✅
+    const existingOrder = await Order.findOne({
+  "paymentDetails.txnid": txnid,
+});
+
+if (existingOrder) {
+  return res.redirect(
+    `${process.env.FRONTEND_URL}/subscription-success?membershipId=${existingOrder.membershipId}`
+  );
+}
+
+
+    // 5️⃣ CREATE ORDER
     const order = await Order.create({
       membershipId,
       receiptNumber,
@@ -121,7 +86,7 @@ if (recentOrder) {
         lastName: formData.lastName,
         phone: formData.phone,
         email: formData.email,
-        dob: new Date(formData.dob), // ✅ IMPORTANT
+        dob: new Date(formData.dob),
       },
 
       address: {
@@ -133,105 +98,92 @@ if (recentOrder) {
         state: "Maharashtra",
       },
 
-      deliverySlot: formData.slot, // ✅ REQUIRED FIELD
+      deliverySlot: formData.slot,
 
       subscription: {
         plan,
-        amount: selectedPlan.price,
-        durationMonths: months,
-
-        activationAt, // ⏳ NEW
-        startDate, // starts after 48 hrs
+        amount,
+        durationMonths: selectedPlan.durationMonths,
+        activationAt,
+        startDate,
         endDate,
-
         pause: { used: 0, history: [] },
-
-        status: "UNDER_PROCESS", // 🟠 default now
+        status: "UNDER_PROCESS",
       },
 
       paymentStatus: "PAID",
-      paymentMethod: paymentMethod || "RAZORPAY",
+      paymentMethod: "ONLINE",
+
+      paymentDetails: {
+        gateway: "EASEBUZZ",
+        txnid,
+        easepayid,
+      },
     });
 
-    console.log("✅ ORDER SAVED:", order._id);
+    await User.findByIdAndUpdate(user._id, {
+  firstName: order.user.firstName,
+  lastName: order.user.lastName,
+  email: order.user.email,
+  phone: order.user.phone,
+});
 
-    await User.findByIdAndUpdate(
-      user._id,
-      {
-        membershipId: membershipId,
-        firstName: order.user.firstName,
-        lastName: order.user.lastName,
-        email: order.user.email,
-        phone: order.user.phone, // ✅ ADD THIS
-      },
-      { new: true },
-    );
 
-    // 7️⃣ Generate Invoice PDF
+    // 6️⃣ Generate Invoice
     const invoicePath = await generateInvoice(order);
 
-    // 8️⃣ Send Welcome Email (Hostinger mail)
+    // 7️⃣ SEND CUSTOMER EMAIL (🔥 EXACT SAME AS placeOrder 🔥)
     await sendEmail({
       to: order.user.email,
       subject: "Thank You! Your Payment Has Been Received — Ryvive Roots",
       html: `
-  <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-    <h2>Hi ${order.user.firstName},</h2>
+<div style="font-family: Arial, sans-serif; line-height: 1.6;">
+  <h2>Hi ${order.user.firstName},</h2>
 
-    <p>
-      Thank you for making the payment and joining the
-      <b>Ryvive Roots Subscription Program</b> 🌿
-      We’re excited to have you with us on this healthy journey.
-    </p>
+  <p>
+    Thank you for making the payment and joining the
+    <b>Ryvive Roots Subscription Program</b> 🌿
+    We’re excited to have you with us on this healthy journey.
+  </p>
 
-    <p>Here are your subscription details for your reference:</p>
+  <p>Here are your subscription details for your reference:</p>
 
-    <table style="border-collapse: collapse;">
-     <tr>
-  <td><b>Invoice Number</b></td>
-  <td>: ${order.receiptNumber}</td>
-</tr>
-
-      <tr>
-        <td><b>Plan Chosen</b></td>
-        <td>: ${order.subscription.plan}</td>
-      </tr>
-      <tr>
-        <td><b>Amount Paid</b></td>
-        <td>: ₹${order.subscription.amount}</td>
-      </tr>
-      <tr>
-        <td><b>Payment Date</b></td>
+  <table style="border-collapse: collapse;">
+    <tr>
+      <td><b>Invoice Number</b></td>
+      <td>: ${order.receiptNumber}</td>
+    </tr>
+    <tr>
+      <td><b>Plan Chosen</b></td>
+      <td>: ${order.subscription.plan}</td>
+    </tr>
+    <tr>
+      <td><b>Amount Paid</b></td>
+      <td>: ₹${order.subscription.amount}</td>
+    </tr>
+    <tr>
+      <td><b>Payment Date</b></td>
       <td>: ${order.createdAt.toLocaleDateString("en-IN")}</td>
-      </tr>
-    </table>
+    </tr>
+  </table>
 
-    <br />
+  <br />
 
-    <p>
-     Your payment is confirmed 🎉 and your subscription is recorded.
-    </p>
+  <p>Your payment is confirmed 🎉 and your subscription is recorded.</p>
 
-    <p>
-      You’ll receive another email shortly with your membership number and activation details.
-    </p>
+  <p>
+    If you ever need help, reach us at:<br />
+    <b>customersupport@ryviveroots.com</b>
+  </p>
 
-    <br />
+  <br />
 
-    <p>
-     If you ever need help, we’re always here — reach us at:<br />
-      <b>customersupport@ryviveroots.com</b>
-    </p>
-
-    <br />
-
-    <p>
-      Stay healthy, stay vibrant 💚<br />
-      <b>Team Ryvive Roots</b>
-    </p>
-  </div>
+  <p>
+    Stay healthy, stay vibrant 💚<br />
+    <b>Team Ryvive Roots</b>
+  </p>
+</div>
 `,
-
       attachments: [
         {
           filename: `invoice-${order.receiptNumber}.pdf`,
@@ -240,40 +192,24 @@ if (recentOrder) {
       ],
     });
 
-    // 📩 Send order details to company email
+    // 8️⃣ SEND COMPANY EMAIL (SAME AS placeOrder)
     await sendEmail({
       to: process.env.COMPANY_EMAIL,
       subject: `🧾 New Subscription Order - ${order.membershipId}`,
       html: `
-    <h2>New Customer Subscription Received</h2>
+<h2>New Customer Subscription Received</h2>
 
-    <h3>Customer Details</h3>
-    <ul>
-      <li><b>Name:</b> ${order.user.firstName} ${order.user.lastName}</li>
-      <li><b>Phone:</b> ${order.user.phone}</li>
-      <li><b>Email:</b> ${order.user.email}</li>
-      <li><b>DOB:</b> ${order.user.dob.toLocaleDateString("en-IN")}</li>
-    </ul>
-
-    <h3>Subscription</h3>
-    <ul>
-      <li><b>Plan:</b> ${order.subscription.plan}</li>
-      <li><b>Amount:</b> ₹${order.subscription.amount}</li>
-      <li><b>Slot:</b> ${order.deliverySlot}</li>
-      <li><b>Payment Method:</b> ${order.paymentMethod}</li>
-      <li><b>Receipt No:</b> ${order.receiptNumber}</li>
-      <li><b>Membership ID:</b> ${order.membershipId}</li>
-    </ul>
-
-    <h3>Address</h3>
-    <p>
-      ${order.address.house}, ${order.address.street}, <br/>
-      ${order.address.landmark || ""} <br/>
-      ${order.address.city}, ${order.address.state} - ${order.address.pincode}
-    </p>
-
-    <p>🕒 Order Time: ${order.createdAt.toLocaleString("en-IN")}</p>
-  `,
+<ul>
+  <li><b>Name:</b> ${order.user.firstName} ${order.user.lastName}</li>
+  <li><b>Phone:</b> ${order.user.phone}</li>
+  <li><b>Email:</b> ${order.user.email}</li>
+  <li><b>Plan:</b> ${order.subscription.plan}</li>
+  <li><b>Amount:</b> ₹${order.subscription.amount}</li>
+  <li><b>Slot:</b> ${order.deliverySlot}</li>
+  <li><b>Receipt No:</b> ${order.receiptNumber}</li>
+  <li><b>Membership ID:</b> ${order.membershipId}</li>
+</ul>
+`,
       attachments: [
         {
           filename: `invoice-${order.receiptNumber}.pdf`,
@@ -282,20 +218,23 @@ if (recentOrder) {
       ],
     });
 
-    return res.json({
-      success: true,
-      membershipId,
-      orderId: order._id,
-    });
+    // 9️⃣ Redirect to success page
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/subscription-success?membershipId=${membershipId}`
+    );
   } catch (error) {
-    console.error("❌ ORDER ERROR:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
+    console.error("Easebuzz success error:", error);
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/payment-failed`
+    );
   }
 };
 
+export const easebuzzFailure = async (req, res) => {
+  return res.redirect(
+    `${process.env.FRONTEND_URL}/payment-failed`
+  );
+};
 
 
 
