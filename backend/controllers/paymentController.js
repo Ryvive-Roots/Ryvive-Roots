@@ -1,48 +1,108 @@
-import razorpayInstance from "../config/razorpay.js";
 import crypto from "crypto";
+import TempPayment from "../models/TempPayment.js";
+import { PLANS } from "../utils/planConfig.js";
+import axios from "axios";
 
-export const createRazorpayOrder = async (req, res) => {
+/**
+ * STEP 1️⃣ — INITIATE PAYMENT
+ */
+export const initiateEasebuzzPayment = async (req, res) => {
   try {
-    const { amount } = req.body; // amount in rupees
+    const {
+      amount,
+      firstname,
+      lastname,
+      email,
+      phone,
+      plan,
+      formData,
+    } = req.body;
 
-    const options = {
-      amount: amount * 100, // Razorpay expects paise
-      currency: "INR",
-      receipt: `receipt_${Date.now()}`,
-    };
+    const selectedPlan = PLANS[plan];
+    if (!selectedPlan || selectedPlan.price !== amount) {
+      return res.status(400).json({ success: false });
+    }
 
-    const order = await razorpayInstance.orders.create(options);
+    const txnid = `TXN_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
-    res.status(200).json({
-      success: true,
-      order,
+    await TempPayment.create({
+      txnid,
+      amount,
+      plan,
+      formData,
+      status: "PENDING",
     });
-  } catch (error) {
-    console.error("Razorpay Order Error:", error);
-    res.status(500).json({ success: false });
-  }
-};
-export const verifyRazorpayPayment = async (req, res) => {
-  try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
-      req.body;
 
-    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const hashString = [
+      process.env.EASEBUZZ_KEY,
+      txnid,
+      amount,
+      "Subscription Payment",
+      firstname,
+      email,
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      process.env.EASEBUZZ_SALT,
+    ].join("|");
 
-    const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-      .update(body.toString())
+    const hash = crypto
+      .createHash("sha512")
+      .update(hashString)
       .digest("hex");
 
-    if (expectedSignature === razorpay_signature) {
-      res.status(200).json({ success: true });
-    } else {
-      res.status(400).json({ success: false });
-    }
-  } catch (error) {
+    return res.json({
+      success: true,
+      payment_url: "https://pay.easebuzz.in/payment/initiateLink",
+      data: {
+        key: process.env.EASEBUZZ_KEY,
+        txnid,
+        amount,
+        productinfo: "Subscription Payment",
+        firstname,
+        lastname,
+        email,
+        phone,
+        surl: `${process.env.BACKEND_URL}/api/payment/easebuzz/success`,
+        furl: `${process.env.BACKEND_URL}/api/payment/easebuzz/failure`,
+        hash,
+      },
+    });
+  } catch (err) {
+    console.error("Initiate error:", err);
     res.status(500).json({ success: false });
   }
 };
 
+/**
+ * STEP 2️⃣ — EASEBUZZ SUCCESS CALLBACK
+ * (just forward to orderController)
+ */
+export const easebuzzPaymentSuccess = async (req, res) => {
+  try {
+    // forward SAME request to order controller
+    const response = await axios.post(
+      `${process.env.BACKEND_URL}/api/order/easebuzz-success`,
+      req.body,
+      { headers: { "Content-Type": "application/json" } }
+    );
 
+    return res.redirect(response.request.res.responseUrl);
+  } catch (err) {
+    console.error("Easebuzz success forward error:", err);
+    return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+  }
+};
 
+/**
+ * STEP 3️⃣ — EASEBUZZ FAILURE CALLBACK
+ */
+export const easebuzzPaymentFailure = async (req, res) => {
+  return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+};

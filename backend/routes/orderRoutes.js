@@ -1,9 +1,8 @@
 import express from "express";
-import { placeOrder } from "../controllers/orderController.js";
+import { easebuzzSuccess } from "../controllers/orderController.js";
 
 const router = express.Router();
 
-router.post("/place-order", placeOrder);
-
+router.post("/easebuzz-success", easebuzzSuccess);
 
 export default router;

@@ -588,15 +588,20 @@ const AdminDashboard = () => {
                   ? new Date(order.subscription.endDate).toLocaleDateString("en-GB")
                   : "-"}
               </span>
-              <div className="text-sm font-medium">
-                {getPauseStatusText(order).includes("PAUSED") ? (
-                  <span className="text-orange-600">
-                    {getPauseStatusText(order)}
-                  </span>
-                ) : (
-                  <span className="text-green-700">ACTIVE</span>
-                )}
-              </div>
+             <div className="text-sm font-medium">
+  <span
+    className={
+      getPauseStatusText(order).includes("PAUSED")
+        ? "text-orange-600"
+        : getPauseStatusText(order).includes("UNDER PROCESS")
+        ? "text-yellow-600"
+        : "text-green-700"
+    }
+  >
+    {getPauseStatusText(order)}
+  </span>
+</div>
+
             </div>
 
             <div className="text-right font-semibold text-green-700">
