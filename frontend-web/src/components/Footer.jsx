@@ -56,7 +56,7 @@ const Footer = () => {
           {/* Social Icons */}
           <div className="flex gap-4 my-6 text-2xl">
             <a
-              href="https://www.instagram.com/ryvive__roots/"
+              href="https://www.instagram.com/ryvive_roots/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Visit Ryvive Roots on Instagram"
