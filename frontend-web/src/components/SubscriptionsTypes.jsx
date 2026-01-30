@@ -56,7 +56,7 @@ const SubscriptionTypes = () => {
             <img
               src={Gold}
               alt="Gold plan"
-              className="h-[520px] lg:h-[580px] 2xl:h-[730px] object-contain"
+              className="h-[520px] lg:h-[550px] 2xl:h-[730px] object-contain"
             />
           </motion.div>
 
@@ -69,7 +69,7 @@ const SubscriptionTypes = () => {
             <img
               src={Plat}
               alt="Platinum plan"
-              className="h-[560px] lg:h-[620px] 2xl:h-[770px] object-contain"
+              className="h-[560px] lg:h-[580px] 2xl:h-[770px] object-contain"
             />
           </motion.div>
 
