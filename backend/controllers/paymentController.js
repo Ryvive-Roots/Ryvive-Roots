@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import axios from "axios";
 import TempPayment from "../models/TempPayment.js";
 import { PLANS } from "../utils/planConfig.js";
 
@@ -116,6 +117,28 @@ export const initiateEasebuzzPayment = async (req, res) => {
       success: false,
       message: "Payment initiation failed",
     });
+  }
+};
+
+/**
+ * SUCCESS CALLBACK (FORWARD ONLY)
+ */
+export const easebuzzPaymentSuccess = async (req, res) => {
+  try {
+    // Forward Easebuzz response to order controller
+    const response = await axios.post(
+      `${process.env.BACKEND_URL}/api/orders/easebuzz-success`,
+      req.body,
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    // Redirect user to frontend success page
+    return res.redirect(response.request.res.responseUrl);
+  } catch (error) {
+    console.error("Easebuzz payment success forward error:", error);
+    return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
   }
 };
 
