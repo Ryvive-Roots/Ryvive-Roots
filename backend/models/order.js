@@ -1,7 +1,17 @@
 import mongoose from "mongoose";
 
 const OrderSchema = new mongoose.Schema(
+ 
+
   {
+     
+    // 🧪 TEST MODE FLAG
+    isTest: {
+      type: Boolean,
+      default: false,
+      index: true, // helpful for filtering test orders
+    },
+
    membershipId: {
   type: String,
   required: true,

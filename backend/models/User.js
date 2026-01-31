@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 const UserSchema = new mongoose.Schema(
   {
+      isTest: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
     firstName: String,
     lastName: String,
 
