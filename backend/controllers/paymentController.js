@@ -3,8 +3,6 @@ import TempPayment from "../models/TempPayment.js";
 import { PLANS } from "../utils/planConfig.js";
 import axios from "axios";
 
-
-
 export const initiateEasebuzzPayment = async (req, res) => {
   try {
     let {
@@ -44,6 +42,7 @@ export const initiateEasebuzzPayment = async (req, res) => {
 
     const txnid = `TXN_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
+    // ✅ ONLY TEMP PAYMENT
     await TempPayment.create({
       txnid,
       amount,
@@ -53,7 +52,7 @@ export const initiateEasebuzzPayment = async (req, res) => {
     });
 
     const hashString = [
-      process.env.EASEBUZZ_KEY,
+      process.env.EASEBUZZ_MERCHANT_KEY,
       txnid,
       amount,
       "Subscription Payment",
@@ -80,7 +79,7 @@ export const initiateEasebuzzPayment = async (req, res) => {
       success: true,
       payment_url: "https://pay.easebuzz.in/payment/initiateLink",
       data: {
-        key: process.env.EASEBUZZ_KEY,
+        key: process.env.EASEBUZZ_MERCHANT_KEY,
         txnid,
         amount,
         productinfo: "Subscription Payment",
@@ -99,14 +98,11 @@ export const initiateEasebuzzPayment = async (req, res) => {
   }
 };
 
-
 /**
- * STEP 2️⃣ — EASEBUZZ SUCCESS CALLBACK
- * (just forward to orderController)
+ * STEP 2️⃣ — SUCCESS CALLBACK
  */
 export const easebuzzPaymentSuccess = async (req, res) => {
   try {
-    // forward SAME request to order controller
     const response = await axios.post(
       `${process.env.BACKEND_URL}/api/order/easebuzz-success`,
       req.body,
@@ -121,7 +117,7 @@ export const easebuzzPaymentSuccess = async (req, res) => {
 };
 
 /**
- * STEP 3️⃣ — EASEBUZZ FAILURE CALLBACK
+ * STEP 3️⃣ — FAILURE CALLBACK
  */
 export const easebuzzPaymentFailure = async (req, res) => {
   return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
