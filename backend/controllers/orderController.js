@@ -13,7 +13,6 @@ export const easebuzzSuccess = async (req, res) => {
     const {
       status,
       txnid,
-      amount,
       productinfo,
       firstname,
       email,
@@ -25,7 +24,20 @@ export const easebuzzSuccess = async (req, res) => {
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
     }
 
-    // 🔐 HASH VERIFICATION (REQUIRED)
+    // 1️⃣ FETCH TEMP PAYMENT FIRST
+    const tempPayment = await TempPayment.findOne({ txnid });
+    if (!tempPayment) {
+      return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+    }
+
+    // 🛑 Prevent duplicate processing
+    if (tempPayment.status === "SUCCESS") {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/subscription-success?membershipId=${tempPayment.membershipId}`
+      );
+    }
+
+    // 2️⃣ HASH VERIFICATION (NOW SAFE)
     const hashString = [
       process.env.EASEBUZZ_SALT,
       status,
@@ -37,7 +49,7 @@ export const easebuzzSuccess = async (req, res) => {
       email,
       firstname,
       productinfo,
-      amount,
+      tempPayment.amount,
       txnid,
       process.env.EASEBUZZ_MERCHANT_KEY,
     ].join("|");
@@ -52,24 +64,10 @@ export const easebuzzSuccess = async (req, res) => {
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
     }
 
-    // 1️⃣ Fetch temp payment
-    const tempPayment = await TempPayment.findOne({ txnid });
-
-    if (!tempPayment) {
-      return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
-    }
-
-    // 🛑 Prevent duplicate processing
-    if (tempPayment.status === "SUCCESS") {
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/subscription-success?membershipId=${tempPayment.membershipId}`
-      );
-    }
-
     const { formData, plan } = tempPayment;
     const selectedPlan = PLANS[plan];
 
-    // 2️⃣ USER + MEMBERSHIP (₹1 = TEST)
+    // 3️⃣ USER + MEMBERSHIP
     let user = await User.findOne({
       $or: [{ phone: formData.phone }, { email: formData.email }],
     });
@@ -88,13 +86,13 @@ export const easebuzzSuccess = async (req, res) => {
       });
     }
 
-    // 3️⃣ Subscription dates
+    // 4️⃣ Subscription dates
     const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
     const startDate = new Date(activationAt);
     const endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + selectedPlan.durationMonths);
 
-    // 4️⃣ Receipt
+    // 5️⃣ Receipt
     const receiptNumber = await generateReceiptNumber(
       Order,
       tempPayment.amount
@@ -110,7 +108,7 @@ export const easebuzzSuccess = async (req, res) => {
       );
     }
 
-    // 5️⃣ CREATE ORDER
+    // 6️⃣ CREATE ORDER
     const order = await Order.create({
       membershipId,
       receiptNumber,
@@ -167,9 +165,8 @@ export const easebuzzSuccess = async (req, res) => {
       phone: order.user.phone,
     });
 
-    // 6️⃣ Generate Invoice
+    // 7️⃣ Generate Invoice
     const invoicePath = await generateInvoice(order);
-
     // 7️⃣ SEND CUSTOMER EMAIL (AS-IT-IS)
     await sendEmail({
       to: order.user.email,
