@@ -23,6 +23,8 @@ const AdminDashboard = () => {
     }
   }, []);
 
+  const isTestOrder = (order) => order.isTest === true;
+
 
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
@@ -489,7 +491,18 @@ const AdminDashboard = () => {
           <tbody>
             {filteredOrders.map((order) => (
               <tr key={order._id} className="hover:bg-gray-50">
-                <td className="p-3 border">{order.membershipId}</td>
+               <td className="p-3 border">
+  <div className="flex items-center gap-2">
+    <span>{order.membershipId}</span>
+
+    {isTestOrder(order) && (
+      <span className="text-xs px-2 py-0.5 rounded bg-yellow-100 text-yellow-800 font-semibold">
+        TEST
+      </span>
+    )}
+  </div>
+</td>
+
 
                 <td className="p-3 border font-medium">
                   {order.user?.firstName} {order.user?.lastName}
@@ -556,7 +569,12 @@ const AdminDashboard = () => {
             </div>
 
             <p>
-              <b>ID:</b> {order.membershipId}
+              <b>ID:</b> {order.membershipId} {isTestOrder(order) && (
+  <span className="inline-block text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-800 font-semibold">
+    🧪 TEST MODE
+  </span>
+)}
+
             </p>
             <p>
               <b>📞 Phone:</b> {order.user?.phone}

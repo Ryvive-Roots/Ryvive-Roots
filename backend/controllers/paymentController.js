@@ -3,12 +3,11 @@ import TempPayment from "../models/TempPayment.js";
 import { PLANS } from "../utils/planConfig.js";
 import axios from "axios";
 
-/**
- * STEP 1️⃣ — INITIATE PAYMENT
- */
+
+
 export const initiateEasebuzzPayment = async (req, res) => {
   try {
-    const {
+    let {
       amount,
       firstname,
       lastname,
@@ -18,9 +17,29 @@ export const initiateEasebuzzPayment = async (req, res) => {
       formData,
     } = req.body;
 
+    // ✅ Validate plan
     const selectedPlan = PLANS[plan];
-    if (!selectedPlan || selectedPlan.price !== amount) {
-      return res.status(400).json({ success: false });
+    if (!selectedPlan) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid plan",
+      });
+    }
+
+    // ✅ FORCE ₹1 ONLY IN TEST MODE
+    if (process.env.EASEBUZZ_ENV === "TEST") {
+      amount = 1;
+    }
+
+    // ✅ Validate amount ONLY IN LIVE
+    if (
+      process.env.EASEBUZZ_ENV !== "TEST" &&
+      amount !== selectedPlan.price
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Amount mismatch",
+      });
     }
 
     const txnid = `TXN_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
@@ -79,6 +98,7 @@ export const initiateEasebuzzPayment = async (req, res) => {
     res.status(500).json({ success: false });
   }
 };
+
 
 /**
  * STEP 2️⃣ — EASEBUZZ SUCCESS CALLBACK
