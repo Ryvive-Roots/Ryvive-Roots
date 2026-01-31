@@ -8,8 +8,8 @@ const TempPaymentSchema = new mongoose.Schema(
     formData: { type: Object, required: true },
     status: {
       type: String,
-      enum: ["INITIATED", "SUCCESS", "FAILED"],
-      default: "INITIATED",
+        enum: ["PENDING", "SUCCESS", "FAILED"],
+  default: "PENDING",
     },
   },
   { timestamps: true }
