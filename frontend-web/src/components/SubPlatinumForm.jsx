@@ -116,45 +116,58 @@ const PlatinumsubForm = () => {
   };
 
 const handlePayment = async () => {
-    if (loadingOrder) return; // 🔒 hard lock
+  if (loadingOrder) return;
+
   try {
     setLoadingOrder(true);
 
-    // 1️⃣ Call backend to initiate Easebuzz payment
     const res = await fetch(
       "https://api.ryviveroots.com/api/payment/easebuzz/initiate",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: 6999, // Platinum price
+          amount: 6999,
           firstname: formData.firstName,
           lastname: formData.lastName,
           email: formData.email,
           phone: formData.phone,
           plan: "PLATINUM",
-          formData, // optional but recommended
+          formData,
         }),
       }
     );
 
     const data = await res.json();
 
-    if (!data?.success || !data?.payment_url) {
-  alert("Payment initiation failed. Please try again.");
-  setLoadingOrder(false);
-  return;
-}
+    if (!data.success || !data.payment_url || !data.data) {
+      alert("Payment initiation failed");
+      setLoadingOrder(false);
+      return;
+    }
 
-    // 2️⃣ Redirect to Easebuzz payment page (LIVE)
-    window.location.href = data.payment_url;
+    // ✅ CREATE AUTO-SUBMIT FORM (REQUIRED BY EASEBUZZ)
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = data.payment_url;
 
+    Object.entries(data.data).forEach(([key, value]) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit(); // 🚀 REDIRECTS TO EASEBUZZ
   } catch (error) {
     console.error("Easebuzz error:", error);
     alert("Something went wrong");
     setLoadingOrder(false);
   }
 };
+
 
 
 
