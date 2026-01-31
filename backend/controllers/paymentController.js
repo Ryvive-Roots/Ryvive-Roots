@@ -128,7 +128,7 @@ export const easebuzzPaymentSuccess = async (req, res) => {
       `${process.env.BACKEND_URL}/api/orders/easebuzz-success`,
       req.body,
       {
-        headers: { "Content-Type": "application/json" },
+       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       }
     );
 
