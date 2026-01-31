@@ -1,48 +1,40 @@
 import crypto from "crypto";
+import axios from "axios";
 import TempPayment from "../models/TempPayment.js";
 import { PLANS } from "../utils/planConfig.js";
-import axios from "axios";
 
+/**
+ * STEP 1️⃣ — INITIATE EASEBUZZ PAYMENT
+ */
 export const initiateEasebuzzPayment = async (req, res) => {
   try {
-    let {
-      amount,
-      firstname,
-      lastname,
-      email,
-      phone,
-      plan,
-      formData,
-    } = req.body;
+    let { amount, firstname, email, phone, plan, formData } = req.body;
 
     // ✅ Validate plan
     const selectedPlan = PLANS[plan];
     if (!selectedPlan) {
       return res.status(400).json({
         success: false,
-        message: "Invalid plan",
+        message: "Invalid plan selected",
       });
     }
 
-    // ✅ FORCE ₹1 ONLY IN TEST MODE
+    // ✅ TEST MODE = ₹1
     if (process.env.EASEBUZZ_ENV === "TEST") {
-      amount = 1;
-    }
-
-    // ✅ Validate amount ONLY IN LIVE
-    if (
-      process.env.EASEBUZZ_ENV !== "TEST" &&
-      amount !== selectedPlan.price
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Amount mismatch",
-      });
+      amount = "1";
+    } else {
+      if (Number(amount) !== selectedPlan.price) {
+        return res.status(400).json({
+          success: false,
+          message: "Amount mismatch",
+        });
+      }
+      amount = amount.toString();
     }
 
     const txnid = `TXN_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
-    // ✅ ONLY TEMP PAYMENT
+    // ✅ Save temp payment
     await TempPayment.create({
       txnid,
       amount,
@@ -51,6 +43,14 @@ export const initiateEasebuzzPayment = async (req, res) => {
       status: "PENDING",
     });
 
+    // ✅ UDFs (important)
+    const udf1 = plan;
+    const udf2 = phone;
+    const udf3 = "";
+    const udf4 = "";
+    const udf5 = "";
+
+    // ✅ Correct hash sequence
     const hashString = [
       process.env.EASEBUZZ_MERCHANT_KEY,
       txnid,
@@ -58,15 +58,12 @@ export const initiateEasebuzzPayment = async (req, res) => {
       "Subscription Payment",
       firstname,
       email,
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
+      udf1,
+      udf2,
+      udf3,
+      udf4,
+      udf5,
+      "", "", "", "",
       process.env.EASEBUZZ_SALT,
     ].join("|");
 
@@ -75,26 +72,35 @@ export const initiateEasebuzzPayment = async (req, res) => {
       .update(hashString)
       .digest("hex");
 
+    const paymentUrl =
+      process.env.EASEBUZZ_ENV === "TEST"
+        ? "https://testpay.easebuzz.in/payment/initiateLink"
+        : "https://pay.easebuzz.in/payment/initiateLink";
+
     return res.json({
       success: true,
-      payment_url: "https://pay.easebuzz.in/payment/initiateLink",
+      payment_url: paymentUrl,
       data: {
         key: process.env.EASEBUZZ_MERCHANT_KEY,
         txnid,
         amount,
         productinfo: "Subscription Payment",
         firstname,
-        lastname,
         email,
         phone,
+        udf1,
+        udf2,
+        udf3,
+        udf4,
+        udf5,
         surl: `${process.env.BACKEND_URL}/api/payment/easebuzz/success`,
         furl: `${process.env.BACKEND_URL}/api/payment/easebuzz/failure`,
         hash,
       },
     });
-  } catch (err) {
-    console.error("Initiate error:", err);
-    res.status(500).json({ success: false });
+  } catch (error) {
+    console.error("Easebuzz initiate error:", error);
+    return res.status(500).json({ success: false });
   }
 };
 
@@ -110,8 +116,8 @@ export const easebuzzPaymentSuccess = async (req, res) => {
     );
 
     return res.redirect(response.request.res.responseUrl);
-  } catch (err) {
-    console.error("Easebuzz success forward error:", err);
+  } catch (error) {
+    console.error("Easebuzz success error:", error);
     return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
   }
 };
