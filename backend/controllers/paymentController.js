@@ -26,31 +26,28 @@ export const initiateEasebuzzPayment = async (req, res) => {
       });
     }
 
-    /**
-     * ✅ RULE:
-     * ₹1  → TEST payment
-     * Real price → LIVE payment
-     * (Independent of Easebuzz ENV)
-     */
-   if (Number(amount) === 1) {
-  amount = 1; // ✅ NUMBER
-} else {
-  if (Number(amount) !== selectedPlan.price) {
-    return res.status(400).json({
-      success: false,
-      message: "Amount mismatch",
-    });
-  }
-  amount = Number(amount); // ✅ NUMBER
-}
+    // ✅ Normalize amount
+    let dbAmount;
+    if (Number(amount) === 1) {
+      dbAmount = 1; // TEST
+    } else {
+      if (Number(amount) !== selectedPlan.price) {
+        return res.status(400).json({
+          success: false,
+          message: "Amount mismatch",
+        });
+      }
+      dbAmount = Number(amount); // LIVE
+    }
 
+    const easebuzzAmount = dbAmount.toString(); // ✅ STRING ONLY FOR EASEBUZZ
 
     const txnid = `TXN_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
-    // ✅ Save temp payment
+    // ✅ Save temp payment (NUMBER)
     await TempPayment.create({
       txnid,
-      amount,
+      amount: dbAmount,
       plan,
       formData,
       status: "PENDING",
@@ -63,11 +60,11 @@ export const initiateEasebuzzPayment = async (req, res) => {
     const udf4 = "";
     const udf5 = "";
 
-    // ✅ Easebuzz hash (correct order)
+    // ✅ HASH (STRICT ORDER)
     const hashString = [
       process.env.EASEBUZZ_MERCHANT_KEY,
       txnid,
-      amount,
+      easebuzzAmount,
       "Subscription Payment",
       firstname,
       email,
@@ -85,7 +82,6 @@ export const initiateEasebuzzPayment = async (req, res) => {
       .update(hashString)
       .digest("hex");
 
-    // ✅ Payment URL based on ENV
     const paymentUrl =
       process.env.EASEBUZZ_ENV === "TEST"
         ? "https://testpay.easebuzz.in/payment/initiateLink"
@@ -97,7 +93,7 @@ export const initiateEasebuzzPayment = async (req, res) => {
       data: {
         key: process.env.EASEBUZZ_MERCHANT_KEY,
         txnid,
-        amount,
+        amount: easebuzzAmount, // ✅ STRING
         productinfo: "Subscription Payment",
         firstname,
         email,
@@ -120,6 +116,7 @@ export const initiateEasebuzzPayment = async (req, res) => {
     });
   }
 };
+
 
 /**
  * SUCCESS CALLBACK (FORWARD ONLY)

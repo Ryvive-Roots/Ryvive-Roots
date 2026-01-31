@@ -10,46 +10,39 @@ import TempPayment from "../models/TempPayment.js";
 
 export const easebuzzSuccess = async (req, res) => {
   try {
-    const {
-      status,
-      txnid,
-      productinfo,
-      firstname,
-      email,
-      hash,
-      easepayid,
-    } = req.body;
+    const { status, txnid, hash, easepayid } = req.body;
 
     if (status !== "success") {
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
     }
 
-    // 1️⃣ FETCH TEMP PAYMENT FIRST
+    // 1️⃣ Fetch temp payment FIRST
     const tempPayment = await TempPayment.findOne({ txnid });
     if (!tempPayment) {
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
     }
 
-    // 🛑 Prevent duplicate processing
+    // 2️⃣ Prevent duplicate processing
     if (tempPayment.status === "SUCCESS") {
       return res.redirect(
         `${process.env.FRONTEND_URL}/subscription-success?membershipId=${tempPayment.membershipId}`
       );
     }
 
-    // 2️⃣ HASH VERIFICATION (NOW SAFE)
+    // 3️⃣ Prepare hash values
+    const easebuzzAmount = tempPayment.amount.toString();
+    const productinfo = "Subscription Payment";
+    const firstname = tempPayment.formData.firstName;
+    const email = tempPayment.formData.email;
+
     const hashString = [
       process.env.EASEBUZZ_SALT,
       status,
-      "",
-      "",
-      "",
-      "",
-      "",
+      "", "", "", "", "",
       email,
       firstname,
       productinfo,
-      tempPayment.amount,
+      easebuzzAmount,
       txnid,
       process.env.EASEBUZZ_MERCHANT_KEY,
     ].join("|");
@@ -63,6 +56,7 @@ export const easebuzzSuccess = async (req, res) => {
       console.error("Easebuzz hash mismatch");
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
     }
+
 
     const { formData, plan } = tempPayment;
     const selectedPlan = PLANS[plan];
