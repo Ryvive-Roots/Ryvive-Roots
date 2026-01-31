@@ -1,10 +1,11 @@
-const generateMembershipId = async (Order) => {
+const generateMembershipId = async (Order, amount) => {
   const now = new Date();
 
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
 
-  const isTest = process.env.EASEBUZZ_ENV === "TEST";
+  // ✅ ₹1 = TEST
+  const isTest = Number(amount) === 1;
   const prefix = isTest ? "TEST" : "RR";
 
   const count = await Order.countDocuments({

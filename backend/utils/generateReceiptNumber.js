@@ -1,8 +1,8 @@
-const generateReceiptNumber = async (Order) => {
+const generateReceiptNumber = async (Order, amount) => {
   const today = new Date();
   const year = today.getFullYear();
 
-  const isTest = process.env.EASEBUZZ_ENV === "TEST";
+  const isTest = Number(amount) === 1;
   const prefix = isTest ? "TEST-REC" : "RR-REC";
 
   const startOfYear = new Date(year, 0, 1);
