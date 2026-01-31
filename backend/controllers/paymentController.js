@@ -32,17 +32,18 @@ export const initiateEasebuzzPayment = async (req, res) => {
      * Real price → LIVE payment
      * (Independent of Easebuzz ENV)
      */
-    if (Number(amount) === 1) {
-      amount = "1";
-    } else {
-      if (Number(amount) !== selectedPlan.price) {
-        return res.status(400).json({
-          success: false,
-          message: "Amount mismatch",
-        });
-      }
-      amount = amount.toString();
-    }
+   if (Number(amount) === 1) {
+  amount = 1; // ✅ NUMBER
+} else {
+  if (Number(amount) !== selectedPlan.price) {
+    return res.status(400).json({
+      success: false,
+      message: "Amount mismatch",
+    });
+  }
+  amount = Number(amount); // ✅ NUMBER
+}
+
 
     const txnid = `TXN_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
