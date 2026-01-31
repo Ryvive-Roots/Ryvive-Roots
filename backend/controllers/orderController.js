@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import Order from "../models/order.js";
 import User from "../models/User.js";
 import { PLANS } from "../utils/planConfig.js";
@@ -7,39 +8,75 @@ import generateInvoice from "../utils/generateInvoice.js";
 import generateReceiptNumber from "../utils/generateReceiptNumber.js";
 import TempPayment from "../models/TempPayment.js";
 
-
 export const easebuzzSuccess = async (req, res) => {
   try {
-    const { status, txnid, easepayid } = req.body;
+    const {
+      status,
+      txnid,
+      amount,
+      productinfo,
+      firstname,
+      email,
+      hash,
+      easepayid,
+    } = req.body;
 
     if (status !== "success") {
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/payment-failed`
-      );
+      return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+    }
+
+    // 🔐 HASH VERIFICATION (REQUIRED)
+    const hashString = [
+      process.env.EASEBUZZ_SALT,
+      status,
+      "",
+      "",
+      "",
+      "",
+      "",
+      email,
+      firstname,
+      productinfo,
+      amount,
+      txnid,
+      process.env.EASEBUZZ_MERCHANT_KEY,
+    ].join("|");
+
+    const expectedHash = crypto
+      .createHash("sha512")
+      .update(hashString)
+      .digest("hex");
+
+    if (expectedHash !== hash) {
+      console.error("Easebuzz hash mismatch");
+      return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
     }
 
     // 1️⃣ Fetch temp payment
     const tempPayment = await TempPayment.findOne({ txnid });
 
     if (!tempPayment) {
+      return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+    }
+
+    // 🛑 Prevent duplicate processing
+    if (tempPayment.status === "SUCCESS") {
       return res.redirect(
-        `${process.env.FRONTEND_URL}/payment-failed`
+        `${process.env.FRONTEND_URL}/subscription-success?membershipId=${tempPayment.membershipId}`
       );
     }
 
-    tempPayment.status = "SUCCESS";
-    await tempPayment.save();
-
-    const { formData, plan, amount } = tempPayment;
+    const { formData, plan } = tempPayment;
     const selectedPlan = PLANS[plan];
 
-    // 2️⃣ USER + MEMBERSHIP
+    // 2️⃣ USER + MEMBERSHIP (₹1 = TEST)
     let user = await User.findOne({
       $or: [{ phone: formData.phone }, { email: formData.email }],
     });
 
-    let membershipId =
-      user?.membershipId || (await generateMembershipId(Order));
+    const membershipId =
+      user?.membershipId ||
+      (await generateMembershipId(Order, tempPayment.amount));
 
     if (!user) {
       user = await User.create({
@@ -52,29 +89,26 @@ export const easebuzzSuccess = async (req, res) => {
     }
 
     // 3️⃣ Subscription dates
-   const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-
-const startDate = new Date(activationAt);
-
-const endDate = new Date(startDate);
-endDate.setMonth(
-  endDate.getMonth() + selectedPlan.durationMonths
-);
-
+    const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+    const startDate = new Date(activationAt);
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + selectedPlan.durationMonths);
 
     // 4️⃣ Receipt
-    const receiptNumber = await generateReceiptNumber(Order);
+    const receiptNumber = await generateReceiptNumber(
+      Order,
+      tempPayment.amount
+    );
 
     const existingOrder = await Order.findOne({
-  "paymentDetails.txnid": txnid,
-});
+      "paymentDetails.txnid": txnid,
+    });
 
-if (existingOrder) {
-  return res.redirect(
-    `${process.env.FRONTEND_URL}/subscription-success?membershipId=${existingOrder.membershipId}`
-  );
-}
-
+    if (existingOrder) {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/subscription-success?membershipId=${existingOrder.membershipId}`
+      );
+    }
 
     // 5️⃣ CREATE ORDER
     const order = await Order.create({
@@ -102,7 +136,7 @@ if (existingOrder) {
 
       subscription: {
         plan,
-        amount,
+        amount: tempPayment.amount,
         durationMonths: selectedPlan.durationMonths,
         activationAt,
         startDate,
@@ -121,18 +155,22 @@ if (existingOrder) {
       },
     });
 
-    await User.findByIdAndUpdate(user._id, {
-  firstName: order.user.firstName,
-  lastName: order.user.lastName,
-  email: order.user.email,
-  phone: order.user.phone,
-});
+    // 🔄 Update temp payment
+    tempPayment.status = "SUCCESS";
+    tempPayment.membershipId = membershipId;
+    await tempPayment.save();
 
+    await User.findByIdAndUpdate(user._id, {
+      firstName: order.user.firstName,
+      lastName: order.user.lastName,
+      email: order.user.email,
+      phone: order.user.phone,
+    });
 
     // 6️⃣ Generate Invoice
     const invoicePath = await generateInvoice(order);
 
-    // 7️⃣ SEND CUSTOMER EMAIL (🔥 EXACT SAME AS placeOrder 🔥)
+    // 7️⃣ SEND CUSTOMER EMAIL (AS-IT-IS)
     await sendEmail({
       to: order.user.email,
       subject: "Thank You! Your Payment Has Been Received — Ryvive Roots",
@@ -192,7 +230,7 @@ if (existingOrder) {
       ],
     });
 
-    // 8️⃣ SEND COMPANY EMAIL (SAME AS placeOrder)
+    // 8️⃣ SEND COMPANY EMAIL (AS-IT-IS)
     await sendEmail({
       to: process.env.COMPANY_EMAIL,
       subject: `🧾 New Subscription Order - ${order.membershipId}`,
@@ -224,17 +262,10 @@ if (existingOrder) {
     );
   } catch (error) {
     console.error("Easebuzz success error:", error);
-    return res.redirect(
-      `${process.env.FRONTEND_URL}/payment-failed`
-    );
+    return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
   }
 };
 
 export const easebuzzFailure = async (req, res) => {
-  return res.redirect(
-    `${process.env.FRONTEND_URL}/payment-failed`
-  );
+  return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
 };
-
-
-
