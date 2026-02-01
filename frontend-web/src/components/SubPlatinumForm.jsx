@@ -74,7 +74,7 @@ const PlatinumsubForm = () => {
         dob: "",
         allergies: "",
         medical: "",
-        slot: deliverySlot, // optional: set default slot from localStorage
+        slot: "", // optional: set default slot from localStorage
         pincode: "",
         house: "",
         street: "",
@@ -127,7 +127,7 @@ const handlePayment = async () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: 6999,
+          amount: 1,
           firstname: formData.firstName,
           lastname: formData.lastName,
           email: formData.email,
@@ -150,6 +150,7 @@ const handlePayment = async () => {
     const form = document.createElement("form");
     form.method = "POST";
     form.action = data.payment_url;
+    form.enctype = "application/x-www-form-urlencoded";
 
     Object.entries(data.data).forEach(([key, value]) => {
       const input = document.createElement("input");
@@ -164,8 +165,12 @@ const handlePayment = async () => {
   } catch (error) {
     console.error("Easebuzz error:", error);
     alert("Something went wrong");
-    setLoadingOrder(false);
+   
   }
+  finally {
+  setLoadingOrder(false);
+}
+
 };
 
 
@@ -562,6 +567,7 @@ useEffect(() => {
 
                     {/* Place Order Button */}
                      <button
+                     type="button"
   disabled={loadingOrder}
   onClick={handlePayment}
   className={`w-full py-4 rounded-xl text-white font-fredoka
