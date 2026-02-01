@@ -103,8 +103,8 @@ export const initiateEasebuzzPayment = async (req, res) => {
         udf3,
         udf4,
         udf5,
-        surl: `${process.env.BACKEND_URL}/api/payment/easebuzz/success`,
-        furl: `${process.env.BACKEND_URL}/api/payment/easebuzz/failure`,
+        success_url: `${process.env.BACKEND_URL}/api/payment/easebuzz/success`,
+        failure_url: `${process.env.BACKEND_URL}/api/payment/easebuzz/failure`,
         hash,
       },
     });
