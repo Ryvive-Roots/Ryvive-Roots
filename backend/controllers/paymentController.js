@@ -98,7 +98,6 @@ const easebuzzResponse = await axios.post(
     productinfo,
     firstname,
     email,
-    phone,
     udf1,
     udf2,
     udf3,
