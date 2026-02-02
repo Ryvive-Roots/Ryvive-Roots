@@ -127,7 +127,7 @@ const handlePayment = async () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: 1,
+          amount: 6999,
           firstname: formData.firstName,
           lastname: formData.lastName,
           email: formData.email,
