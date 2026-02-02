@@ -35,22 +35,21 @@ export const easebuzzSuccess = async (req, res) => {
     const firstname = tempPayment.formData.firstName;
     const email = tempPayment.formData.email;
 
-    const hashString = [
-      process.env.EASEBUZZ_SALT,
-      status,
-      "", "", "", "", "",
-      email,
-      firstname,
-      productinfo,
-      easebuzzAmount,
-      txnid,
-      process.env.EASEBUZZ_MERCHANT_KEY,
-    ].join("|");
+   const hashString =
+  process.env.EASEBUZZ_SALT + "|" +
+  status + "||||||" +
+  email + "|" +
+  firstname + "|" +
+  productinfo + "|" +
+  easebuzzAmount + "|" +
+  txnid + "|" +
+  process.env.EASEBUZZ_MERCHANT_KEY;
 
-    const expectedHash = crypto
-      .createHash("sau212")
-      .update(hashString)
-      .digest("hex");
+const expectedHash = crypto
+  .createHash("sha512")
+  .update(hashString)
+  .digest("hex");
+
 
     if (expectedHash !== hash) {
       console.error("Easebuzz hash mismatch");
