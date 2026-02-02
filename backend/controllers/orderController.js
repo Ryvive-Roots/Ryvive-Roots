@@ -10,7 +10,8 @@ import TempPayment from "../models/TempPayment.js";
 
 export const easebuzzSuccess = async (req, res) => {
   try {
-    const { status, txnid, hash, easepayid } = req.body;
+   const { status, txnid, hash: receivedHash, easepayid } = req.body;
+
 
     if (status !== "success") {
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
@@ -35,26 +36,35 @@ export const easebuzzSuccess = async (req, res) => {
     const firstname = tempPayment.formData.firstName;
     const email = tempPayment.formData.email;
 
-   const hashString =
-  process.env.EASEBUZZ_SALT + "|" +
-  status + "||||||" +
-  email + "|" +
-  firstname + "|" +
-  productinfo + "|" +
-  easebuzzAmount + "|" +
-  txnid + "|" +
-  process.env.EASEBUZZ_MERCHANT_KEY;
+
+
+const hashString = [
+  process.env.EASEBUZZ_SALT,
+  status,
+  "", "", "", "", "",
+  email,
+  firstname,
+  productinfo,
+  easebuzzAmount,
+  txnid,
+  process.env.EASEBUZZ_MERCHANT_KEY,
+].join("|");
 
 const expectedHash = crypto
   .createHash("sha512")
   .update(hashString)
   .digest("hex");
 
+if (expectedHash !== receivedHash) {
+  console.error("Easebuzz hash mismatch", {
+    expectedHash,
+    receivedHash,
+    txnid,
+  });
+  return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+}
 
-    if (expectedHash !== hash) {
-      console.error("Easebuzz hash mismatch");
-      return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
-    }
+
 
 
     const { formData, plan } = tempPayment;
