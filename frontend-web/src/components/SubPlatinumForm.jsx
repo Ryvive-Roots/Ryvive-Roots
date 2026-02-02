@@ -96,14 +96,15 @@ const PlatinumsubForm = () => {
 
   const isStepValid = () => {
     if (step === 0) {
-      return (
-        formData.firstName &&
-        formData.lastName &&
-        formData.phone &&
-        formData.email &&
-        formData.dob
-      );
-    }
+  return (
+    formData.firstName &&
+    formData.lastName &&
+    formData.email &&
+    formData.dob &&
+    formData.phone.length === 10
+  );
+}
+
     if (step === 1) return true;
  if (step === 2)
    return typeof formData.slot === "string" && formData.slot.length > 0;
@@ -294,14 +295,21 @@ useEffect(() => {
                       <label htmlFor="phone" className="text-sm font-medium">
                         Phone Number
                       </label>
-                      <input
-                        id="phone"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className={inputStyle}
-                        placeholder="Phone Number"
-                      />
+                     <input
+  id="phone"
+  name="phone"
+  type="tel"
+  maxLength={10}
+  pattern="[0-9]{10}"
+  value={formData.phone}
+  onChange={(e) => {
+    const val = e.target.value.replace(/\D/g, "");
+    setFormData({ ...formData, phone: val });
+  }}
+  className={inputStyle}
+  placeholder="10-digit mobile number"
+/>
+
                     </div>
 
                     <div className="flex flex-col gap-1">

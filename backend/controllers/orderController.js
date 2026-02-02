@@ -9,60 +9,80 @@ import generateReceiptNumber from "../utils/generateReceiptNumber.js";
 import TempPayment from "../models/TempPayment.js";
 
 export const easebuzzSuccess = async (req, res) => {
-  try {
-   const { status, txnid, hash: receivedHash, easepayid } = req.body;
-
+   try {
+    const {
+      status,
+      txnid,
+      amount,
+      productinfo,
+      firstname,
+      email,
+      hash: receivedHash,
+      easepayid,
+      udf1 = "",
+      udf2 = "",
+      udf3 = "",
+      udf4 = "",
+      udf5 = "",
+      udf6 = "",
+      udf7 = "",
+      udf8 = "",
+      udf9 = "",
+      udf10 = "",
+    } = req.body;
 
     if (status !== "success") {
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
     }
 
-    // 1️⃣ Fetch temp payment FIRST
     const tempPayment = await TempPayment.findOne({ txnid });
     if (!tempPayment) {
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
     }
 
-    // 2️⃣ Prevent duplicate processing
     if (tempPayment.status === "SUCCESS") {
       return res.redirect(
         `${process.env.FRONTEND_URL}/subscription-success?membershipId=${tempPayment.membershipId}`
       );
     }
 
-    // 3️⃣ Prepare hash values
-    const easebuzzAmount = tempPayment.amount.toString();
-    const productinfo = "Subscription Payment";
-    const firstname = tempPayment.formData.firstName;
-    const email = tempPayment.formData.email;
+    // ✅ OFFICIAL EASEBUZZ SUCCESS HASH
+    const hashString = [
+      process.env.EASEBUZZ_SALT,
+      status,
+      udf10,
+      udf9,
+      udf8,
+      udf7,
+      udf6,
+      udf5,
+      udf4,
+      udf3,
+      udf2,
+      udf1,
+      email,
+      firstname,
+      productinfo,
+      amount,
+      txnid,
+      process.env.EASEBUZZ_MERCHANT_KEY,
+    ].join("|");
+
+    const expectedHash = crypto
+      .createHash("sha512")
+      .update(hashString)
+      .digest("hex");
+
+    if (expectedHash !== receivedHash) {
+      console.error("Easebuzz SUCCESS hash mismatch", {
+        expectedHash,
+        receivedHash,
+        txnid,
+      });
+      return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+    }
 
 
-
-const hashString = [
-  process.env.EASEBUZZ_SALT,
-  status,
-  "", "", "", "", "",
-  email,
-  firstname,
-  productinfo,
-  easebuzzAmount,
-  txnid,
-  process.env.EASEBUZZ_MERCHANT_KEY,
-].join("|");
-
-const expectedHash = crypto
-  .createHash("sha512")
-  .update(hashString)
-  .digest("hex");
-
-if (expectedHash !== receivedHash) {
-  console.error("Easebuzz hash mismatch", {
-    expectedHash,
-    receivedHash,
-    txnid,
-  });
-  return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
-}
 
 
 
