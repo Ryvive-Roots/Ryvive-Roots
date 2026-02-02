@@ -48,7 +48,7 @@ export const easebuzzSuccess = async (req, res) => {
     ].join("|");
 
     const expectedHash = crypto
-      .createHash("sha512")
+      .createHash("sau212")
       .update(hashString)
       .digest("hex");
 
