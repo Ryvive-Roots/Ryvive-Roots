@@ -62,26 +62,27 @@ export const initiateEasebuzzPayment = async (req, res) => {
 
     const productinfo = "Subscription Payment";
 
-    // ✅ HASH (STRICT ORDER)
-const hashString =
-  process.env.EASEBUZZ_MERCHANT_KEY + "|" +
-  txnid + "|" +
-  easebuzzAmount + "|" +
-  productinfo + "|" +
-  firstname + "|" +
-  email + "|" +
-  phone + "|" +   
-  udf1 + "|" +
-  udf2 + "|" +
-  udf3 + "|" +
-  udf4 + "|" +
-  udf5 + "||||" +
-  process.env.EASEBUZZ_SALT;
+const hashString = [
+  process.env.EASEBUZZ_MERCHANT_KEY,
+  txnid,
+  easebuzzAmount,
+  productinfo,
+  firstname,
+  email,
+  udf1,
+  udf2,
+  udf3,
+  udf4,
+  udf5,
+  "", "", "", "", "",
+  process.env.EASEBUZZ_SALT,
+].join("|");
 
 const hash = crypto
   .createHash("sha512")
   .update(hashString)
   .digest("hex");
+
 
 
 const paymentUrl =
