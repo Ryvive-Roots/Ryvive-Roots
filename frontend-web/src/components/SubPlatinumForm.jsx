@@ -1,10 +1,6 @@
-
-
 import React, { useState, useEffect } from "react";
 import { ChevronDown, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 import BgImage from "../assets/Form.png";
-
-
 
 
 const allowedPincodes = [

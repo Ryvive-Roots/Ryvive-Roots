@@ -1,10 +1,6 @@
-
-
 import React, { useState, useEffect } from "react";
 import { ChevronDown, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 import BgImage from "../assets/Form.png";
-
-
 
 
 const allowedPincodes = [
@@ -115,112 +111,61 @@ const GoldsubForm = () => {
   };
 
   const handlePayment = async () => {
-    try {
-      // 1️⃣ Create Razorpay Order (Backend)
-      const orderRes = await fetch(
-        "http://62.72.58.209/api/payment/create-order",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount: 4999 }),
-        }
-      );
-
-      const orderData = await orderRes.json();
-
-      if (!orderData.success) {
-        alert("Payment order creation failed");
-        return;
-      }
-
-      // 2️⃣ Razorpay Checkout Options
-      const options = {
-        key: "YOUR_RAZORPAY_KEY_ID", // TEST KEY ONLY
-        amount: orderData.order.amount,
-        currency: "INR",
-        name: "Ryvive Roots",
-        description: "Wellness Subscription",
-        order_id: orderData.order.id,
-
-        handler: async function (response) {
-          // 3️⃣ Verify Payment
-          const verifyRes = await fetch(
-            "http://62.72.58.209/api/payment/verify",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(response),
-            }
-          );
-
-          const verifyData = await verifyRes.json();
-
-          if (verifyData.success) {
-            // 4️⃣ Payment verified → Place order
-            await placeFinalOrder();
-          } else {
-            alert("Payment verification failed");
-          }
-        },
-
-        prefill: {
-          name: `${formData.firstName} ${formData.lastName}`,
-          email: formData.email,
-          contact: formData.phone,
-        },
-
-        theme: {
-          color: "#16a34a",
-        },
-      };
-
-      // Open Razorpay
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (error) {
-      console.error(error);
-      alert("Something went wrong");
-    }
-  };
-
-
- const placeFinalOrder = async () => {
+   if (loadingOrder) return;
+ 
    try {
-     console.log("Placing order...");
-
-     const res = await fetch("http://62.72.58.209/api/orders/place-order", {
-       method: "POST",
-       headers: { "Content-Type": "application/json" },
-       body: JSON.stringify({
-         formData,
-         plan: "GOLD",
-         paymentMethod: "RAZORPAY",
-       }),
-     });
-
+     setLoadingOrder(true);
+ 
+     const res = await fetch(
+       "https://api.ryviveroots.com/api/payment/easebuzz/initiate",
+       {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({
+           amount: 5999,
+           firstname: formData.firstName,
+           lastname: formData.lastName,
+           email: formData.email,
+           phone: formData.phone,
+           plan: "GOLD",
+           formData,
+         }),
+       }
+     );
+ 
      const data = await res.json();
-     console.log("Order response:", data);
-
-     if (!data.success) {
-       alert(data.message || "Order failed");
+ 
+     // ✅ NEW CHECK (TOKEN FLOW)
+     if (!data.success || !data.access_key) {
+       alert("Payment initiation failed");
        return;
      }
-
-     // ✅ SAVE MEMBERSHIP
-     localStorage.setItem("membershipId", data.membershipId);
-
-     // ✅ UPDATE STATE
-     setMembershipId(data.membershipId);
-     setStep(5); // 🔥 THIS WILL MOVE TO PAYMENT SUCCESS
-
-     // ✅ CLEAR TEMP DATA
+ 
+     // ✅ REDIRECT TO EASEBUZZ PAYMENT PAGE
+     window.location.href =
+       `https://pay.easebuzz.in/pay/${data.access_key}`;
+ 
+   } catch (error) {
+     console.error("Easebuzz error:", error);
+     alert("Something went wrong");
+   } finally {
+     setLoadingOrder(false);
+   }
+ };
+   
+ useEffect(() => {
+   const params = new URLSearchParams(window.location.search);
+   const mid = params.get("membershipId");
+ 
+   if (mid) {
+     setMembershipId(mid);
+     setStep(5);
+ 
+     // cleanup temp data
      localStorage.removeItem("subscriptionFormData");
      localStorage.removeItem("subscriptionDeliverySlot");
-   } catch (error) {
-     console.error("Order error:", error);
-     alert("Something went wrong while placing order");
    }
-  };
+ }, []);
   
 
 
@@ -306,13 +251,19 @@ const GoldsubForm = () => {
                         Phone Number
                       </label>
                       <input
-                        id="phone"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className={inputStyle}
-                        placeholder="Phone Number"
-                      />
+  id="phone"
+  name="phone"
+  type="tel"
+  maxLength={10}
+  pattern="[0-9]{10}"
+  value={formData.phone}
+  onChange={(e) => {
+    const val = e.target.value.replace(/\D/g, "");
+    setFormData({ ...formData, phone: val });
+  }}
+  className={inputStyle}
+  placeholder="10-digit mobile number"
+/>
                     </div>
 
                     <div className="flex flex-col gap-1">
@@ -562,30 +513,15 @@ const GoldsubForm = () => {
                     </div>
 
                     {/* Place Order Button */}
-                    {/* <button
-                      disabled={loadingOrder}
-                      onClick={async () => {
-                        setLoadingOrder(true);
-
-                        if (PAYMENT_ENABLED) {
-                          await handlePayment();
-                        } else {
-                          await placeFinalOrder();
-                        }
-
-                        setLoadingOrder(false);
-                      }}
-                      className={`w-full py-4 rounded-xl text-white
-    ${loadingOrder ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"}`}
-                    >
-                      {loadingOrder ? "PLACING ORDER..." : "PLACE ORDER"}
-                    </button> */}
                     <button
-                      disabled={true}
-                      className="w-full py-4 rounded-xl bg-gray-400 text-white font-fredoka cursor-not-allowed opacity-70"
-                    >
-                      PLACE ORDER 🔒
-                    </button>
+                     type="button"
+  disabled={loadingOrder}
+  onClick={handlePayment}
+  className={`w-full py-4 rounded-xl text-white font-fredoka
+    ${loadingOrder ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"}`}
+>
+  {loadingOrder ? "REDIRECTING TO PAYMENT..." : "PAY ₹5,999 & PLACE ORDER"}
+</button>
 
                     {/* Trust Note */}
                     <p className="text-center text-xs text-gray-500">
