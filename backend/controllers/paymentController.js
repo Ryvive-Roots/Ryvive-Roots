@@ -53,34 +53,43 @@ export const initiateEasebuzzPayment = async (req, res) => {
       status: "PENDING",
     });
 
-    // ✅ UDFs
-    const udf1 = plan;
-    const udf2 = phone;
-    const udf3 = "";
-    const udf4 = "";
-    const udf5 = "";
+const udf1 = plan;
+const udf2 = phone.toString();
+const udf3 = "";
+const udf4 = "";
+const udf5 = "";
+const udf6 = "";
+const udf7 = "";
+const udf8 = "";
+const udf9 = "";
+const udf10 = "";
 
-    const productinfo = "Subscription Payment";
+const productinfo = "Subscription Payment";
 
-const hashString =
-  process.env.EASEBUZZ_MERCHANT_KEY + "|" +
-  txnid + "|" +
-  easebuzzAmount + "|" +
-  productinfo + "|" +
-  firstname + "|" +
-  email + "|" +
-  udf1 + "|" +
-  udf2 + "|" +
-  udf3 + "|" +
-  udf4 + "|" +
-  udf5 + "|||||||" +   // 🔥 EXACTLY 7 PIPES
-  process.env.EASEBUZZ_SALT;
+const hashString = [
+  process.env.EASEBUZZ_MERCHANT_KEY,
+  txnid,
+  easebuzzAmount,
+  productinfo,
+  firstname,
+  email,
+  udf1,
+  udf2,
+  udf3,
+  udf4,
+  udf5,
+  udf6,
+  udf7,
+  udf8,
+  udf9,
+  udf10,
+  process.env.EASEBUZZ_SALT,
+].join("|");
 
 const hash = crypto
   .createHash("sha512")
   .update(hashString)
   .digest("hex");
-
 
 
 
@@ -99,12 +108,17 @@ const easebuzzResponse = await axios.post(
     productinfo,
     firstname,
     email,
-    phone, 
+    phone: phone.toString(),
     udf1,
     udf2,
     udf3,
     udf4,
     udf5,
+    udf6,
+    udf7,
+    udf8,
+    udf9,
+    udf10,
     surl: `${process.env.BACKEND_URL}/api/payment/easebuzz/success`,
     furl: `${process.env.BACKEND_URL}/api/payment/easebuzz/failure`,
     hash,
@@ -113,6 +127,7 @@ const easebuzzResponse = await axios.post(
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
   }
 );
+
 
 // ✅ RETURN ACCESS KEY ONLY
 if (easebuzzResponse.data.status !== 1) {
