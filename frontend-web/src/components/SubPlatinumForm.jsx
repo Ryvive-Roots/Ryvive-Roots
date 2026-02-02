@@ -140,39 +140,23 @@ const handlePayment = async () => {
 
     const data = await res.json();
 
-    if (!data.success || !data.payment_url || !data.data) {
+    // ✅ NEW CHECK (TOKEN FLOW)
+    if (!data.success || !data.access_key) {
       alert("Payment initiation failed");
-      setLoadingOrder(false);
       return;
     }
 
-    // ✅ CREATE AUTO-SUBMIT FORM (REQUIRED BY EASEBUZZ)
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = data.payment_url;
-    form.enctype = "application/x-www-form-urlencoded";
+    // ✅ REDIRECT TO EASEBUZZ PAYMENT PAGE
+    window.location.href =
+      `https://pay.easebuzz.in/pay/${data.access_key}`;
 
-    Object.entries(data.data).forEach(([key, value]) => {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = value;
-      form.appendChild(input);
-    });
-
-    document.body.appendChild(form);
-    form.submit(); // 🚀 REDIRECTS TO EASEBUZZ
   } catch (error) {
     console.error("Easebuzz error:", error);
     alert("Something went wrong");
-   
+  } finally {
+    setLoadingOrder(false);
   }
-  finally {
-  setLoadingOrder(false);
-}
-
 };
-
 
 
 

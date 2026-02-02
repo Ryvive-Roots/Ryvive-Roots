@@ -80,33 +80,51 @@ const hash = crypto
   .update(hashString)
   .digest("hex");
 
+const paymentUrl =
+  process.env.EASEBUZZ_ENV === "TEST"
+    ? "https://testpay.easebuzz.in/payment/initiateLink"
+    : "https://pay.easebuzz.in/payment/initiateLink";
 
-    const paymentUrl =
-      process.env.EASEBUZZ_ENV === "TEST"
-        ? "https://testpay.easebuzz.in/payment/initiateLink"
-        : "https://pay.easebuzz.in/payment/initiateLink";
+    // CALL EASEBUZZ INITIATE API
+const easebuzzResponse = await axios.post(
+  paymentUrl,
+  new URLSearchParams({
+    key: process.env.EASEBUZZ_MERCHANT_KEY,
+    txnid,
+    amount: easebuzzAmount,
+    productinfo: "Subscription Payment",
+    firstname,
+    email,
+    phone,
+    udf1,
+    udf2,
+    udf3,
+    udf4,
+    udf5,
+    surl: `${process.env.BACKEND_URL}/api/payment/easebuzz/success`,
+    furl: `${process.env.BACKEND_URL}/api/payment/easebuzz/failure`,
+    hash,
+  }).toString(),
+  {
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  }
+);
 
-    return res.json({
-      success: true,
-      payment_url: paymentUrl,
-      data: {
-        key: process.env.EASEBUZZ_MERCHANT_KEY,
-        txnid,
-        amount: easebuzzAmount, // ✅ STRING
-        productinfo: "Subscription Payment",
-        firstname,
-        email,
-        phone,
-        udf1,
-        udf2,
-        udf3,
-        udf4,
-        udf5,
-        surl: `${process.env.BACKEND_URL}/api/payment/easebuzz/success`,
-        furl: `${process.env.BACKEND_URL}/api/payment/easebuzz/failure`,
-        hash,
-      },
-    });
+// ✅ RETURN ACCESS KEY ONLY
+if (easebuzzResponse.data.status !== 1) {
+  console.error("Easebuzz initiate failed:", easebuzzResponse.data);
+  return res.status(400).json({
+    success: false,
+    message: "Easebuzz initiation failed",
+  });
+}
+
+return res.json({
+  success: true,
+  access_key: easebuzzResponse.data.data,
+});
+
+
   } catch (error) {
     console.error("Easebuzz initiate error:", error);
     return res.status(500).json({
