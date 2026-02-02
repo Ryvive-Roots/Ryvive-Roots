@@ -60,6 +60,8 @@ export const initiateEasebuzzPayment = async (req, res) => {
     const udf4 = "";
     const udf5 = "";
 
+    const productinfo = "Subscription Payment";
+
     // ✅ HASH (STRICT ORDER)
 const hashString = [
   process.env.EASEBUZZ_MERCHANT_KEY,
@@ -94,7 +96,7 @@ const easebuzzResponse = await axios.post(
     key: process.env.EASEBUZZ_MERCHANT_KEY,
     txnid,
     amount: easebuzzAmount,
-    productinfo: "Subscription Payment",
+    productinfo,
     firstname,
     email,
     phone,
