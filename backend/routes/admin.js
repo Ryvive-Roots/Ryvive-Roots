@@ -17,7 +17,21 @@ const router = express.Router();
 =========================== */
 router.get("/orders", async (req, res) => {
   try {
+    const now = new Date();
+
+    // 🔁 AUTO-ACTIVATE SUBSCRIPTIONS
+    await Order.updateMany(
+      {
+        "subscription.status": "UNDER_PROCESS",
+        "subscription.activationAt": { $lte: now },
+      },
+      {
+        $set: { "subscription.status": "ACTIVE" },
+      }
+    );
+
     const orders = await Order.find().sort({ createdAt: -1 });
+
     res.json({ success: true, orders });
   } catch (error) {
     console.error("Admin Orders Error:", error);
@@ -27,6 +41,7 @@ router.get("/orders", async (req, res) => {
     });
   }
 });
+
 
 /* ===========================
    CREATE MANUAL CASH ORDER
