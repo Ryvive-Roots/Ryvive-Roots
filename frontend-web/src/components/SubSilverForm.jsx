@@ -41,7 +41,23 @@ const SilversubForm = () => {
   const [membershipId, setMembershipId] = useState("");
   const [loadingOrder, setLoadingOrder] = useState(false);
     const [showSuccessPopper, setShowSuccessPopper] = useState(false);
-  const { width, height } = useWindowSize();
+ const [windowSize, setWindowSize] = useState({
+  width: window.innerWidth,
+  height: window.innerHeight,
+});
+
+useEffect(() => {
+  const handleResize = () => {
+    setWindowSize({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+  };
+
+  window.addEventListener("resize", handleResize);
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
+
 
 
   // DELIVERY SLOT STATE
@@ -549,9 +565,9 @@ useEffect(() => {
                   {step === 5 && showSuccessPopper && (
   <>
     {/* 🎊 CONFETTI */}
-    <Confetti
-      width={width}
-      height={height}
+  <Confetti
+  width={windowSize.width}
+  height={windowSize.height}
       numberOfPieces={300}
       gravity={0.25}
       recycle={false}
