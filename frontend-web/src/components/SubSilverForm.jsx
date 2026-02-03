@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import Confetti from "react-confetti";
+import { useWindowSize } from "react-use";
 import { ChevronDown, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 import BgImage from "../assets/Form.png";
 
@@ -38,6 +40,8 @@ const SilversubForm = () => {
   const [step, setStep] = useState(0);
   const [membershipId, setMembershipId] = useState("");
   const [loadingOrder, setLoadingOrder] = useState(false);
+    const [showSuccessPopper, setShowSuccessPopper] = useState(false);
+  const { width, height } = useWindowSize();
 
 
   // DELIVERY SLOT STATE
@@ -154,6 +158,16 @@ const SilversubForm = () => {
     setLoadingOrder(false);
   }
 };
+
+useEffect(() => {
+  if (showSuccessPopper) {
+    const timer = setTimeout(() => {
+      setShowSuccessPopper(false);
+    }, 6000); // confetti lasts 6 sec
+
+    return () => clearTimeout(timer);
+  }
+}, [showSuccessPopper]);
   
 useEffect(() => {
   const params = new URLSearchParams(window.location.search);
@@ -532,38 +546,56 @@ useEffect(() => {
                   </div>
                 )}
 
-                {step === 5 && (
-                  <div className="text-center space-y-6">
-                    <CheckCircle
-                      size={80}
-                      className="mx-auto text-green-500 animate-bounce"
-                    />
+                  {step === 5 && showSuccessPopper && (
+  <>
+    {/* 🎊 CONFETTI */}
+    <Confetti
+      width={width}
+      height={height}
+      numberOfPieces={300}
+      gravity={0.25}
+      recycle={false}
+    />
 
-                    <h2 className="text-3xl font-semibold">
-                      Payment Successful 🎉
-                    </h2>
+    {/* 🌟 SUCCESS POPPER */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-md p-8 text-center animate-scaleIn">
 
-                    <p className="text-gray-600">
-                      Your membership has been created successfully.
-                    </p>
+        <CheckCircle
+          size={90}
+          className="mx-auto text-green-500 mb-4 animate-bounce"
+        />
 
-                    <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                      <p className="text-sm text-gray-500">
-                        Your Membership ID
-                      </p>
-                      <p className="text-2xl font-bold text-green-700">
-                        {membershipId}
-                      </p>
-                    </div>
+        <h2 className="text-2xl font-semibold text-gray-800">
+          Payment Successful 🎉 ORDER PLACED!
+        </h2>
 
-                    <button
-                      onClick={() => window.location.replace("/login")}
-                      className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl"
-                    >
-                      GO TO LOGIN
-                    </button>
-                  </div>
-                )}
+        <p className="text-gray-600 mt-2">
+         Your membership has been created successfully.
+        </p>
+
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 mt-5">
+          <p className="text-sm text-gray-500">
+            Your Membership ID
+          </p>
+          <p className="text-xl font-bold text-green-700">
+            {membershipId}
+          </p>
+        </div>
+
+        <button
+          onClick={() => {
+            setShowSuccessPopper(false);
+            window.location.replace("/login");
+          }}
+          className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold"
+        >
+          GO TO LOGIN
+        </button>
+      </div>
+    </div>
+  </>
+)}
 
                 {/* NAVIGATION */}
                 <div className="flex justify-between mt-8">
