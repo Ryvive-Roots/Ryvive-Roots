@@ -14,6 +14,18 @@ const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [expandedRow, setExpandedRow] = useState(null);
+  const [editingRow, setEditingRow] = useState(null);
+const [editData, setEditData] = useState({
+  phone: "",
+  email: "",
+  allergies: "",
+  medicalConditions: "",
+  remarks: "",
+});
+
+
+
 
  
   useEffect(() => {
@@ -30,24 +42,33 @@ const AdminDashboard = () => {
   const [search, setSearch] = useState("");
   const [filterPlan, setFilterPlan] = useState("ALL");
   const [manualUser, setManualUser] = useState({
-    firstName: "",
-    lastName: "",
-    phone: "",
-    email: "",
-    plan: "",
-    slot: "",
-    paymentMethod: "CASH", 
-    address: {
-      pincode: "",
-      area: "",
-      house: "",
-      street: "",
-      landmark: "",
-      city: "Dombivli",
-      state: "Maharashtra",
-      country: "India",
-    },
-  });
+  firstName: "",
+  lastName: "",
+  phone: "",
+  email: "",
+  plan: "",
+  slot: "",
+  paymentMethod: "CASH",
+
+  healthInfo: {
+    allergies: "",
+    medicalConditions: "",
+  },
+
+  remarks: "",
+
+  address: {
+    pincode: "",
+    area: "",
+    house: "",
+    street: "",
+    landmark: "",
+    city: "Dombivli",
+    state: "Maharashtra",
+    country: "India",
+  },
+});
+
 
   // Fetch Orders
   const fetchOrders = async () => {
@@ -75,18 +96,24 @@ const AdminDashboard = () => {
     return;
   }
 
-  const payload = {
-    user: {
-      firstName: manualUser.firstName,
-      lastName: manualUser.lastName,
-      phone: manualUser.phone,
-      email: manualUser.email,
-      address: manualUser.address,
-    },
-    plan: manualUser.plan,
-    slot: manualUser.slot,
-    paymentMethod: manualUser.paymentMethod,
-  };
+ const payload = {
+  user: {
+    firstName: manualUser.firstName,
+    lastName: manualUser.lastName,
+    phone: manualUser.phone,
+    email: manualUser.email,
+  },
+
+  address: manualUser.address,
+
+  healthInfo: manualUser.healthInfo,
+  remarks: manualUser.remarks,
+
+  plan: manualUser.plan,
+  slot: manualUser.slot,
+  paymentMethod: manualUser.paymentMethod,
+};
+
 
   try {
     setSaving(true); // 🔒 lock button
@@ -184,6 +211,40 @@ const AdminDashboard = () => {
   return "🟢 ACTIVE";
 };
 
+const handleSaveEdit = async (orderId) => {
+  try {
+    const res = await fetch(
+      `https://api.ryviveroots.com/api/admin/order/${orderId}/health`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user: {
+            phone: editData.phone,
+            email: editData.email,
+          },
+          healthInfo: {
+            allergies: editData.allergies,
+            medicalConditions: editData.medicalConditions,
+          },
+          remarks: editData.remarks,
+        }),
+      }
+    );
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+
+    alert("✅ Updated successfully");
+
+    setEditingRow(null);
+    fetchOrders();
+  } catch (err) {
+    console.error(err);
+    alert("❌ Failed to update details");
+  }
+};
+
 
  
 
@@ -274,6 +335,47 @@ const AdminDashboard = () => {
                 setManualUser({ ...manualUser, email: e.target.value })
               }
             />
+            {/* 🩺 HEALTH INFORMATION */}
+<textarea
+  placeholder="Allergies (if any)"
+  className="border p-2 w-full rounded"
+  value={manualUser.healthInfo.allergies}
+  onChange={(e) =>
+    setManualUser({
+      ...manualUser,
+      healthInfo: {
+        ...manualUser.healthInfo,
+        allergies: e.target.value,
+      },
+    })
+  }
+/>
+
+<textarea
+  placeholder="Medical Conditions (if any)"
+  className="border p-2 w-full rounded"
+  value={manualUser.healthInfo.medicalConditions}
+  onChange={(e) =>
+    setManualUser({
+      ...manualUser,
+      healthInfo: {
+        ...manualUser.healthInfo,
+        medicalConditions: e.target.value,
+      },
+    })
+  }
+/>
+
+{/* 📝 REMARKS */}
+<textarea
+  placeholder="Remarks (Admin notes)"
+  className="border p-2 w-full rounded"
+  value={manualUser.remarks}
+  onChange={(e) =>
+    setManualUser({ ...manualUser, remarks: e.target.value })
+  }
+/>
+
 
             {/* PLAN */}
             <select
@@ -464,29 +566,34 @@ const AdminDashboard = () => {
       )}
 
       {/* ✅ DESKTOP TABLE */}
-      <div className="hidden md:block overflow-x-auto rounded-xl border shadow">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              {[
-                "Membership ID",
-                "Name",
-                "Phone",
-                "email",
-                "Plan",
-                "Slot",
-                "Address",
-                "Start",
-                "End",
-                "Status",
-                "Payment",
-              ].map((h) => (
-                <th key={h} className="p-3 border text-left whitespace-nowrap">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
+    <div className="hidden md:block rounded-xl border shadow overflow-x-auto">
+
+     <table className="min-w-[1400px] text-sm table-fixed">
+
+
+          <thead className="bg-gray-100 sticky top-0 z-10">
+  <tr>
+    {[
+      "Membership ID",
+      "Personal Details",
+      "Plan",
+      "Slot",
+      "Address",
+      "Start",
+      "End",
+      "Status",
+      "Payment",
+    ].map((h) => (
+      <th
+        key={h}
+        className="p-3 border text-left whitespace-nowrap font-semibold"
+      >
+        {h}
+      </th>
+    ))}
+  </tr>
+</thead>
+
 
           <tbody>
             {filteredOrders.map((order) => (
@@ -504,15 +611,134 @@ const AdminDashboard = () => {
 </td>
 
 
-                <td className="p-3 border font-medium">
-                  {order.user?.firstName} {order.user?.lastName}
-                </td>
+              <td className="p-3 border text-sm w-[300px] max-w-[300px]">
+  <div className="font-semibold">
+    {order.user?.firstName} {order.user?.lastName}
+  </div>
 
-                <td className="p-3 border">{order.user?.phone}</td>
+  <div className="text-xs mt-1">📞 {order.user?.phone}</div>
+  <div className="text-xs break-words">
+    📧 {order.user?.email || "-"}
+  </div>
 
-                <td className="p-3 border text-sm break-all">
-                  {order.user?.email || "-"}
-                </td>
+  {/* TOGGLE BUTTON */}
+  <button
+    onClick={() =>
+      setExpandedRow(expandedRow === order._id ? null : order._id)
+    }
+    className="mt-2 text-xs text-blue-600 hover:underline flex items-center gap-1"
+  >
+    {expandedRow === order._id ? "▲ Show less" : "▼ Show more"}
+  </button>
+
+  {/* EXPANDED CONTENT */}
+ {expandedRow === order._id && (
+  <div className="mt-2 space-y-2 text-xs">
+
+    {editingRow === order._id ? (
+      
+      <>
+      <input
+  type="text"
+  className="border p-1 rounded w-full"
+  placeholder="Phone"
+  value={editData.phone}
+  onChange={(e) =>
+    setEditData({ ...editData, phone: e.target.value })
+  }
+/>
+
+<input
+  type="email"
+  className="border p-1 rounded w-full"
+  placeholder="Email"
+  value={editData.email}
+  onChange={(e) =>
+    setEditData({ ...editData, email: e.target.value })
+  }
+/>
+
+        <textarea
+          className="border p-1 rounded w-full"
+          placeholder="Allergies"
+          value={editData.allergies}
+          onChange={(e) =>
+            setEditData({ ...editData, allergies: e.target.value })
+          }
+        />
+
+        <textarea
+          className="border p-1 rounded w-full"
+          placeholder="Medical Conditions"
+          value={editData.medicalConditions}
+          onChange={(e) =>
+            setEditData({ ...editData, medicalConditions: e.target.value })
+          }
+        />
+
+        <textarea
+          className="border p-1 rounded w-full"
+          placeholder="Remarks"
+          value={editData.remarks}
+          onChange={(e) =>
+            setEditData({ ...editData, remarks: e.target.value })
+          }
+        />
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleSaveEdit(order._id)}
+            className="text-green-600 text-xs font-semibold"
+          >
+            💾 Save
+          </button>
+
+          <button
+            onClick={() => setEditingRow(null)}
+            className="text-gray-500 text-xs"
+          >
+            ✖ Cancel
+          </button>
+        </div>
+      </>
+    ) : (
+      <>
+      
+        <div className="text-red-600">
+          Allergies: {order.healthInfo?.allergies || "N/A"}
+        </div>
+
+        <div className="text-red-600">
+          Medical Conditions: {order.healthInfo?.medicalConditions || "N/A"}
+        </div>
+
+        <div className="italic text-gray-600">
+          📝 Remarks: {order.remarks || "—"}
+        </div>
+
+       <button
+  onClick={() => {
+    setEditingRow(order._id);
+    setEditData({
+      phone: order.user?.phone || "",
+      email: order.user?.email || "",
+      allergies: order.healthInfo?.allergies || "",
+      medicalConditions: order.healthInfo?.medicalConditions || "",
+      remarks: order.remarks || "",
+    });
+  }}
+  className="text-blue-600 text-xs hover:underline"
+>
+  ✏️ Edit
+</button>
+
+      </>
+    )}
+  </div>
+)}
+
+</td>
+
 
                 <td className="p-3 border font-semibold text-green-700">
                   {order.subscription?.plan}
@@ -520,11 +746,14 @@ const AdminDashboard = () => {
 
                 <td className="p-3 border">{order.deliverySlot}</td>
 
-                <td className="p-3 border text-xs">
-                  {order.address?.house || "-"},{order.address?.street || "-"},
-                  {order.address?.landmark || "-"},{order.address?.city || "-"}{" "}
-                  - <b>{order.address?.pincode || "-"}</b>
-                </td>
+               <td className="p-3 border text-xs w-[260px] max-w-[260px] break-words">
+  {order.address?.house || "-"},
+  {order.address?.street || "-"},
+  {order.address?.landmark || "-"},
+  {order.address?.city || "-"} - 
+  <b>{order.address?.pincode || "-"}</b>
+</td>
+
 
                 <td className="p-3 border">
                   {order.subscription?.startDate
@@ -553,82 +782,195 @@ const AdminDashboard = () => {
       </div>
 
       {/* ✅ MOBILE CARD VIEW */}
-      <div className="grid gap-4 md:hidden">
-        {filteredOrders.map((order) => (
-          <div
-            key={order._id}
-            className="border rounded-xl p-4 shadow-sm bg-white space-y-2"
+     <div className="grid gap-4 md:hidden">
+  {filteredOrders.map((order) => (
+    <div
+      key={order._id}
+      className="border rounded-xl p-4 shadow-sm bg-white space-y-2"
+    >
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
+        <h3 className="font-semibold text-lg">
+          {order.user?.firstName} {order.user?.lastName}
+        </h3>
+
+        <button
+          onClick={() => {
+            setEditingRow(order._id);
+            setEditData({
+              phone: order.user?.phone || "",
+              email: order.user?.email || "",
+              allergies: order.healthInfo?.allergies || "",
+              medicalConditions: order.healthInfo?.medicalConditions || "",
+              remarks: order.remarks || "",
+            });
+          }}
+          className="text-xs text-blue-600 underline"
+        >
+          ✏️ Edit
+        </button>
+      </div>
+
+      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded inline-block">
+        {order.subscription?.plan}
+      </span>
+
+      <p>
+        <b>ID:</b> {order.membershipId}{" "}
+        {isTestOrder(order) && (
+          <span className="inline-block text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-800 font-semibold">
+            🧪 TEST MODE
+          </span>
+        )}
+      </p>
+
+      {/* PHONE */}
+      {editingRow === order._id ? (
+        <input
+          className="border p-2 w-full rounded text-sm"
+          value={editData.phone}
+          onChange={(e) =>
+            setEditData({ ...editData, phone: e.target.value })
+          }
+        />
+      ) : (
+        <p>
+          <b>📞 Phone:</b> {order.user?.phone}
+        </p>
+      )}
+
+      {/* EMAIL */}
+      {editingRow === order._id ? (
+        <input
+          className="border p-2 w-full rounded text-sm"
+          value={editData.email}
+          onChange={(e) =>
+            setEditData({ ...editData, email: e.target.value })
+          }
+        />
+      ) : (
+        <p className="text-sm break-all">
+          <b>📧 Email:</b> {order.user?.email || "-"}
+        </p>
+      )}
+
+      {/* ALLERGIES */}
+      {editingRow === order._id ? (
+        <textarea
+          className="border p-2 w-full rounded text-sm"
+          placeholder="Allergies"
+          value={editData.allergies}
+          onChange={(e) =>
+            setEditData({ ...editData, allergies: e.target.value })
+          }
+        />
+      ) : (
+        <p className="text-sm text-red-600">
+          <b> Allergies:</b> {order.healthInfo?.allergies || "N/A"}
+        </p>
+      )}
+
+      {/* MEDICAL */}
+      {editingRow === order._id ? (
+        <textarea
+          className="border p-2 w-full rounded text-sm"
+          placeholder="Medical Conditions"
+          value={editData.medicalConditions}
+          onChange={(e) =>
+            setEditData({
+              ...editData,
+              medicalConditions: e.target.value,
+            })
+          }
+        />
+      ) : (
+        <p className="text-sm text-red-600">
+          <b> Medical:</b>{" "}
+          {order.healthInfo?.medicalConditions || "N/A"}
+        </p>
+      )}
+
+      {/* REMARKS */}
+      {editingRow === order._id ? (
+        <textarea
+          className="border p-2 w-full rounded text-sm"
+          placeholder="Remarks"
+          value={editData.remarks}
+          onChange={(e) =>
+            setEditData({ ...editData, remarks: e.target.value })
+          }
+        />
+      ) : (
+        <p className="text-sm italic text-gray-600">
+          <b>📝 Remarks:</b> {order.remarks || "—"}
+        </p>
+      )}
+
+      <p>
+        <b>⏰ Slot:</b> {order.deliverySlot}
+      </p>
+
+      <p className="text-sm">
+        <span className="font-bold text-black"> Address : </span>
+        {order.address?.house || "-"},
+        {order.address?.street || "-"},
+        {order.address?.landmark || "-"},
+        {order.address?.city || "-"} -{" "}
+        <b>{order.address?.pincode || "-"}</b>
+      </p>
+
+      <div className="flex justify-between text-sm">
+        <span>
+          <b>Start:</b>{" "}
+          {order.subscription?.startDate
+            ? new Date(order.subscription.startDate).toLocaleDateString("en-GB")
+            : "-"}
+        </span>
+        <span>
+          <b>End:</b>{" "}
+          {order.subscription?.endDate
+            ? new Date(order.subscription.endDate).toLocaleDateString("en-GB")
+            : "-"}
+        </span>
+        <span
+          className={
+            getPauseStatusText(order).includes("PAUSED")
+              ? "text-orange-600"
+              : getPauseStatusText(order).includes("UNDER PROCESS")
+              ? "text-yellow-600"
+              : "text-green-700"
+          }
+        >
+          {getPauseStatusText(order)}
+        </span>
+      </div>
+
+      <div className="text-right font-semibold text-green-700">
+        <span className="font-bold text-black"> Payment Mode : </span>{" "}
+        {order.paymentMethod || "CASH"}
+      </div>
+
+      {/* SAVE / CANCEL */}
+      {editingRow === order._id && (
+        <div className="flex gap-3 pt-2">
+          <button
+            onClick={() => handleSaveEdit(order._id)}
+            className="bg-green-600 text-white px-4 py-1 rounded text-sm"
           >
-            <div className="flex justify-between items-center">
-              <h3 className="font-semibold text-lg">
-                {order.user?.firstName} {order.user?.lastName}
-              </h3>
-              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                {order.subscription?.plan}
-              </span>
-            </div>
-
-            <p>
-              <b>ID:</b> {order.membershipId} {isTestOrder(order) && (
-  <span className="inline-block text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-800 font-semibold">
-    🧪 TEST MODE
-  </span>
-)}
-
-            </p>
-            <p>
-              <b>📞 Phone:</b> {order.user?.phone}
-            </p>
-            <p className="text-sm break-all">
-              <b>📧 Email:</b> {order.user?.email || "-"}
-            </p>
-
-            <p>
-              <b>⏰ Slot:</b> {order.deliverySlot}
-            </p>
-
-            <p className="text-sm">
-             <span className=" font-bold text-black"> Address : </span>
-              {order.address?.house || "-"},{order.address?.street || "-"},
-              {order.address?.landmark || "-"},{order.address?.city || "-"} -{" "}
-              <b>{order.address?.pincode || "-"}</b>
-            </p>
-
-            <div className="flex justify-between text-sm">
-              <span>
-                <b>Start:</b>{" "}
-                {order.subscription?.startDate
-                  ? new Date(order.subscription.startDate).toLocaleDateString("en-GB")
-                  : "-"}
-              </span>
-              <span>
-                <b>End:</b>{" "}
-                {order.subscription?.endDate
-                  ? new Date(order.subscription.endDate).toLocaleDateString("en-GB")
-                  : "-"}
-              </span>
-             <div className="text-sm font-medium">
-  <span
-    className={
-      getPauseStatusText(order).includes("PAUSED")
-        ? "text-orange-600"
-        : getPauseStatusText(order).includes("UNDER PROCESS")
-        ? "text-yellow-600"
-        : "text-green-700"
-    }
-  >
-    {getPauseStatusText(order)}
-  </span>
+            Save
+          </button>
+          <button
+            onClick={() => setEditingRow(null)}
+            className="border px-4 py-1 rounded text-sm"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+    </div>
+  ))}
 </div>
 
-            </div>
-
-            <div className="text-right font-semibold text-green-700">
-               <span className=" font-bold text-black"> Payment Mode : </span> {order.paymentMethod || "CASH"}
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 };

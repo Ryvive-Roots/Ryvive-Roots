@@ -4,7 +4,6 @@ import { useWindowSize } from "react-use";
 import { ChevronDown, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 import BgImage from "../assets/Form.png";
 
-
 const allowedPincodes = [
   { code: "421201", area: "" },
   {

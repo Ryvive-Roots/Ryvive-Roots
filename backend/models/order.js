@@ -34,6 +34,7 @@ const OrderSchema = new mongoose.Schema(
       },
     },
 
+
     address: {
       pincode: String,
       house: String,
@@ -42,6 +43,14 @@ const OrderSchema = new mongoose.Schema(
       city: { type: String, default: "Dombivli" },
       state: { type: String, default: "Maharashtra" },
     },
+
+   healthInfo: {
+  allergies: String,
+  medicalConditions: String,
+},
+
+remarks: String,
+
 
     // ✅ DELIVERY SLOT (FIXED)
     deliverySlot: {
@@ -100,14 +109,15 @@ const OrderSchema = new mongoose.Schema(
       },
     },
 
-    paymentStatus: {
-      type: String,
-      enum: ["PENDING", "PAID"],
-      default: "PAID",
-    },
+   paymentStatus: {
+  type: String,
+  enum: ["PENDING", "PAID", "FAILED"],
+  default: "PENDING",
+},
+
    paymentMethod: {
   type: String,
-  enum: ["CASH", "ONLINE", "GPAY", "CARD", "RAZORPAY"],
+  enum: ["CASH", "ONLINE", "GPAY", "CARD", "EASEBUZZ"],
   default: "CASH",
 },
 
