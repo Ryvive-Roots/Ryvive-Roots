@@ -6,6 +6,7 @@ import generateReceiptNumber from "../utils/generateReceiptNumber.js";
 import generateMembershipId from "../utils/generateMembershipId.js";
 import { PLANS } from "../utils/planConfig.js";
 import User from "../models/User.js";
+import { rebuildExcelFromMongo } from "../utils/excelHelper.js";
 
 
 const router = express.Router();
@@ -48,7 +49,8 @@ router.get("/orders", async (req, res) => {
 =========================== */
 router.post("/manual-order", async (req, res) => {
   try {
-    const { user, plan, slot, paymentMethod  } = req.body;
+   const { user, plan, slot, paymentMethod, healthInfo, remarks } = req.body;
+
 
     if (!user?.firstName || !user?.phone) {
       return res.status(400).json({
@@ -190,7 +192,16 @@ remarks: remarks || "",
 
     console.log("✅ MANUAL ORDER SAVED:", order.membershipId);
 
-    
+  
+try {
+  await rebuildExcelFromMongo();
+  console.log("📊 Excel updated successfully");
+} catch (err) {
+  console.error("❌ Excel rebuild failed:", err.message);
+}
+
+
+
     await User.findOneAndUpdate(
       { membershipId: order.membershipId },
       {
@@ -205,6 +216,7 @@ remarks: remarks || "",
 
     // 📄 Generate Invoice PDF
     const invoicePath = await generateInvoice(order);
+    
 
     // 📩 SEND CUSTOMER EMAIL
     if (order.user.email) {
@@ -342,7 +354,7 @@ router.put("/order/:id/health", async (req, res) => {
           remarks,
         },
       },
-      
+
       { new: true }
     );
 
@@ -351,13 +363,20 @@ router.put("/order/:id/health", async (req, res) => {
       await User.findOneAndUpdate(
         { membershipId: order.membershipId },
         {
-          phone: user.phone,
-          email: user.email,
+          ...(user?.phone && { phone: user.phone }),
+          ...(user?.email && { email: user.email }),
         }
       );
     }
+    try {
+  await rebuildExcelFromMongo();
+  console.log("📊 Excel updated after edit");
+} catch (err) {
+  console.error("❌ Excel rebuild failed after edit:", err.message);
+}
 
-    res.json({ success: true, order });
+res.json({ success: true, order });
+
   } catch (error) {
     console.error("Update error:", error);
     res.status(500).json({
