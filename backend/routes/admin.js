@@ -156,6 +156,13 @@ console.log("🧪 months:", months);
         dob: user.dob || new Date("2000-01-01"),
       },
 
+      healthInfo: {
+  allergies: healthInfo?.allergies || "N/A",
+  medicalConditions: healthInfo?.medicalConditions || "N/A",
+},
+
+remarks: remarks || "",
+
       address: {
         pincode: user.address.pincode,
         house: user.address.house,
@@ -282,6 +289,10 @@ console.log("🧪 months:", months);
         <p><b>Name:</b> ${order.user.firstName} ${order.user.lastName}</p>
         <p><b>Phone:</b> ${order.user.phone}</p>
         <p><b>Email:</b> ${order.user.email || "N/A"}</p>
+        <p><b> Allergies:</b> ${order.healthInfo?.allergies || "N/A"}</p>
+<p><b> Medical Conditions:</b> ${order.healthInfo?.medicalConditions || "N/A"}</p>
+<p><b>📝 Remarks:</b> ${order.remarks || "—"}</p>
+
         <p><b>Plan:</b> ${order.subscription.plan}</p>
         <p><b>Amount:</b> ₹${order.subscription.amount}</p>
         <p><b>Slot:</b> ${order.deliverySlot}</p>
@@ -316,6 +327,47 @@ console.log("🧪 months:", months);
     });
   }
 });
+
+router.put("/order/:id/health", async (req, res) => {
+  try {
+    const { user, healthInfo, remarks } = req.body;
+
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          "user.phone": user?.phone,
+          "user.email": user?.email,
+          healthInfo,
+          remarks,
+        },
+      },
+      
+      { new: true }
+    );
+
+    // 🔁 Also sync User collection
+    if (user?.phone || user?.email) {
+      await User.findOneAndUpdate(
+        { membershipId: order.membershipId },
+        {
+          phone: user.phone,
+          email: user.email,
+        }
+      );
+    }
+
+    res.json({ success: true, order });
+  } catch (error) {
+    console.error("Update error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update member details",
+    });
+  }
+});
+
+
 
 
 
