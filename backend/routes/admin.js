@@ -39,7 +39,7 @@ router.get("/orders", async (req, res) => {
       }
     );
 
-    const orders = await Order.find().sort({ createdAt: -1 });
+    const orders = await Order.find().sort({ createdAt: 1 });
 
     res.json({ success: true, orders });
   } catch (error) {
