@@ -365,6 +365,17 @@ router.put("/order/:id/health", async (req, res) => {
   try {
     const { user, healthInfo, remarks } = req.body;
 
+    // 1️⃣ Get old order (before update)
+    const oldOrder = await Order.findById(req.params.id);
+
+    if (!oldOrder) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    // 2️⃣ Update order
     const order = await Order.findByIdAndUpdate(
       req.params.id,
       {
@@ -375,11 +386,10 @@ router.put("/order/:id/health", async (req, res) => {
           remarks,
         },
       },
-
       { new: true }
     );
 
-    // 🔁 Also sync User collection
+    // 3️⃣ Sync User collection
     if (user?.phone || user?.email) {
       await User.findOneAndUpdate(
         { membershipId: order.membershipId },
@@ -389,14 +399,140 @@ router.put("/order/:id/health", async (req, res) => {
         }
       );
     }
-    try {
-  await rebuildExcelFromMongo();
-  console.log("📊 Excel updated after edit");
-} catch (err) {
-  console.error("❌ Excel rebuild failed after edit:", err.message);
+
+    // 4️⃣ Detect changes
+    const phoneChanged =
+      user?.phone && user.phone !== oldOrder.user.phone;
+
+    const emailChanged =
+      user?.email && user.email !== oldOrder.user.email;
+
+      const healthChanged =
+  JSON.stringify(healthInfo || {}) !==
+  JSON.stringify(oldOrder.healthInfo || {});
+
+const remarksChanged =
+  (remarks || "") !== (oldOrder.remarks || "");
+
+    // 📩 SEND CUSTOMER EMAIL (only if email exists & changed)
+   // 📩 SEND CUSTOMER EMAIL (only if email changed)
+if (emailChanged && order.user.email) {
+  await sendEmail({
+    to: order.user.email,
+    subject: "Your Email Address Has Been Updated – Ryvive Roots",
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height:1.6;">
+        <p>Hello,</p>
+
+        <p>
+          We would like to inform you that the email address linked to your
+          <b>${order.subscription.plan}</b> subscription has been successfully
+          updated in our system.
+        </p>
+
+        <table style="border-collapse: collapse;">
+          <tr>
+            <td><b>Membership Plan</b></td>
+            <td>: ${order.subscription.plan}</td>
+          </tr>
+          <tr>
+            <td><b>Updated Email ID</b></td>
+            <td>: ${order.user.email}</td>
+          </tr>
+          <tr>
+            <td><b>Date & Time</b></td>
+            <td>: ${new Date().toLocaleString("en-IN")}</td>
+          </tr>
+        </table>
+
+        <br/>
+
+        <p>
+          This update has been made to ensure smooth communication regarding
+          your membership, including important updates, offers, and subscription details.
+        </p>
+
+        <p>
+          If you believe this update was made in error or if you have any concerns,
+          please reach out to us immediately and we’ll be happy to assist you.
+        </p>
+
+        <p>
+          Thank you for being a valued member of <b>Ryvive Roots</b>.
+        </p>
+
+        <br/>
+
+        <p>
+          Warm regards,<br/>
+          <b>Ashwita Poojary</b><br/>
+          Customer Support Team<br/>
+          <b>Ryvive Roots</b><br/>
+          customersupport@ryviveroots.com
+        </p>
+      </div>
+    `,
+  });
 }
 
-res.json({ success: true, order });
+
+    // 📩 SEND COMPANY EMAIL
+    if (phoneChanged || emailChanged || healthChanged || remarksChanged) {
+  await sendEmail({
+    to: process.env.COMPANY_EMAIL,
+    subject: `✏️ Member Details Updated - ${order.membershipId}`,
+    html: `
+      <h3>Member Profile Updated</h3>
+
+      <p><b>Name:</b> ${order.user.firstName} ${order.user.lastName}</p>
+      <p><b>Membership ID:</b> ${order.membershipId}</p>
+
+      <p><b>Changes:</b></p>
+      <ul>
+        ${
+          phoneChanged
+            ? `<li>📞 Phone: ${oldOrder.user.phone} → ${order.user.phone}</li>`
+            : ""
+        }
+        ${
+          emailChanged
+            ? `<li>📧 Email: ${oldOrder.user.email || "N/A"} → ${order.user.email}</li>`
+            : ""
+        }
+        ${
+          healthChanged
+            ? `
+              <li>🩺 Health Info Updated
+                <ul>
+                  <li>Allergies: ${order.healthInfo?.allergies || "N/A"}</li>
+                  <li>Medical Conditions: ${order.healthInfo?.medicalConditions || "N/A"}</li>
+                </ul>
+              </li>
+            `
+            : ""
+        }
+        ${
+          remarksChanged
+            ? `<li>📝 Remarks Updated: ${order.remarks || "—"}</li>`
+            : ""
+        }
+      </ul>
+
+      <p>🕒 Updated on: ${new Date().toLocaleString("en-IN")}</p>
+    `,
+  });
+}
+
+
+    // 5️⃣ Rebuild Excel
+    try {
+      await rebuildExcelFromMongo();
+      console.log("📊 Excel updated after edit");
+    } catch (err) {
+      console.error("❌ Excel rebuild failed:", err.message);
+    }
+
+    res.json({ success: true, order });
 
   } catch (error) {
     console.error("Update error:", error);
@@ -406,6 +542,7 @@ res.json({ success: true, order });
     });
   }
 });
+
 
 router.get("/excel", (req, res) => {
   try {
