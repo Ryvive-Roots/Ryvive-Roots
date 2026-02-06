@@ -1,23 +1,18 @@
 import React, { useState, useEffect } from "react";
 import Confetti from "react-confetti";
-import { useWindowSize } from "react-use";
 import { ChevronDown, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 import BgImage from "../assets/Form.png";
 
 
 const allowedPincodes = [
   { code: "421201", area: "" },
-  {
-    code: "421202",
-    area: "",
-  },
+  {code: "421202", area: "",},
   { code: "421203", area: "" },
   { code: "421204", area: "" },
 ];
 
 const inputStyle = `
-  w-full font-roboto rounded-lg border border-gray-200 bg-white
-  px-4 py-3 text-sm text-gray-900 shadow-sm
+  w-full font-roboto rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm
   transition-all duration-300
   focus:outline-none focus:border-green-600
   focus:ring-4 focus:ring-green-500/20
