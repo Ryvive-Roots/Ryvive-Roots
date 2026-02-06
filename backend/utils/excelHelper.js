@@ -68,15 +68,15 @@ export const rebuildExcelFromMongo = async () => {
     { header: "Name", key: "name", width: 25 },
     { header: "Phone", key: "phone", width: 15 },
     { header: "Email", key: "email", width: 30 },
-    { header: "Plan", key: "plan", width: 15 },
-    { header: "Slot", key: "slot", width: 20 },
-    { header: "Allergies", key: "allergies", width: 30 },
+     { header: "Allergies", key: "allergies", width: 30 },
     { header: "Medical Conditions", key: "medical", width: 30 },
     { header: "Remarks", key: "remarks", width: 30 },
-    { header: "Address", key: "address", width: 40 },
+    { header: "Plan", key: "plan", width: 15 },
+    { header: "Slot", key: "slot", width: 30 },
+    { header: "Address", key: "address", width: 50 },
     { header: "Start Date", key: "start", width: 15 },
     { header: "End Date", key: "end", width: 15 },
-    { header: "Created At", key: "createdAt", width: 20 },
+    { header: "Created At", key: "createdAt", width: 30 },
   ];
 
   const orders = await Order.find().sort({ createdAt: -1 });
