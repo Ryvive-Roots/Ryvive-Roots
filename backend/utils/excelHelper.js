@@ -79,7 +79,7 @@ export const rebuildExcelFromMongo = async () => {
     { header: "Created At", key: "createdAt", width: 30 },
   ];
 
-  const orders = await Order.find().sort({ createdAt: -1 });
+  const orders = await Order.find().sort({ createdAt: 1 });
 
   orders.forEach((order) => {
     sheet.addRow({
