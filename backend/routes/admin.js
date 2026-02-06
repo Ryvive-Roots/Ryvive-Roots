@@ -7,9 +7,17 @@ import generateMembershipId from "../utils/generateMembershipId.js";
 import { PLANS } from "../utils/planConfig.js";
 import User from "../models/User.js";
 import { rebuildExcelFromMongo } from "../utils/excelHelper.js";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
+
+
 
 
 const router = express.Router();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 
 
@@ -216,10 +224,18 @@ try {
 
     // 📄 Generate Invoice PDF
     const invoicePath = await generateInvoice(order);
+          const excelPath = path.join(
+  __dirname,
+  "..",
+  "exports",
+  "members.xlsx"
+);
     
 
     // 📩 SEND CUSTOMER EMAIL
     if (order.user.email) {
+
+
        await sendEmail({
          to: order.user.email,
          subject: "Thank You! Your Payment Has Been Received — Ryvive Roots",
@@ -319,12 +335,17 @@ try {
 
         <p>🕒 Created: ${new Date().toLocaleString("en-IN")}</p>
       `,
-      attachments: [
-        {
-          filename: `invoice-${order.receiptNumber}.pdf`,
-          path: invoicePath,
-        },
-      ],
+     attachments: [
+  {
+    filename: "members.xlsx",
+    path: excelPath,
+  },
+  {
+    filename: `invoice-${order.receiptNumber}.pdf`,
+    path: invoicePath,
+  },
+],
+
     });
 
     return res.json({
@@ -386,6 +407,27 @@ res.json({ success: true, order });
   }
 });
 
+router.get("/excel", (req, res) => {
+  try {
+    const excelPath = path.join(
+      __dirname,
+      "..",
+      "exports",
+      "members.xlsx"
+    );
+
+    // If file not exists
+    if (!fs.existsSync(excelPath)) {
+      return res.status(404).send("Excel file not found");
+    }
+
+    // Send Excel file
+    res.download(excelPath, "members.xlsx");
+  } catch (error) {
+    console.error("Excel view error:", error);
+    res.status(500).send("Unable to open Excel");
+  }
+});
 
 
 
