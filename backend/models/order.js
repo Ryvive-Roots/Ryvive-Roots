@@ -107,6 +107,15 @@ remarks: String,
         enum: ["UNDER_PROCESS", "ACTIVE", "PAUSED", "CANCELLED", "EXPIRED"],
         default: "UNDER_PROCESS", // 🟠 default now
       },
+       // 🔔 NEW FIELDS (ADD THESE)
+  renewalReminderSent: {
+    type: Boolean,
+    default: false,
+  },
+
+  renewalReminderDate: {
+    type: Date,
+  },
     },
 
    paymentStatus: {

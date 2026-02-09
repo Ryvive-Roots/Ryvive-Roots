@@ -76,11 +76,35 @@ const SubscriptionTypes = () => {
         </div>
 
         {/* ================= MOBILE CARDS ================= */}
-        <div className="md:hidden flex flex-col items-center gap-6 py-10">
-          <img src={SilverMobile} alt="Silver" className="w-full px-4" />
-          <img src={GoldMobile} alt="Gold" className="w-full px-4" />
-          <img src={PlatMobile} alt="Platinum" className="w-full px-4" />
-        </div>
+      {/* ================= MOBILE CARDS ================= */}
+<div className="md:hidden flex flex-col items-center gap-6 py-10">
+
+  <motion.img
+  whileTap={{ scale: 0.97 }}
+    src={SilverMobile}
+    alt="Silver"
+    className="w-full px-4 cursor-pointer"
+    onClick={() => navigate("/subscription/silver")}
+  />
+
+  <motion.img
+  whileTap={{ scale: 0.97 }}
+    src={GoldMobile}
+    alt="Gold"
+    className="w-full px-4 cursor-pointer"
+    onClick={() => navigate("/subscription/gold")}
+  />
+
+  <motion.img
+  whileTap={{ scale: 0.97 }}
+    src={PlatMobile}
+    alt="Platinum"
+    className="w-full px-4 cursor-pointer"
+    onClick={() => navigate("/subscription/platinum")}
+  />
+
+</div>
+
 
       </div>
     </>

@@ -13,7 +13,7 @@ import subscriptionRoutes from "./routes/subscription.js";
 import adminAuthRoutes from "./routes/adminAuth.js";
 import createAdminIfNotExists from "./utils/createAdmin.js";
 
-// DB Connection
+
 // DB Connection
 connectDB().then(() => {
   createAdminIfNotExists();   // ✅ Auto create admin
