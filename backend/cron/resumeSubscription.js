@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import Order from "../models/Order.js";
+import Order from "../models/order.js";
 
 cron.schedule("0 0 * * *", async () => {
   const today = new Date();
