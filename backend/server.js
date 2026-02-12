@@ -12,24 +12,16 @@ import adminRoutes from "./routes/admin.js";
 import subscriptionRoutes from "./routes/subscription.js";
 import adminAuthRoutes from "./routes/adminAuth.js";
 import createAdminIfNotExists from "./utils/createAdmin.js";
-
-
-// DB Connection
-connectDB().then(() => {
-  createAdminIfNotExists();   // ✅ Auto create admin
-});
-
+import cron from "node-cron";
+import { renewalReminderJob } from "./cron/renewalReminderJob.js";
 
 // App Config
 const app = express();
 const port = process.env.PORT || 4000;
 
-// Cloudinary
-connectCloudinary();
-
 // Middlewares
 app.use(cors());
-app.use(express.urlencoded({ extended: true })); // ✅ REQUIRED FOR EASEBUZZ
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Routes
@@ -47,5 +39,23 @@ app.get("/", (req, res) => {
   res.send("API Working");
 });
 
+// Cloudinary
+connectCloudinary();
+
+// DB Connection → THEN cron
+connectDB().then(() => {
+  createAdminIfNotExists();
+
+  // ⏰ Start cron ONLY after DB is ready
+  cron.schedule("0 6 * * *", async () => {
+    console.log("⏰ Running multi-renewal reminder job...");
+    await renewalReminderJob();
+  });
+
+  console.log("✅ Cron jobs started");
+});
+
 // Server Start
-app.listen(port, () => console.log(`🚀 Server started on PORT : ${port}`));
+app.listen(port, () =>
+  console.log(`🚀 Server started on PORT : ${port}`)
+);

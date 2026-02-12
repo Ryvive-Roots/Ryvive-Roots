@@ -108,15 +108,19 @@ remarks: String,
         default: "UNDER_PROCESS", // 🟠 default now
       },
        // 🔔 NEW FIELDS (ADD THESE)
-  renewalReminderSent: {
-    type: Boolean,
-    default: false,
-  },
+   // 🔔 MULTI-REMINDER SUPPORT
+      renewalReminderStage: {
+        type: String,
+        enum: ["NONE", "4D", "1D"],
+        default: "NONE",
+      },
 
-  renewalReminderDate: {
-    type: Date,
-  },
+      renewalReminderDate: {
+        type: Date,
+      },
     },
+
+    
 
    paymentStatus: {
   type: String,
