@@ -44,9 +44,9 @@ export const initiateEasebuzzPayment = async (req, res) => {
     }
 
 // 🔎 Extract base plan
-const basePlan = plan.includes("_") ? plan.split("_")[0] : plan;
+const selectedPlan = PLANS[plan];
 
-const selectedPlan = PLANS[basePlan];
+
 
 if (!selectedPlan) {
   return res.status(400).json({
@@ -55,24 +55,9 @@ if (!selectedPlan) {
   });
 }
 
-// 🆕 NEW CUSTOMER → 1 MONTH
-// 🔁 RENEWAL → 3 MONTHS
-const durationMonths = isRenewal ? 3 : 1;
+const durationMonths = selectedPlan.durationMonths;
+const dbAmount = selectedPlan.price;
 
-// 💰 Backend controlled pricing
-let dbAmount;
-
-if (durationMonths === 1) {
-  dbAmount = selectedPlan.price;
-} else if (durationMonths === 3) {
-  const THREE_MONTH_PRICING = {
-    SILVER: 13999,
-    GOLD: 15999,
-    PLATINUM: 18897,
-  };
-
-  dbAmount = THREE_MONTH_PRICING[basePlan];
-}
 
 if (dbAmount === undefined) 
  {
