@@ -143,7 +143,7 @@ useEffect(() => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: 4999,
+         
           firstname: formData.firstName,
           lastname: formData.lastName,
           email: formData.email,

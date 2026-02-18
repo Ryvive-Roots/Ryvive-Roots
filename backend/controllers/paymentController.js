@@ -9,7 +9,7 @@ import { PLANS } from "../utils/planConfig.js";
 export const initiateEasebuzzPayment = async (req, res) => {
   try {
     let {
-      amount,
+    
       firstname,
       email,
       phone,
@@ -43,57 +43,50 @@ export const initiateEasebuzzPayment = async (req, res) => {
       });
     }
 
-    // 🔎 Extract base plan and duration
-    const [basePlan, durationPart] = plan.includes("_")
-      ? plan.split("_")
-      : [plan, null];
+// 🔎 Extract base plan
+const basePlan = plan.includes("_") ? plan.split("_")[0] : plan;
 
-    const selectedPlan = PLANS[basePlan];
+const selectedPlan = PLANS[basePlan];
 
-    if (!selectedPlan) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid plan",
-      });
-    }
+if (!selectedPlan) {
+  return res.status(400).json({
+    success: false,
+    message: "Invalid plan",
+  });
+}
 
-    // 🔁 Determine duration
-    let durationMonths = selectedPlan.durationMonths;
+// 🆕 NEW CUSTOMER → 1 MONTH
+// 🔁 RENEWAL → 3 MONTHS
+const durationMonths = isRenewal ? 3 : 1;
 
-    if (durationPart === "1M") durationMonths = 1;
-    if (durationPart === "3M") durationMonths = 3;
+// 💰 Backend controlled pricing
+let dbAmount;
 
-    // ✅ Expected pricing
-    let expectedAmount;
+if (durationMonths === 1) {
+  dbAmount = selectedPlan.price;
+} else if (durationMonths === 3) {
+  const THREE_MONTH_PRICING = {
+    SILVER: 13999,
+    GOLD: 15999,
+    PLATINUM: 18897,
+  };
 
-    if (durationMonths === 1) {
-      expectedAmount = selectedPlan.price;
-    }
+  dbAmount = THREE_MONTH_PRICING[basePlan];
+}
 
-    const THREE_MONTH_PRICING = {
-      SILVER: 13999,
-      GOLD: 15999,
-      PLATINUM: 18897,
-    };
+if (dbAmount === undefined) 
+ {
+  return res.status(400).json({
+    success: false,
+    message: "Invalid pricing configuration",
+  });
+}
 
-    if (durationMonths === 3) {
-      expectedAmount = THREE_MONTH_PRICING[basePlan];
-    }
 
-    // ✅ Validate amount
-    let dbAmount;
 
-    if (Number(amount) === 1) {
-      dbAmount = 1; // TEST MODE
-    } else {
-      if (Number(amount) !== expectedAmount) {
-        return res.status(400).json({
-          success: false,
-          message: "Amount mismatch",
-        });
-      }
-      dbAmount = Number(amount);
-    }
+
+
+
 
     const easebuzzAmount = dbAmount.toString();
     const txnid = `TXN_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
@@ -192,7 +185,7 @@ export const initiateEasebuzzPayment = async (req, res) => {
       success: false,
       message: "Payment initiation failed",
     });
-  }
+  }  
 };
 
 /**
