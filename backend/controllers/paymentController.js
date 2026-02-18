@@ -104,7 +104,7 @@ if (dbAmount === undefined)
     });
 
     // 🔐 Easebuzz hash
-    const udf1 = plan;
+   const udf1 = basePlan;   // IMPORTANT
     const udf2 = phone.toString();
 
     const productinfo = "Subscription Payment";
