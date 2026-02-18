@@ -8,17 +8,48 @@ import { PLANS } from "../utils/planConfig.js";
  */
 export const initiateEasebuzzPayment = async (req, res) => {
   try {
-    let { amount, firstname, email, phone, plan, formData } = req.body;
+    let {
+      amount,
+      firstname,
+      email,
+      phone,
+      plan,
+      formData,
+      isRenewal,
+      membershipId,
+    } = req.body;
 
-    // ✅ Basic validation
-    if (!firstname || !email || !phone || !plan || !formData) {
+    // ✅ Basic validation (common fields)
+    if (!firstname || !email || !phone || !plan) {
       return res.status(400).json({
         success: false,
         message: "Missing required fields",
       });
     }
 
-    const selectedPlan = PLANS[plan];
+    // ✅ Require formData ONLY for new subscription
+    if (!isRenewal && !formData) {
+      return res.status(400).json({
+        success: false,
+        message: "Form data required for new subscription",
+      });
+    }
+
+    // ✅ Require membershipId for renewal
+    if (isRenewal && !membershipId) {
+      return res.status(400).json({
+        success: false,
+        message: "Membership ID required for renewal",
+      });
+    }
+
+    // 🔎 Extract base plan and duration
+    const [basePlan, durationPart] = plan.includes("_")
+      ? plan.split("_")
+      : [plan, null];
+
+    const selectedPlan = PLANS[basePlan];
+
     if (!selectedPlan) {
       return res.status(400).json({
         success: false,
@@ -26,124 +57,135 @@ export const initiateEasebuzzPayment = async (req, res) => {
       });
     }
 
-    // ✅ Normalize amount
+    // 🔁 Determine duration
+    let durationMonths = selectedPlan.durationMonths;
+
+    if (durationPart === "1M") durationMonths = 1;
+    if (durationPart === "3M") durationMonths = 3;
+
+    // ✅ Expected pricing
+    let expectedAmount;
+
+    if (durationMonths === 1) {
+      expectedAmount = selectedPlan.price;
+    }
+
+    const THREE_MONTH_PRICING = {
+      SILVER: 13999,
+      GOLD: 15999,
+      PLATINUM: 18897,
+    };
+
+    if (durationMonths === 3) {
+      expectedAmount = THREE_MONTH_PRICING[basePlan];
+    }
+
+    // ✅ Validate amount
     let dbAmount;
+
     if (Number(amount) === 1) {
-      dbAmount = 1; // TEST
+      dbAmount = 1; // TEST MODE
     } else {
-      if (Number(amount) !== selectedPlan.price) {
+      if (Number(amount) !== expectedAmount) {
         return res.status(400).json({
           success: false,
           message: "Amount mismatch",
         });
       }
-      dbAmount = Number(amount); // LIVE
+      dbAmount = Number(amount);
     }
 
-    const easebuzzAmount = dbAmount.toString(); // ✅ STRING ONLY FOR EASEBUZZ
-
+    const easebuzzAmount = dbAmount.toString();
     const txnid = `TXN_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
-    // ✅ Save temp payment (NUMBER)
+    // ✅ Save temp payment
     await TempPayment.create({
       txnid,
       amount: dbAmount,
-      plan,
-      formData,
+      plan: basePlan,
+      durationMonths,
+      formData: isRenewal ? null : formData,
+      isRenewal: isRenewal || false,
+      membershipId: membershipId || null,
       status: "PENDING",
     });
 
-const udf1 = plan;
-const udf2 = phone.toString();
-const udf3 = "";
-const udf4 = "";
-const udf5 = "";
-const udf6 = "";
-const udf7 = "";
-const udf8 = "";
-const udf9 = "";
-const udf10 = "";
+    // 🔐 Easebuzz hash
+    const udf1 = plan;
+    const udf2 = phone.toString();
 
-const productinfo = "Subscription Payment";
+    const productinfo = "Subscription Payment";
 
-const hashString = [
-  process.env.EASEBUZZ_MERCHANT_KEY,
-  txnid,
-  easebuzzAmount,
-  productinfo,
-  firstname,
-  email,
-  udf1,
-  udf2,
-  udf3,
-  udf4,
-  udf5,
-  udf6,
-  udf7,
-  udf8,
-  udf9,
-  udf10,
-  process.env.EASEBUZZ_SALT,
-].join("|");
+    const hashString = [
+      process.env.EASEBUZZ_MERCHANT_KEY,
+      txnid,
+      easebuzzAmount,
+      productinfo,
+      firstname,
+      email,
+      udf1,
+      udf2,
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      process.env.EASEBUZZ_SALT,
+    ].join("|");
 
-const hash = crypto
-  .createHash("sha512")
-  .update(hashString)
-  .digest("hex");
+    const hash = crypto
+      .createHash("sha512")
+      .update(hashString)
+      .digest("hex");
 
+    const paymentUrl =
+      process.env.EASEBUZZ_ENV === "TEST"
+        ? "https://testpay.easebuzz.in/payment/initiateLink"
+        : "https://pay.easebuzz.in/payment/initiateLink";
 
+    const easebuzzResponse = await axios.post(
+      paymentUrl,
+      new URLSearchParams({
+        key: process.env.EASEBUZZ_MERCHANT_KEY,
+        txnid,
+        amount: easebuzzAmount,
+        productinfo,
+        firstname,
+        email,
+        phone: phone.toString(),
+        udf1,
+        udf2,
+        udf3: "",
+        udf4: "",
+        udf5: "",
+        udf6: "",
+        udf7: "",
+        udf8: "",
+        udf9: "",
+        udf10: "",
+        surl: `${process.env.BACKEND_URL}/api/payment/easebuzz/success`,
+        furl: `${process.env.BACKEND_URL}/api/payment/easebuzz/failure`,
+        hash,
+      }).toString(),
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
+    );
 
-const paymentUrl =
-  process.env.EASEBUZZ_ENV === "TEST"
-    ? "https://testpay.easebuzz.in/payment/initiateLink"
-    : "https://pay.easebuzz.in/payment/initiateLink";
+    if (easebuzzResponse.data.status !== 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Easebuzz initiation failed",
+      });
+    }
 
-    // CALL EASEBUZZ INITIATE API
-const easebuzzResponse = await axios.post(
-  paymentUrl,
-  new URLSearchParams({
-    key: process.env.EASEBUZZ_MERCHANT_KEY,
-    txnid,
-    amount: easebuzzAmount,
-    productinfo,
-    firstname,
-    email,
-    phone: phone.toString(),
-    udf1,
-    udf2,
-    udf3,
-    udf4,
-    udf5,
-    udf6,
-    udf7,
-    udf8,
-    udf9,
-    udf10,
-    surl: `${process.env.BACKEND_URL}/api/payment/easebuzz/success`,
-    furl: `${process.env.BACKEND_URL}/api/payment/easebuzz/failure`,
-    hash,
-  }).toString(),
-  {
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  }
-);
-
-
-// ✅ RETURN ACCESS KEY ONLY
-if (easebuzzResponse.data.status !== 1) {
-  console.error("Easebuzz initiate failed:", easebuzzResponse.data);
-  return res.status(400).json({
-    success: false,
-    message: "Easebuzz initiation failed",
-  });
-}
-
-return res.json({
-  success: true,
-  access_key: easebuzzResponse.data.data,
-});
-
-
+    return res.json({
+      success: true,
+      access_key: easebuzzResponse.data.data,
+    });
   } catch (error) {
     console.error("Easebuzz initiate error:", error);
     return res.status(500).json({
@@ -153,22 +195,19 @@ return res.json({
   }
 };
 
-
 /**
- * SUCCESS CALLBACK (FORWARD ONLY)
+ * SUCCESS CALLBACK
  */
 export const easebuzzPaymentSuccess = async (req, res) => {
   try {
-    // Forward Easebuzz response to order controller
     const response = await axios.post(
       `${process.env.BACKEND_URL}/api/orders/easebuzz-success`,
       req.body,
       {
-       headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
       }
     );
 
-    // Redirect user to frontend success page
     return res.redirect(response.request.res.responseUrl);
   } catch (error) {
     console.error("Easebuzz payment success forward error:", error);

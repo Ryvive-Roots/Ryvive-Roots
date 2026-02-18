@@ -148,7 +148,7 @@ useEffect(() => {
           lastname: formData.lastName,
           email: formData.email,
           phone: formData.phone,
-          plan: "SILVER",
+          plan: "SILVER_1M",
           formData,
         }),
       }
@@ -188,14 +188,15 @@ useEffect(() => {
   const params = new URLSearchParams(window.location.search);
   const mid = params.get("membershipId");
 
-  if (mid) {
-    setMembershipId(mid);
-    setStep(5);
+if (mid) {
+  setMembershipId(mid);
+  setStep(5);
+  setShowSuccessPopper(true); // ✅ add this
 
-    // cleanup temp data
-    localStorage.removeItem("subscriptionFormData");
-    localStorage.removeItem("subscriptionDeliverySlot");
-  }
+  localStorage.removeItem("subscriptionFormData");
+  localStorage.removeItem("subscriptionDeliverySlot");
+}
+
 }, []);
 
 

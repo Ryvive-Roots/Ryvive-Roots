@@ -90,6 +90,159 @@ export const easebuzzSuccess = async (req, res) => {
     const { formData, plan } = tempPayment;
     const selectedPlan = PLANS[plan];
 
+    // =====================================================
+// 🔁 RENEWAL LOGIC (ADDED ONLY)
+// =====================================================
+if (tempPayment.isRenewal) {
+
+  const existingOrder = await Order.findOne({
+    membershipId: tempPayment.membershipId,
+  });
+
+  if (!existingOrder) {
+    return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+  }
+
+  // Extend subscription expiry
+  const currentEnd = new Date(existingOrder.subscription.endDate);
+
+  currentEnd.setMonth(
+    currentEnd.getMonth() + tempPayment.durationMonths
+  );
+
+  existingOrder.subscription.endDate = currentEnd;
+  existingOrder.subscription.status = "ACTIVE";
+
+  await existingOrder.save();
+
+  // Update temp payment
+  tempPayment.status = "SUCCESS";
+  tempPayment.membershipId = existingOrder.membershipId;
+  await tempPayment.save();
+
+  // ✅ Generate new receipt for renewal
+const receiptNumber = await generateReceiptNumber(
+  Order,
+  tempPayment.amount
+);
+
+// ✅ Generate renewal invoice
+const invoicePath = await generateInvoice({
+  ...existingOrder.toObject(),
+  receiptNumber,
+  subscription: {
+    ...existingOrder.subscription,
+    amount: tempPayment.amount,
+  },
+});
+
+// ✅ Send Renewal Email WITH Invoice
+await sendEmail({
+  to: existingOrder.user.email,
+  subject: "You’re Back, And We’re Glad 🌿",
+  html: `
+<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+
+  <h2>Hi ${existingOrder.user.firstName},</h2>
+
+  <p><b>Welcome back. We're glad you stayed.</b></p>
+
+  <p>
+    Your renewal is a reminder of the commitment we made when we started
+    <b>Ryvive Roots</b> — to support your health with sincerity and consistency.
+  </p>
+
+  <p>
+    Thank you for continuing your wellness journey with us.
+    Here’s your renewal summary for your records:
+  </p>
+
+  <table style="border-collapse: collapse; margin-top: 10px;">
+    <tr>
+      <td style="padding: 6px 10px;"><b>Receipt Number</b></td>
+      <td style="padding: 6px 10px;">: ${receiptNumber}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Plan Renewed</b></td>
+      <td style="padding: 6px 10px;">: ${existingOrder.subscription.plan}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Renewal Duration</b></td>
+      <td style="padding: 6px 10px;">: ${tempPayment.durationMonths} Month${tempPayment.durationMonths > 1 ? "s" : ""}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Amount Paid</b></td>
+      <td style="padding: 6px 10px;">: ₹${tempPayment.amount}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Payment Date</b></td>
+      <td style="padding: 6px 10px;">: ${new Date().toLocaleDateString("en-IN")}</td>
+    </tr>
+  </table>
+
+  <br/>
+
+  <p>
+    Your subscription will be active within <b>48 hours</b>,
+    and your first parcel will be on its way to you within the same timeframe.
+    Keep an eye out for it!
+  </p>
+
+  <p>
+    If you ever have questions or need support, our team is always happy to help —
+    reach us at <b>customersupport@ryviveroots.com</b>.
+  </p>
+
+  <br/>
+
+  <p>
+    Stay Healthy, Stay Vibrant,<br/>
+    <b>The Ryvive Roots Team</b>
+  </p>
+
+</div>
+`,
+  attachments: [
+    {
+      filename: `invoice-${receiptNumber}.pdf`,
+      path: invoicePath,
+    },
+  ],
+});
+
+
+  // ✅ Renewal Email to Company
+await sendEmail({
+  to: process.env.COMPANY_EMAIL,
+  subject: `🔁 Subscription Renewed - ${existingOrder.membershipId}`,
+  html: `
+<h2>Subscription Renewal Received</h2>
+
+<ul>
+  <li><b>Name:</b> ${existingOrder.user.firstName} ${existingOrder.user.lastName}</li>
+  <li><b>Phone:</b> ${existingOrder.user.phone}</li>
+  <li><b>Email:</b> ${existingOrder.user.email}</li>
+  <li><b>Plan:</b> ${existingOrder.subscription.plan}</li>
+  <li><b>Amount:</b> ₹${tempPayment.amount}</li>
+  <li><b>New Expiry:</b> ${currentEnd.toLocaleDateString("en-IN")}</li>
+  <li><b>Membership ID:</b> ${existingOrder.membershipId}</li>
+  <li><b>Receipt No:</b> ${receiptNumber}</li>
+</ul>
+`,
+  attachments: [
+    {
+      filename: `invoice-${receiptNumber}.pdf`,
+      path: invoicePath,
+    },
+  ],
+});
+
+  return res.redirect(
+    `${process.env.FRONTEND_URL}/dashboard?renewal=success`
+  );
+}
+
+
     // 3️⃣ USER + MEMBERSHIP
     let user = await User.findOne({
       $or: [{ phone: formData.phone }, { email: formData.email }],
@@ -175,6 +328,7 @@ export const easebuzzSuccess = async (req, res) => {
         easepayid,
       },
     });
+    
 
     // 🔄 Update temp payment
     tempPayment.status = "SUCCESS";

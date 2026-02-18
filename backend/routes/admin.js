@@ -465,8 +465,6 @@ if (emailChanged && order.user.email) {
 
         <p>
           Warm regards,<br/>
-          <b>Ashwita Poojary</b><br/>
-          Customer Support Team<br/>
           <b>Ryvive Roots</b><br/>
           customersupport@ryviveroots.com
         </p>

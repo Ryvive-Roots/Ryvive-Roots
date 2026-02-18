@@ -1,15 +1,31 @@
 import React, { useEffect, useState } from "react";
 import Bg from "../assets/dashboard_Img.png";
 import { Lock } from "lucide-react";
+import { MdAutorenew } from "react-icons/md";
 
 
-const UserDashboard = () => {
+const UserDashboard = ({ active }) => {
+
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const [showPauseModal, setShowPauseModal] = useState(false);
   const [pauseFromDate, setPauseFromDate] = useState("");
   const [pauseToDate, setPauseToDate] = useState("");
+
+const [showRenewModal, setShowRenewModal] = useState(false);
+const [renewDuration, setRenewDuration] = useState("3");
+const [selectedPlan, setSelectedPlan] = useState(null);
+
+
+useEffect(() => {
+  if (order?.subscription?.plan) {
+    setSelectedPlan(order.subscription.plan);
+  }
+}, [order]);
+
+
+
 
   const calculatePauseDays = () => {
     if (!pauseFromDate || !pauseToDate) return 0;
@@ -74,6 +90,8 @@ const UserDashboard = () => {
       alert(data.message);
     }
   };
+
+  
 
  useEffect(() => {
    const fetchDashboard = async () => {
@@ -232,9 +250,115 @@ const UserDashboard = () => {
 
     return days > 0 ? days : 0;
   };
+const remainingDays = getRemainingDays(subscription.endDate);
+
+const RENEWAL_PRICING = {
+  SILVER: {
+    "1": { original: 4999, discount: 0, final: 4999 },
+    "3": { original: 14997, discount: 998, final: 13999 },
+  },
+  GOLD: {
+    "1": { original: 5999, discount: 0, final: 5999 },
+    "3": { original: 17997, discount: 1998, final: 15999 },
+  },
+  PLATINUM: {
+    "1": { original: 6999, discount: 0, final: 6999 },
+    "3": { original: 20997, discount: 2100, final: 18897 },
+  },
+};
+const PLAN_ORDER = ["PLATINUM", "GOLD", "SILVER"];
+
+
+const PLAN_FEATURES = {
+SILVER: [
+  " Clean Meals",
+  " Easy Digestion",
+  " Weekly Variety",
+  " Functional Juices",
+  " No calorie stress",
+],
+
+GOLD: [
+  " 6 High-protein meals / week",
+  " Gut & Skin-Friendly Meals",
+  " Advanced energy juices",
+  " Boost Energy Levels",
+  " 2 Pauses Available",
+  " Naturally Detoxifying Ingredients",
+],
+
+PLATINUM: [
+  " Chef’s signature menu",
+  " Glow, metabolism & recovery juices",
+  " Guilt-Free Wraps & Zoodle Options",
+  " 3 Pauses Available",
+  " Elite combinations",
+  " Surprise upgrades",
+],
+
+};
+
+const handleRenewPayment = async () => {
+  try {
+    const membershipId = localStorage.getItem("membershipId");
+
+    if (!selectedPlan) {
+      alert("Please select a plan");
+      return;
+    }
+
+    const planPrices =
+      RENEWAL_PRICING[selectedPlan]?.[renewDuration];
+
+    if (!planPrices) return;
+
+    const planKey = `${selectedPlan}_${renewDuration}M`;
+
+    const res = await fetch(
+      "https://api.ryviveroots.com/api/payment/easebuzz/initiate",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: planPrices.final,
+          firstname: user.firstName,
+          email: user.email,
+          phone: user.phone,
+          plan: planKey,
+          isRenewal: true,
+          membershipId,
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!data.success || !data.access_key) {
+      alert("Payment initiation failed");
+      return;
+    }
+
+    // ✅ Correct redirect
+    window.location.href =
+      `https://pay.easebuzz.in/pay/${data.access_key}`;
+
+  } catch (error) {
+    console.error("Renew payment error:", error);
+    alert("Something went wrong");
+  }
+};
+ 
+
+
+
+
 
   return (
-    <div className="relative min-h-screen px-6 md:px-20 mt-28 ">
+  
+ <div className="min-h-screen flex bg-[#f6f7f3] px-3 sm:px-6 md:px-20 mt-20 sm:mt-28">
+
+    
+
       {/* 🌿 Background */}
       <img
         src={Bg}
@@ -243,15 +367,54 @@ const UserDashboard = () => {
       />
 
       {/* CONTENT */}
-      <div
-        className="relative z-10 max-w-3xl
+     <div
+  className="relative z-10 w-full max-w-3xl
   px-4 sm:px-6 md:px-10
   py-6 sm:py-10
   space-y-5
-  mx-0 sm:mx-auto lg:ml-16 xl:ml-24"
-      >
+  mx-auto"
+>
+
+{/* ⚠️ RENEWAL WARNING BANNER */}
+{remainingDays > 0 && remainingDays <= 25 && (
+  <div className="relative z-20 w-full max-w-5xl mx-auto mt-4 mb-6">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 
+      bg-white rounded-2xl shadow-lg px-6 py-4 ">
+
+      {/* LEFT */}
+      <div className="flex items-center gap-4">
+        <div className="bg-green-100 p-3 rounded-xl">
+          <MdAutorenew />
+        </div>
+        <div>
+          <p className="font-semibold text-gray-800">
+            Your subscription is about to expire
+          </p>
+          <p className="text-sm text-gray-500">
+            You have <b>{remainingDays} day{remainingDays > 1 ? "s" : ""}</b> left to renew and continue services.
+          </p>
+        </div>
+      </div>
+
+      {/* RIGHT */}
+      <div className="flex items-center gap-3">
+       
+        <button
+         onClick={() => setShowRenewModal(true)}
+          className="px-5 py-2 font-fredoka rounded-full bg-[#2c511f] text-white cursor-pointer opacity-90 hover:opacity-100"
+        >
+          Renew
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
         {/* PROFILE */}
-        <div className="bg-white/70 rounded-2xl p-4 sm:p-6 shadow">
+      {active === "profile" && (
+  <div className="bg-white/70 rounded-2xl p-4 sm:p-6 shadow">
+
           <h2 className="text-[#4a7f34]  font-cinzel font-semibold text-lg mb-2">
             MY PROFILE
           </h2>
@@ -268,144 +431,150 @@ const UserDashboard = () => {
           <p className="  text-sm lg:text-base font-roboto">
             <b>Membership ID:</b> {membershipId}
           </p>
-        </div>
+         </div>
+)}
 
-        {/* SUBSCRIPTION */}
-        <div className="bg-white/80 rounded-2xl p-4 sm:p-6 shadow">
-          <h2 className="text-[#4a7f34] font-cinzel font-semibold text-lg mb-2">
-            MY SUBSCRIPTION
-          </h2>
-          <p className="  text-sm lg:text-base font-roboto">
-            <b>Plan:</b> {subscription.plan}
-          </p>
-          <p className="  text-sm lg:text-base font-roboto">
-            <b>Amount:</b> ₹{subscription.amount}
-          </p>
-          <div className="flex  text-sm lg:text-base flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
-            <b>
-              Status:{" "}
-              <span
-                className={`font-cinzel font-semibold
-    ${
-      finalStatus === "UNDER_PROCESS"
-        ? "text-orange-500"
-        : finalStatus === "ACTIVE"
-          ? "text-green-700"
-          : finalStatus === "PAUSED"
-            ? "text-yellow-600"
-            : "text-gray-500"
-    }`}
-              >
-                {finalStatus.replace("_", " ")}
-              </span>
-            </b>{" "}
-            {/* 🟢 MODIFICATION BUTTON (IMAGE STYLE) */}
-            {["GOLD", "PLATINUM"].includes(subscription.plan) && (
-              <button
-                disabled={isLocked}
-                onClick={() => !isLocked && setShowPauseModal(true)}
-                className={`
-      flex items-center justify-center gap-2 px-5 py-2 text-sm sm:text-base
- rounded-full shadow-lg font-fredoka
-      ${
-        isLocked
-          ? "bg-gray-400 cursor-not-allowed opacity-70"
-          : "bg-[#2c511f] text-white cursor-pointer opacity-90 hover:opacity-100"
-      }
-    `}
-              >
-                {isLocked ? (
-                  <>
-                    <Lock size={16} /> Modify
-                  </>
-                ) : (
-                  "Modify"
-                )}
-              </button>
+
+      {/* SUBSCRIPTION + TIMELINE */}
+{active === "subscription" && (
+  <>
+    {/* SUBSCRIPTION */}
+    <div className="bg-white/80 rounded-2xl p-4 sm:p-6 shadow">
+      <h2 className="text-[#4a7f34] font-cinzel font-semibold text-lg mb-2">
+        MY SUBSCRIPTION
+      </h2>
+
+      <p className="text-sm lg:text-base font-roboto">
+       <b>Plan:</b> RYVIVE {subscription.plan?.replace("_", " ")}
+
+
+      </p>
+
+      <p className="text-sm lg:text-base font-roboto">
+        <b>Amount:</b> ₹{subscription.amount}
+      </p>
+
+      <div className="flex text-sm lg:text-base flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+        <b>
+          Status:{" "}
+          <span
+            className={`font-cinzel font-semibold
+              ${
+                finalStatus === "UNDER_PROCESS"
+                  ? "text-orange-500"
+                  : finalStatus === "ACTIVE"
+                  ? "text-green-700"
+                  : finalStatus === "PAUSED"
+                  ? "text-yellow-600"
+                  : "text-gray-500"
+              }`}
+          >
+            {finalStatus.replace("_", " ")}
+          </span>
+        </b>
+
+        {/* 🟢 MODIFICATION BUTTON */}
+        {["GOLD", "PLATINUM"].includes(subscription.plan) && (
+          <button
+            disabled={isLocked}
+            onClick={() => !isLocked && setShowPauseModal(true)}
+            className={`flex items-center justify-center gap-2 px-5 py-2 text-sm sm:text-base
+              rounded-full shadow-lg font-fredoka
+              ${
+                isLocked
+                  ? "bg-gray-400 cursor-not-allowed opacity-70"
+                  : "bg-[#2c511f] text-white cursor-pointer opacity-90 hover:opacity-100"
+              }`}
+          >
+            {isLocked ? (
+              <>
+                <Lock size={16} /> Modify
+              </>
+            ) : (
+              "Modify"
             )}
+          </button>
+        )}
+      </div>
+
+      {["GOLD", "PLATINUM"].includes(subscription.plan) &&
+        finalStatus !== "UNDER_PROCESS" && (
+          <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-green-50 rounded-xl px-4 py-3">
+            {/* LEFT INFO */}
+            <div>
+              <p className="text-xs text-gray-500 font-roboto">
+                Subscription Modifications
+              </p>
+
+              <p
+                className={`font-semibold font-cinzel ${
+                  isLocked ? "text-red-600" : "text-green-700"
+                }`}
+              >
+                {remainingLabel}
+              </p>
+
+              <p className="text-xs text-gray-500 font-roboto">
+                Used: {usedPauseCount} / {maxPauseCount} pauses
+              </p>
+            </div>
+
+            {/* RIGHT STATUS BADGE */}
+            <div
+              className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wide
+                ${
+                  isLocked
+                    ? "bg-red-100 text-red-700"
+                    : "bg-green-200 text-green-800"
+                }`}
+            >
+              {isLocked ? "LIMIT REACHED" : "AVAILABLE"}
+            </div>
           </div>
+        )}
 
-          {["GOLD", "PLATINUM"].includes(subscription.plan) &&
-            finalStatus !== "UNDER_PROCESS" && (
-              <div
-                className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between 
-        gap-3 bg-green-50 rounded-xl px-4 py-3"
-              >
-                {/* LEFT INFO */}
-                <div>
-                  <p className="text-xs text-gray-500 font-roboto">
-                    Subscription Modifications
-                  </p>
+      {pauseMessage && (
+        <p className="text-sm text-orange-600 font-roboto mt-1">
+          {pauseMessage}
+        </p>
+      )}
+    </div>
 
-                  <p
-                    className={`font-semibold font-cinzel ${
-                      isLocked ? "text-red-600" : "text-green-700"
-                    }`}
-                  >
-                    {remainingLabel}
-                  </p>
+    {/* TIMELINE */}
+    <div className="bg-white/90 rounded-2xl p-4 sm:p-6 shadow">
+      <h2 className="text-[#4a7f34] font-cinzel font-semibold text-lg mb-2">
+        Timeline
+      </h2>
 
-                  <p className="text-xs text-gray-500 font-roboto">
-                    Used: {usedPauseCount} / {maxPauseCount} pauses
-                  </p>
-                </div>
+      {finalStatus === "UNDER_PROCESS" && (
+        <p className="text-sm lg:text-base font-roboto text-orange-400">
+          ⏳ Your subscription will be activated within 48 hours following
+          confirmation of payment.
+        </p>
+      )}
 
-                {/* RIGHT STATUS BADGE */}
-                <div
-                  className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wide
-          ${isLocked ? "bg-red-100 text-red-700" : "bg-green-200 text-green-800"}`}
-                >
-                  {isLocked ? "LIMIT REACHED" : "AVAILABLE"}
-                </div>
-              </div>
-            )}
+      {finalStatus === "ACTIVE" && (
+        <>
+          <p className="text-sm lg:text-base font-roboto">
+            <b>Activation Date:</b>{" "}
+            {formatDate(subscription.activationAt)}
+          </p>
 
-          <div>
-            {pauseMessage && (
-              <p className="text-sm text-orange-600 font-roboto mt-1">
-                {pauseMessage}
-              </p>
-            )}
-          </div>
-        </div>
+          <p className="text-sm lg:text-base font-roboto">
+            <b>Expiry Date:</b> {formatDate(subscription.endDate)}
+          </p>
+        </>
+      )}
 
-        {/* PLAN DATES */}
-        {/* PLAN DATES */}
-        <div className="bg-white/90 rounded-2xl p-4 sm:p-6 shadow">
-          <h2 className="text-[#4a7f34] font-cinzel font-semibold text-lg mb-2">
-            SUBSCRIPTION
-          </h2>
+      {finalStatus === "EXPIRED" && (
+        <p className="text-sm lg:text-base font-roboto text-gray-500">
+          ⚠️ Your subscription has expired.
+        </p>
+      )}
+    </div>
+  </>
+)}
 
-          {/* UNDER PROCESS */}
-          {finalStatus === "UNDER_PROCESS" && (
-            <p className="text-sm lg:text-base font-roboto text-orange-400">
-              ⏳ Your subscription will be activated within 48 hours following
-              confirmation of payment.
-            </p>
-          )}
-
-          {/* ACTIVE */}
-          {finalStatus === "ACTIVE" && (
-            <>
-              <p className="text-sm lg:text-base font-roboto">
-                <b>Activation Date:</b> {formatDate(subscription.activationAt)}
-              </p>
-
-              <p className="text-sm lg:text-base font-roboto">
-                <b>Expiry Date:</b> {formatDate(subscription.endDate)}
-              </p>
-
-             
-            </>
-          )}
-
-          {/* EXPIRED */}
-          {finalStatus === "EXPIRED" && (
-            <p className="text-sm lg:text-base font-roboto text-gray-500">
-              ⚠️ Your subscription has expired.
-            </p>
-          )}
-        </div>
       </div>
 
       {/* 🛑 PAUSE MODAL */}
@@ -414,7 +583,7 @@ const UserDashboard = () => {
         <div className="fixed inset-0 bg-black/60  flex items-center justify-center z-50">
           <div
             className="bg-white rounded-2xl p-4 sm:p-6 
-  w-[95%] max-w-md shadow-2xl relative"
+  w-[95%]  shadow-2xl relative"
           >
             {/* ❌ Close Button */}
             <button
@@ -502,8 +671,244 @@ const UserDashboard = () => {
           </div>
         </div>
       )}
+
+
+{showRenewModal && (
+  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+    <div className="bg-white rounded-3xl p-8 w-full max-w-6xl shadow-2xl relative overflow-y-auto max-h-[95vh]">
+
+      {/* Close Button */}
+      <button
+        onClick={() => setShowRenewModal(false)}
+        className="absolute top-5 right-5 text-gray-400 hover:text-black text-lg"
+      >
+        ✕
+      </button>
+
+      {/* Header */}
+      <h2 className="text-2xl font-bold text-gray-800 mb-1">
+        Renew Your Subscription
+      </h2>
+
+      <p className="text-sm text-gray-500 mb-6">
+        Current Plan:{" "}
+        <span className="font-semibold text-green-700">
+          RYVIVE {subscription.plan}
+        </span>
+      </p>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        {/* LEFT – PLAN CARDS */}
+        <div className="lg:col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            {PLAN_ORDER.map((plan) => {
+              const prices = RENEWAL_PRICING[plan];
+              const isActive = selectedPlan === plan;
+              const isPremium = plan === "PLATINUM";
+
+              return (
+                <div
+                  key={plan}
+                  onClick={() => setSelectedPlan(plan)}
+                  className={`relative cursor-pointer rounded-2xl border p-6 transition-all duration-300
+                    ${isActive
+                      ? "border-green-600 bg-green-50 shadow-xl"
+                      : "border-gray-200 bg-white hover:shadow-md"}
+                    ${isPremium ? "ring-2 ring-yellow-400" : ""}
+                  `}
+                >
+
+                  {isPremium && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 
+                      bg-yellow-400 text-center text-black text-xs font-bold px-3 py-1 rounded-full shadow">
+                      MOST POPULAR
+                    </div>
+                  )}
+
+                  <h3 className="text-lg font-semibold mb-3">
+                    Ryvive {plan}
+                    {plan === subscription.plan && (
+                      <span className="ml-2 text-xs text-green-700">
+                        (Current)
+                      </span>
+                    )}
+                  </h3>
+
+                <div className="text-sm mb-5 space-y-4">
+
+ {/* 1 Month */}
+<div className="flex justify-between items-center">
+  <div>
+    <p className="font-medium text-gray-700">1 Month</p>
+
+    {prices["1"].discount > 0 && (
+      <>
+        <p className="text-xs text-black line-through">
+          ₹{prices["1"].original.toLocaleString()}
+        </p>
+        <p className="text-xs text-emerald-700 font-medium">
+          Save ₹{prices["1"].discount.toLocaleString()}
+        </p>
+      </>
+    )}
+  </div>
+
+  <div className="text-right">
+    <p className="font-semibold">
+      ₹{prices["1"].final.toLocaleString()}
+    </p>
+  </div>
+</div>
+
+
+  {/* 3 Months - Highlighted */}
+  <div className="relative flex justify-between items-center 
+      bg-green-50 border border-green-200 rounded-xl p-3">
+
+    {/* BEST VALUE Badge */}
+    <div className="absolute -top-2 right-2 bg-green-600 text-white text-[10px] px-2 py-1 rounded-full shadow">
+      SAVE MORE
+    </div>
+
+    <div>
+      <p className="font-semibold text-green-700">3 Months</p>
+      <p className="text-xs text-black line-through">
+        ₹{prices["3"].original.toLocaleString()}
+      </p>
+      <p className="text-xs text-emerald-700 font-medium">
+        Save ₹{prices["3"].discount.toLocaleString()}
+      </p>
+    </div>
+
+    <div className="text-right">
+      <p className="font-bold text-green-700">
+        ₹{prices["3"].final.toLocaleString()}
+      </p>
+    </div>
+  </div>
+
+</div>
+
+
+                  <div className="text-sm space-y-2">
+                    {PLAN_FEATURES[plan].map((feature, i) => (
+                      <div key={i} className="flex items-start gap-2">
+                        <span className="text-green-600">•</span>
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                </div>
+              );
+            })}
+
+          </div>
+        </div>
+
+        {/* RIGHT – PRICE SUMMARY */}
+        <div>
+
+          <div className="mb-5">
+            <label className="block text-sm font-semibold text-gray-600 mb-2">
+              Select Duration
+            </label>
+
+            <select
+              value={renewDuration}
+              onChange={(e) => setRenewDuration(e.target.value)}
+              className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-600"
+            >
+              <option value="1">1 Month</option>
+              <option value="3">3 Months (Best Value)</option>
+            </select>
+          </div>
+
+          {selectedPlan && (() => {
+            const planPrices =
+              RENEWAL_PRICING[selectedPlan]?.[renewDuration];
+            if (!planPrices) return null;
+
+            return (
+            <>
+  <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl p-6 shadow-md border border-green-100 space-y-4">
+
+    <h4 className="text-lg font-semibold text-gray-800">
+      Renewal Summary
+    </h4>
+
+    {/* ✅ SHOW DISCOUNT BREAKDOWN ONLY IF DISCOUNT EXISTS */}
+    {planPrices.discount > 0 ? (
+      <>
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">Actual Price</span>
+          <span className="line-through text-gray-400">
+            ₹{planPrices.original.toLocaleString()}
+          </span>
+        </div>
+
+        <div className="flex justify-between text-sm font-semibold text-green-700">
+          <span>Special Renewal Offer</span>
+          <span>
+            ₹{planPrices.final.toLocaleString()}
+          </span>
+        </div>
+
+        <div className="flex justify-between text-sm text-emerald-700">
+          <span>You Save</span>
+          <span>
+            ₹{planPrices.discount.toLocaleString()}
+          </span>
+        </div>
+      </>
+    ) : (
+      <div className="flex justify-between text-sm font-semibold text-gray-800">
+        <span>Renewal Price</span>
+        <span>
+          ₹{planPrices.final.toLocaleString()}
+        </span>
+      </div>
+    )}
+
+    <hr />
+
+    <div className="bg-green-100 rounded-xl p-4 text-sm text-green-900 space-y-2">
+      <p className="font-semibold">🌿 Why Renew Now?</p>
+      <p>✔ Continue uninterrupted healthy deliveries</p>
+      <p>✔ Lock-in discounted renewal pricing</p>
+      <p>✔ Priority support & wellness tracking</p>
+      <p>✔ Exclusive seasonal benefits</p>
+    </div>
+  </div>
+
+  <button
+    className="w-full mt-6 bg-[#2c511f] hover:bg-[#24461a]
+    text-white py-3 rounded-xl font-semibold transition shadow-md"
+    onClick={handleRenewPayment}
+  >
+    {planPrices.discount > 0
+      ? `Renew Now & Save ₹${planPrices.discount.toLocaleString()}`
+      : "Renew Now"}
+  </button>
+</>
+
+            );
+          })()}
+
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
+
+
     </div>
   );
-};;;
+};
 
 export default UserDashboard;
