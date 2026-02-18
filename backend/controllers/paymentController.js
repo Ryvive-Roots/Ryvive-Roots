@@ -80,7 +80,7 @@ if (dbAmount === undefined)
     await TempPayment.create({
       txnid,
       amount: dbAmount,
-      plan: basePlan,
+      plan: plan,
       durationMonths,
       formData: isRenewal ? null : formData,
       isRenewal: isRenewal || false,
