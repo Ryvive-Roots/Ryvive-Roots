@@ -28,6 +28,7 @@ import UserDashboard from "./components/UserDashboard"
 import Login from "./components/Login"
 import Shipping from "./components/Shipping"
 import Cancellation from "./components/Cancellation"
+import DashboardPage from "./components/DashboardPage"
 
 
 
@@ -57,7 +58,7 @@ function App() {
           <Route path="/subscription-silver" element={<SilversubForm />} />
           <Route path="/subscription-gold" element={<GoldsubForm />} />
           <Route path="/subscription-platinum" element={<PlatinumsubForm />} />
-          <Route path="/dashboard" element={<UserDashboard />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
            <Route path="/shipping-delivery" element={<Shipping/>} />
             <Route path="/cancellation-refund" element={<Cancellation />} />
                  

@@ -147,7 +147,7 @@ useEffect(() => {
            lastname: formData.lastName,
            email: formData.email,
            phone: formData.phone,
-           plan: "GOLD",
+           plan: "GOLD_1M",
            formData,
          }),
        }
@@ -188,13 +188,14 @@ useEffect(() => {
    const mid = params.get("membershipId");
  
    if (mid) {
-     setMembershipId(mid);
-     setStep(5);
- 
-     // cleanup temp data
-     localStorage.removeItem("subscriptionFormData");
-     localStorage.removeItem("subscriptionDeliverySlot");
-   }
+  setMembershipId(mid);
+  setStep(5);
+  setShowSuccessPopper(true); // ✅ add this
+
+  localStorage.removeItem("subscriptionFormData");
+  localStorage.removeItem("subscriptionDeliverySlot");
+}
+
  }, []);
   
 

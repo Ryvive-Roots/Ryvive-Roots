@@ -192,7 +192,7 @@ useEffect(() => {
           onClick={() => navigate("/our-story")}
           className="bg-[#6f5849] font-merriweather rounded-4xl cursor-pointer text-white px-8 py-3 transition-all"
         >
-          Our Story
+          Subscription
         </motion.button>
 
       </div>
