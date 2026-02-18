@@ -312,22 +312,22 @@ const handleRenewPayment = async () => {
 
     if (!planPrices) return;
 
-    const planKey = `${selectedPlan}_${renewDuration}M`;
+   
 
     const res = await fetch(
       "https://api.ryviveroots.com/api/payment/easebuzz/initiate",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: planPrices.final,
-          firstname: user.firstName,
-          email: user.email,
-          phone: user.phone,
-          plan: planKey,
-          isRenewal: true,
-          membershipId,
-        }),
+       body: JSON.stringify({
+  firstname: user.firstName,
+  email: user.email,
+  phone: user.phone,
+  plan: selectedPlan,   // just GOLD / SILVER / PLATINUM
+  isRenewal: true,
+  membershipId,
+}),
+
       }
     );
 
