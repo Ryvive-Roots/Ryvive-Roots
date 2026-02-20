@@ -57,7 +57,7 @@ if (!selectedPlan) {
 
 const durationMonths = selectedPlan.durationMonths;
 const dbAmount = selectedPlan.price;
-
+ 
 
 if (dbAmount === undefined) 
  {
@@ -147,11 +147,13 @@ if (dbAmount === undefined)
         surl: `${process.env.BACKEND_URL}/api/payment/easebuzz/success`,
         furl: `${process.env.BACKEND_URL}/api/payment/easebuzz/failure`,
         hash,
-      }).toString(),
+      }),
       {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       }
     );
+
+    console.log("Easebuzz FULL RESPONSE:", easebuzzResponse.data);
 
     if (easebuzzResponse.data.status !== 1) {
       return res.status(400).json({

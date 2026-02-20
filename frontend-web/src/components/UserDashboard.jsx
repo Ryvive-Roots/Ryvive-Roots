@@ -19,8 +19,12 @@ const [selectedPlan, setSelectedPlan] = useState(null);
 
 
 useEffect(() => {
-  if (order?.subscription?.plan) {
-    setSelectedPlan(order.subscription.plan);
+  if (!order?.subscription?.plan) return;
+
+  const plan = order.subscription.plan.toUpperCase();
+
+  if (["SILVER", "GOLD", "PLATINUM"].includes(plan)) {
+    setSelectedPlan(plan);
   }
 }, [order]);
 
@@ -321,6 +325,7 @@ const handleRenewPayment = async () => {
         headers: { "Content-Type": "application/json" },
        body: JSON.stringify({
   firstname: user.firstName,
+  
   email: user.email,
   phone: user.phone,
   plan: `${selectedPlan}_${renewDuration}M`,   // just GOLD / SILVER / PLATINUM

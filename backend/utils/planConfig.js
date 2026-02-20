@@ -17,7 +17,7 @@ export const PLANS = {
     durationMonths: 1,
   },
 
-  // ======================
+  // ====================== 
   // 3 MONTH PLANS (ROUND FIGURES)
   // ======================
   SILVER_3M: {
