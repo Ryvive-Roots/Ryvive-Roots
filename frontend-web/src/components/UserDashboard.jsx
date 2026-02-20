@@ -304,7 +304,7 @@ PLATINUM: [
 
 const handleRenewPayment = async () => {
   try {
-    const membershipId = localStorage.getItem("membershipId");
+   const membershipId = order.membershipId;
 
     if (!selectedPlan) {
       alert("Please select a plan");
@@ -330,7 +330,7 @@ const handleRenewPayment = async () => {
   phone: user.phone,
   plan: `${selectedPlan}_${renewDuration}M`,   // just GOLD / SILVER / PLATINUM
   isRenewal: true,
-  membershipId,
+  membershipId: order.membershipId,  
 }),
 
       }
