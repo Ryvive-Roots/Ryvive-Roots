@@ -323,7 +323,7 @@ const handleRenewPayment = async () => {
   firstname: user.firstName,
   email: user.email,
   phone: user.phone,
-  plan: selectedPlan,   // just GOLD / SILVER / PLATINUM
+  plan: `${selectedPlan}_${renewDuration}M`,   // just GOLD / SILVER / PLATINUM
   isRenewal: true,
   membershipId,
 }),
