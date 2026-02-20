@@ -167,12 +167,16 @@ if (dbAmount === undefined)
       access_key: easebuzzResponse.data.data,
     });
   } catch (error) {
-    console.error("Easebuzz initiate error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Payment initiation failed",
-    });
-  }  
+  console.error(
+    "Easebuzz initiate error:",
+    error.response?.data || error.message || error
+  );
+
+  return res.status(500).json({
+    success: false,
+    message: "Payment initiation failed",
+  });
+}
 };
 
 /**
