@@ -277,15 +277,14 @@ const PAUSE_PER_MONTH = {
 const getDynamicPauseFeature = (plan, duration) => {
   const perMonth = PAUSE_PER_MONTH[plan] || 0;
 
-  if (duration === "1") {
-    return `${perMonth} pause${perMonth > 1 ? "s" : ""} available`;
+  // ❌ SILVER 1 MONTH → NO PAUSE
+  if (plan === "SILVER" && duration === "1") {
+    return "No pause available";
   }
 
-  const total = perMonth * Number(duration);
-
-  return `${perMonth} pauses / month • ${total} total pauses`;
+  // ✅ show per month text (your requirement)
+  return `${perMonth} pause${perMonth > 1 ? "s" : ""} / month`;
 };
-
 const RENEWAL_PRICING = {
   SILVER: {
     "1": { original: 4999, discount: 0, final: 4999 },
