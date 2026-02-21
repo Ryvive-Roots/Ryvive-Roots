@@ -16,7 +16,19 @@ const UserDashboard = ({ active }) => {
 const [showRenewModal, setShowRenewModal] = useState(false);
 const [renewDuration, setRenewDuration] = useState("3");
 const [selectedPlan, setSelectedPlan] = useState(null);
+const [showSummary, setShowSummary] = useState(false);
 
+useEffect(() => {
+  if (showSummary || showRenewModal || showPauseModal) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "auto";
+  }
+
+  return () => {
+    document.body.style.overflow = "auto";
+  };
+}, [showSummary, showRenewModal, showPauseModal]);
 
 useEffect(() => {
   if (!order?.subscription?.plan) return;
@@ -256,6 +268,24 @@ useEffect(() => {
   };
 const remainingDays = getRemainingDays(subscription.endDate);
 
+const PAUSE_PER_MONTH = {
+  SILVER: 1,
+  GOLD: 2,
+  PLATINUM: 3,
+};
+
+const getDynamicPauseFeature = (plan, duration) => {
+  const perMonth = PAUSE_PER_MONTH[plan] || 0;
+
+  if (duration === "1") {
+    return `${perMonth} pause${perMonth > 1 ? "s" : ""} available`;
+  }
+
+  const total = perMonth * Number(duration);
+
+  return `${perMonth} pauses / month • ${total} total pauses`;
+};
+
 const RENEWAL_PRICING = {
   SILVER: {
     "1": { original: 4999, discount: 0, final: 4999 },
@@ -287,7 +317,6 @@ GOLD: [
   " Gut & Skin-Friendly Meals",
   " Advanced energy juices",
   " Boost Energy Levels",
-  " 2 Pauses Available",
   " Naturally Detoxifying Ingredients",
 ],
 
@@ -295,7 +324,7 @@ PLATINUM: [
   " Chef’s signature menu",
   " Glow, metabolism & recovery juices",
   " Guilt-Free Wraps & Zoodle Options",
-  " 3 Pauses Available",
+ 
   " Elite combinations",
   " Surprise upgrades",
 ],
@@ -691,21 +720,21 @@ const handleRenewPayment = async () => {
       </button>
 
       {/* Header */}
-      <h2 className="text-2xl font-bold text-gray-800 mb-1">
+      <h2 className="text-2xl font-bold font-manrope text-gray-800 mb-1">
         Renew Your Subscription
       </h2>
 
-      <p className="text-sm text-gray-500 mb-6">
+      <p className="text-sm font-roboto text-gray-500 mb-6">
         Current Plan:{" "}
         <span className="font-semibold text-green-700">
           RYVIVE {subscription.plan}
         </span>
       </p>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 gap-8">
 
         {/* LEFT – PLAN CARDS */}
-        <div className="lg:col-span-2">
+    
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
             {PLAN_ORDER.map((plan) => {
@@ -727,12 +756,12 @@ const handleRenewPayment = async () => {
 
                   {isPremium && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 
-                      bg-yellow-400 text-center text-black text-xs font-bold px-3 py-1 rounded-full shadow">
+                      bg-yellow-500 font-merriweather text-center text-black text-xs font-bold px-3 py-1 rounded-full shadow">
                       MOST POPULAR
                     </div>
                   )}
 
-                  <h3 className="text-lg font-semibold mb-3">
+                  <h3 className="text-lg font-roboto font-semibold mb-3">
                     Ryvive {plan}
                     {plan === subscription.plan && (
                       <span className="ml-2 text-xs text-green-700">
@@ -743,67 +772,129 @@ const handleRenewPayment = async () => {
 
                 <div className="text-sm mb-5 space-y-4">
 
- {/* 1 Month */}
-<div className="flex justify-between items-center">
-  <div>
-    <p className="font-medium text-gray-700">1 Month</p>
+<div className="space-y-3">
 
-    {prices["1"].discount > 0 && (
-      <>
-        <p className="text-xs text-black line-through">
-          ₹{prices["1"].original.toLocaleString()}
-        </p>
-        <p className="text-xs text-emerald-700 font-medium">
-          Save ₹{prices["1"].discount.toLocaleString()}
-        </p>
-      </>
-    )}
-  </div>
+  {/* 1 Month */}
+  <div
+    onClick={() => setRenewDuration("1")}
+    className={`flex font-manrope justify-between items-center rounded-xl border p-4 cursor-pointer transition
+      ${selectedPlan === plan && renewDuration === "1"
+        ? "border-green-600 bg-green-50"
+        : "border-gray-200 bg-white hover:border-green-300"}
+    `}
+  >
+    <div className="flex items-start gap-3">
 
-  <div className="text-right">
+      {/* radio */}
+      <div
+        className={`w-4 h-4 mt-1 rounded-full border flex items-center justify-center
+          ${selectedPlan === plan && renewDuration === "1" ? "border-green-600" : "border-gray-400"}
+        `}
+      >
+        {selectedPlan === plan && renewDuration === "1" && (
+          <div className="w-2 h-2 bg-green-600 rounded-full" />
+        )}
+      </div>
+
+      <div>
+        <p className="font-medium text-gray-800">1 Month</p>
+
+        {prices["1"].discount > 0 && (
+          <>
+            <p className="text-xs line-through text-gray-400">
+              ₹{prices["1"].original.toLocaleString()}
+            </p>
+            <p className="text-xs text-emerald-700 font-medium">
+              Save ₹{prices["1"].discount.toLocaleString()}
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+
     <p className="font-semibold">
       ₹{prices["1"].final.toLocaleString()}
     </p>
   </div>
-</div>
 
-
-  {/* 3 Months - Highlighted */}
-  <div className="relative flex justify-between items-center 
-      bg-green-50 border border-green-200 rounded-xl p-3">
-
-    {/* BEST VALUE Badge */}
-    <div className="absolute -top-2 right-2 bg-green-600 text-white text-[10px] px-2 py-1 rounded-full shadow">
+  {/* 3 Months */}
+  <div
+    onClick={() => setRenewDuration("3")}
+    className={`relative flex font-manrope justify-between items-center rounded-xl border p-4 cursor-pointer transition
+      ${selectedPlan === plan && renewDuration === "3"
+        ? "border-green-600 bg-green-50"
+        : "border-gray-200 bg-white hover:border-green-300"}
+    `}
+  >
+    {/* badge */}
+    <div className="absolute -top-2 left-4 font-fredoka bg-green-600 text-white text-[10px] px-2 py-1 rounded-full">
       SAVE MORE
     </div>
 
-    <div>
-      <p className="font-semibold text-green-700">3 Months</p>
-      <p className="text-xs text-black line-through">
-        ₹{prices["3"].original.toLocaleString()}
-      </p>
-      <p className="text-xs text-emerald-700 font-medium">
-        Save ₹{prices["3"].discount.toLocaleString()}
-      </p>
+    <div className="flex items-start gap-3">
+
+      {/* radio */}
+      <div
+        className={`w-4 h-4 mt-1 rounded-full border flex items-center justify-center
+          ${selectedPlan === plan && renewDuration === "3" ? "border-green-600" : "border-gray-400"}
+        `}
+      >
+        {selectedPlan === plan && renewDuration === "3" && (
+          <div className="w-2 h-2 bg-green-600 rounded-full" />
+        )}
+      </div>
+
+      <div>
+        <p className="font-semibold text-green-700">3 Months</p>
+        <p className="text-xs line-through text-black/90">
+          ₹{prices["3"].original.toLocaleString()}
+        </p>
+        <p className="text-xs text-emerald-700 font-medium">
+          Save ₹{prices["3"].discount.toLocaleString()}
+        </p>
+      </div>
     </div>
 
-    <div className="text-right">
-      <p className="font-bold text-green-700">
-        ₹{prices["3"].final.toLocaleString()}
-      </p>
-    </div>
+    <p className="font-bold text-green-700">
+      ₹{prices["3"].final.toLocaleString()}
+    </p>
   </div>
 
 </div>
 
+<div className="my-5 flex justify-center">
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      setSelectedPlan(plan);
+      setShowSummary(true);
+    }}
+    className="px-5 py-2 rounded-xl font-roboto font-semibold transition shadow
+      bg-green-700 text-white"
+  >
+    Select & Continue
+  </button>
+</div>
 
-                  <div className="text-sm space-y-2">
-                    {PLAN_FEATURES[plan].map((feature, i) => (
-                      <div key={i} className="flex items-start gap-2">
-                        <span className="text-green-600">•</span>
-                        <span>{feature}</span>
-                      </div>
-                    ))}
+</div>
+
+
+                  <div className="text-sm font-roboto space-y-2">
+                  {[
+  PLAN_FEATURES[plan][0], // first feature
+
+  getDynamicPauseFeature(plan, renewDuration), // ⭐ pause second
+
+  ...PLAN_FEATURES[plan].slice(1) // rest features
+].map((feature, i) => (
+  <div key={i} className="flex items-start gap-2">
+    <span className="text-green-600">•</span>
+
+    <span className={feature.includes("pause") ? "font-semibold text-black" : ""}>
+      {feature}
+    </span>
+  </div>
+))}
                   </div>
 
                 </div>
@@ -814,101 +905,88 @@ const handleRenewPayment = async () => {
         </div>
 
         {/* RIGHT – PRICE SUMMARY */}
-        <div>
-
-          <div className="mb-5">
-            <label className="block text-sm font-semibold text-gray-600 mb-2">
-              Select Duration
-            </label>
-
-            <select
-              value={renewDuration}
-              onChange={(e) => setRenewDuration(e.target.value)}
-              className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-600"
-            >
-              <option value="1">1 Month</option>
-              <option value="3">3 Months (Best Value)</option>
-            </select>
-          </div>
-
-          {selectedPlan && (() => {
-            const planPrices =
-              RENEWAL_PRICING[selectedPlan]?.[renewDuration];
-            if (!planPrices) return null;
-
-            return (
-            <>
-  <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl p-6 shadow-md border border-green-100 space-y-4">
-
-    <h4 className="text-lg font-semibold text-gray-800">
-      Renewal Summary
-    </h4>
-
-    {/* ✅ SHOW DISCOUNT BREAKDOWN ONLY IF DISCOUNT EXISTS */}
-    {planPrices.discount > 0 ? (
-      <>
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Actual Price</span>
-          <span className="line-through text-gray-400">
-            ₹{planPrices.original.toLocaleString()}
-          </span>
-        </div>
-
-        <div className="flex justify-between text-sm font-semibold text-green-700">
-          <span>Special Renewal Offer</span>
-          <span>
-            ₹{planPrices.final.toLocaleString()}
-          </span>
-        </div>
-
-        <div className="flex justify-between text-sm text-emerald-700">
-          <span>You Save</span>
-          <span>
-            ₹{planPrices.discount.toLocaleString()}
-          </span>
-        </div>
-      </>
-    ) : (
-      <div className="flex justify-between text-sm font-semibold text-gray-800">
-        <span>Renewal Price</span>
-        <span>
-          ₹{planPrices.final.toLocaleString()}
-        </span>
-      </div>
-    )}
-
-    <hr />
-
-    <div className="bg-green-100 rounded-xl p-4 text-sm text-green-900 space-y-2">
-      <p className="font-semibold">🌿 Why Renew Now?</p>
-      <p>✔ Continue uninterrupted healthy deliveries</p>
-      <p>✔ Lock-in discounted renewal pricing</p>
-      <p>✔ Priority support & wellness tracking</p>
-      <p>✔ Exclusive seasonal benefits</p>
-    </div>
-  </div>
-
-  <button
-    className="w-full mt-6 bg-[#2c511f] hover:bg-[#24461a]
-    text-white py-3 rounded-xl font-semibold transition shadow-md"
-    onClick={handleRenewPayment}
-  >
-    {planPrices.discount > 0
-      ? `Renew Now & Save ₹${planPrices.discount.toLocaleString()}`
-      : "Renew Now"}
-  </button>
-</>
-
-            );
-          })()}
-
-        </div>
+        
       </div>
     </div>
-  </div>
+
 )}
 
+{showSummary && selectedPlan && (() => {
+  const planPrices = RENEWAL_PRICING[selectedPlan]?.[renewDuration];
+  if (!planPrices) return null;
 
+  return (
+    <div className="fixed inset-0 font-roboto bg-black/60 flex items-center justify-center z-[60] px-4">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto">
+
+        {/* Close */}
+        <button
+          onClick={() => setShowSummary(false)}
+          className="absolute top-4 right-4 text-gray-400 hover:text-black"
+        >
+          ✕
+        </button>
+
+        <h3 className="text-lg font-semibold mb-4">
+          Renewal Summary — {selectedPlan}
+        </h3>
+
+        {/* Duration */}
+        <select
+          value={renewDuration}
+          onChange={(e) => setRenewDuration(e.target.value)}
+          className="w-full border rounded-xl px-4 py-3 mb-4"
+        >
+          <option value="1">1 Month</option>
+          <option value="3">3 Months (Best Value)</option>
+        </select>
+
+        {planPrices.discount > 0 ? (
+          <>
+            <div className="flex justify-between text-sm mb-1">
+              <span>Actual Price</span>
+              <span className="line-through">
+                ₹{planPrices.original.toLocaleString()}
+              </span>
+            </div>
+
+            <div className="flex justify-between text-sm font-semibold text-green-700 mb-1">
+              <span>Offer Price</span>
+              <span>₹{planPrices.final.toLocaleString()}</span>
+            </div>
+
+            <div className="flex justify-between text-sm text-emerald-700 mb-4">
+              <span>You Save</span>
+              <span>₹{planPrices.discount.toLocaleString()}</span>
+            </div>
+          </>
+        ) : (
+          <div className="flex justify-between text-sm font-semibold mb-4">
+            <span>Price</span>
+            <span>₹{planPrices.final.toLocaleString()}</span>
+          </div>
+        )}
+       <div className="bg-green-100 rounded-xl p-4 text-sm text-green-900">
+  <p className="font-semibold mb-2">🌿 Why Renew Now?</p>
+
+  <ul className="list-disc pl-5 space-y-1">
+    <li>Stay consistent — Gaps in your routine can set back your progress</li>
+    <li>Keep your savings — Renewal pricing is lower than starting fresh</li>
+    <li>Maintain your wellness streak — Continuity is key to real results</li>
+    <li>Seamless experience — Pick up right where you left off</li>
+  </ul>
+</div>
+
+        <button
+          onClick={handleRenewPayment}
+          className="w-full bg-[#2c511f] text-white py-3 rounded-xl font-semibold"
+        >
+          Renew Now
+        </button>
+      </div>
+    </div>
+  );
+})()}
 
 
 

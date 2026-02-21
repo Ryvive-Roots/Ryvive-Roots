@@ -103,17 +103,19 @@ if (tempPayment.isRenewal) {
     return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
   }
 
-  // Extend subscription expiry
-  const currentEnd = new Date(existingOrder.subscription.endDate);
+ // DO NOT extend endDate immediately
 
-  currentEnd.setMonth(
-    currentEnd.getMonth() + tempPayment.durationMonths
-  );
+const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
-  existingOrder.subscription.endDate = currentEnd;
-  existingOrder.subscription.status = "ACTIVE";
+existingOrder.subscription.renewal = {
+  pending: true,
+  durationMonths: tempPayment.durationMonths,
+};
 
-  await existingOrder.save();
+existingOrder.subscription.activationAt = activationAt;
+existingOrder.subscription.status = "UNDER_PROCESS";
+
+await existingOrder.save();
 
   // Update temp payment
   tempPayment.status = "SUCCESS";
@@ -210,6 +212,10 @@ await sendEmail({
   ],
 });
 
+const previewEnd = new Date(existingOrder.subscription.endDate);
+previewEnd.setMonth(
+  previewEnd.getMonth() + tempPayment.durationMonths
+);
 
   // ✅ Renewal Email to Company
 await sendEmail({
@@ -224,7 +230,7 @@ await sendEmail({
   <li><b>Email:</b> ${existingOrder.user.email}</li>
   <li><b>Plan:</b> ${existingOrder.subscription.plan}</li>
   <li><b>Amount:</b> ₹${tempPayment.amount}</li>
-  <li><b>New Expiry:</b> ${currentEnd.toLocaleDateString("en-IN")}</li>
+  <li><b>New Expiry:</b> ${previewEnd.toLocaleDateString("en-IN")}</li>
   <li><b>Membership ID:</b> ${existingOrder.membershipId}</li>
   <li><b>Receipt No:</b> ${receiptNumber}</li>
 </ul>
@@ -403,6 +409,7 @@ await sendEmail({
         },
       ],
     });
+
 
     // 8️⃣ SEND COMPANY EMAIL (AS-IT-IS)
     await sendEmail({
