@@ -157,18 +157,32 @@ useEffect(() => {
   const { user, subscription, membershipId } = order;
 
   // ✅ Pause count per plan
-  const PAUSE_COUNT_LIMIT = {
-    GOLD: 2,
-    PLATINUM: 3,
-  };
+// ⭐ Pause per month
+const PAUSE_PER_MONTH = {
+  SILVER: 1,
+  GOLD: 2,
+  PLATINUM: 3,
+};
+
+// ⭐ Get duration from backend (IMPORTANT)
+const durationMonths = subscription.durationMonths || 1;
+
+// ⭐ Calculate max pause dynamically
+let maxPauseCount = 0;
+
+// SILVER rule → 1 month = no pause
+if (subscription.plan === "SILVER" && durationMonths === 1) {
+  maxPauseCount = 0;
+} else {
+  maxPauseCount =
+    (PAUSE_PER_MONTH[subscription.plan] || 0) * durationMonths;
+}
 
   // ✅ Max days per pause
   const MAX_PAUSE_DAYS = 15;
 
   // ✅ Used pauses
   const usedPauseCount = subscription.pause?.history?.length || 0;
-
-  const maxPauseCount = PAUSE_COUNT_LIMIT[subscription.plan] || 0;
 
   const remainingPauseCount = Math.max(maxPauseCount - usedPauseCount, 0);
 
@@ -268,11 +282,7 @@ useEffect(() => {
   };
 const remainingDays = getRemainingDays(subscription.endDate);
 
-const PAUSE_PER_MONTH = {
-  SILVER: 1,
-  GOLD: 2,
-  PLATINUM: 3,
-};
+
 
 const getDynamicPauseFeature = (plan, duration) => {
   const perMonth = PAUSE_PER_MONTH[plan] || 0;
@@ -446,25 +456,52 @@ const handleRenewPayment = async () => {
 
         {/* PROFILE */}
       {active === "profile" && (
-  <div className="bg-white/70 rounded-2xl p-4 sm:p-6 shadow">
+ <div className="bg-white/70 rounded-2xl p-4 sm:p-6 shadow">
+  <h2 className="text-[#4a7f34] font-cinzel font-semibold text-lg mb-2">
+    MY PROFILE
+  </h2>
 
-          <h2 className="text-[#4a7f34]  font-cinzel font-semibold text-lg mb-2">
-            MY PROFILE
-          </h2>
-          <p className=" text-sm lg:text-base  font-roboto">
-            <b>Name:</b> {user.firstName} {user.lastName}
-          </p>
-          <p className="  text-sm lg:text-base font-roboto">
-            <b>Email:</b> {user.email}
-          </p>
-          <p className="  text-sm lg:text-base font-roboto">
-            <b>Phone:</b> {user.phone}
-          </p>
+  <p className="text-sm lg:text-base font-roboto">
+    <b>Name:</b> {user.firstName} {user.lastName}
+  </p>
 
-          <p className="  text-sm lg:text-base font-roboto">
-            <b>Membership ID:</b> {membershipId}
-          </p>
-         </div>
+  <p className="text-sm lg:text-base font-roboto">
+    <b>Email:</b> {user.email}
+  </p>
+
+  <p className="text-sm lg:text-base font-roboto">
+    <b>Phone:</b> {user.phone}
+  </p>
+
+  {/* ⭐ DOB */}
+  <p className="text-sm lg:text-base font-roboto">
+    <b>DOB:</b>{" "}
+    {user.dob ? new Date(user.dob).toLocaleDateString("en-IN") : "-"}
+  </p>
+
+  {/* ⭐ Address full */}
+  <p className="text-sm lg:text-base font-roboto">
+    <b>Address:</b>{" "}
+    {order.address
+      ? `${order.address.house}, ${order.address.street}, ${order.address.landmark}, ${order.address.city}, ${order.address.state} - ${order.address.pincode}`
+      : "-"}
+  </p>
+
+  {/* ⭐ Delivery slot */}
+  <p className="text-sm lg:text-base font-roboto">
+    <b>Delivery Slot:</b> {order.deliverySlot || "-"}
+  </p>
+
+  {/* ⭐ Payment method */}
+  <p className="text-sm lg:text-base font-roboto">
+    <b>Payment Method:</b>{" "}
+    {order.paymentMethod || order.payment?.method || "Online"}
+  </p>
+
+  <p className="text-sm lg:text-base font-roboto">
+    <b>Membership ID:</b> {membershipId}
+  </p>
+</div>
 )}
 
 
