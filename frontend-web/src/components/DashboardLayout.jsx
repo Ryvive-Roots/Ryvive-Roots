@@ -11,7 +11,7 @@ const DashboardLayout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#f6f7f3] relative">
+    <div className="min-h-screen font-roboto flex bg-[#f6f7f3] relative">
 
       {/* MOBILE HEADER */}
       <div className="md:hidden fixed top-0 left-0 right-0 bg-[#2c511f] text-white z-50 flex items-center justify-between px-4 py-3">
@@ -65,6 +65,21 @@ const DashboardLayout = ({ children }) => {
   >
     My Subscription
   </button>
+  {/* MY SCHEDULE */}
+<button
+  onClick={() => {
+    setActive("schedule");
+    setOpen(false);
+  }}
+  className={`w-full text-left px-4 py-2 rounded transition
+    ${
+      active === "schedule"
+        ? "bg-[#3f6b2a]"
+        : "hover:bg-[#3f6b2a]/80"
+    }`}
+>
+  My Schedule
+</button>
 
   {/* LOGOUT */}
   <button
