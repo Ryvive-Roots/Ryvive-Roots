@@ -2,6 +2,7 @@ import express from "express";
 import Order from "../models/order.js";
 import sendEmail from "../utils/sendEmail.js";
 import {
+  silverPauseEmail,
   goldPauseEmail,
   platinumPauseEmail,
 } from "../utils/pauseEmailTemplates.js";
@@ -10,7 +11,8 @@ import {
 const router = express.Router();
 
 // ✅ Pause limits per plan
-const PAUSE_LIMIT = {
+const PAUSE_PER_MONTH = {
+  SILVER: 1,
   GOLD: 2,
   PLATINUM: 3,
 };
@@ -35,12 +37,20 @@ router.post("/pause",  async (req, res) => {
       });
     }
 
-    if (!["GOLD", "PLATINUM"].includes(order.subscription.plan)) {
-      return res.status(400).json({
-        success: false,
-        message: "Pause not allowed for this plan",
-      });
-    }
+  // ⭐ Plan pause eligibility check (dynamic)
+const durationMonths = order.subscription.durationMonths || 1;
+
+const maxAllowed =
+  order.subscription.plan === "SILVER" && durationMonths === 1
+    ? 0
+    : (PAUSE_PER_MONTH[order.subscription.plan] || 0) * durationMonths;
+
+if (maxAllowed === 0) {
+  return res.status(400).json({
+    success: false,
+    message: "Pause not available for this plan duration",
+  });
+}
 
     // ✅ Initialize pause object
     if (!order.subscription.pause) {
@@ -51,7 +61,9 @@ router.post("/pause",  async (req, res) => {
     }
 
     // 🚫 Pause count limit
-    const maxAllowed = PAUSE_LIMIT[order.subscription.plan];
+   // ⭐ duration from order
+
+
 
     if (order.subscription.pause.used >= maxAllowed) {
       return res.status(400).json({
@@ -99,19 +111,25 @@ router.post("/pause",  async (req, res) => {
       });
     }
 
-    // 🚫 Prevent overlapping pause
-    const pauseHistory = order.subscription.pause.history || [];
-    if (pauseHistory.length > 0) {
-      const lastPause = pauseHistory[pauseHistory.length - 1];
-      const lastResume = new Date(lastPause.resumeDate);
+// 🚫 Prevent overlapping pause (correct logic)
+const pauseHistory = order.subscription.pause.history || [];
 
-      if (new Date() < lastResume) {
-        return res.status(400).json({
-          success: false,
-          message: "Subscription is already paused",
-        });
-      }
-    }
+const newStart = pauseStart;
+const newEnd = pauseEnd;
+
+const isOverlapping = pauseHistory.some((p) => {
+  const existingStart = new Date(p.startDate);
+  const existingEnd = new Date(p.endDate);
+
+  return newStart <= existingEnd && newEnd >= existingStart;
+});
+
+if (isOverlapping) {
+  return res.status(400).json({
+    success: false,
+    message: "Selected dates overlap with an existing pause",
+  });
+}
 
     // ✅ Calculate pause days from dates
     const diffTime = pauseEnd.getTime() - pauseStart.getTime();
@@ -150,18 +168,24 @@ router.post("/pause",  async (req, res) => {
     // ✅ Remaining pauses AFTER increment
     const remaining = Math.max(maxAllowed - order.subscription.pause.used, 0);
 
-    const emailPayload = {
-      customerName: `${order.user.firstName} ${order.user.lastName}`,
-      pauseStartDate: pauseStart.toLocaleDateString("en-IN"),
-      ResumeDate: resumeDate.toLocaleDateString("en-IN"),
-      timeSlot: order.deliverySlot,
-      remainingPauses: remaining, // ✅ FIXED
-    };
+  const emailPayload = {
+  customerName: `${order.user.firstName} ${order.user.lastName}`,
+  pauseStartDate: pauseStart.toLocaleDateString("en-IN"),
+  ResumeDate: resumeDate.toLocaleDateString("en-IN"),
+  timeSlot: order.deliverySlot,
+  remainingPauses: remaining,
+  maxPauses: maxAllowed, // ⭐ IMPORTANT
+};
 
-    const emailTemplate =
-      order.subscription.plan === "GOLD"
-        ? goldPauseEmail(emailPayload)
-        : platinumPauseEmail(emailPayload);
+   let emailTemplate;
+
+if (order.subscription.plan === "GOLD") {
+  emailTemplate = goldPauseEmail(emailPayload);
+} else if (order.subscription.plan === "PLATINUM") {
+  emailTemplate = platinumPauseEmail(emailPayload);
+} else {
+  emailTemplate = silverPauseEmail(emailPayload);
+}
 
     // 📧 Send email to customer
     await sendEmail({

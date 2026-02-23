@@ -1,9 +1,73 @@
+export const silverPauseEmail = ({
+  customerName,
+  pauseStartDate,
+  ResumeDate,
+  timeSlot,
+  remainingPauses,
+  maxPauses,
+}) => ({
+  subject: "Your Ryvive Silver Subscription Has Been Paused",
+  html: `
+  <div style="font-family: Arial, sans-serif; font-size:14px; color:#333;">
+
+    <p>Dear <strong>${customerName}</strong>,</p>
+
+    <p>
+      Your <strong>Ryvive Silver subscription has been successfully paused</strong>
+      as requested through your dashboard.
+    </p>
+
+    <p><strong>Pause Details</strong></p>
+
+    <ul>
+      <li><strong>Pause Start Date:</strong> ${pauseStartDate}</li>
+      <li><strong>Service Resume Date:</strong> ${ResumeDate}</li>
+      <li><strong>Scheduled Delivery Time Slot:</strong> ${timeSlot}</li>
+    </ul>
+
+    ${
+      maxPauses === 0
+        ? `
+        <p>
+          Your current Silver plan duration does not include pause requests.
+        </p>
+      `
+        : `
+        <p>
+          Your total pause allowance for the current Silver plan is
+          <strong>${maxPauses}</strong> pause request(s).<br/>
+          Remaining available pauses: <strong>${remainingPauses}</strong>
+        </p>
+      `
+    }
+
+    <p>
+      Deliveries will remain on hold during this period and will
+      automatically resume on the mentioned date.
+    </p>
+
+    <p>
+      For any assistance, please contact
+      <strong>customersupport@ryviveroots.com</strong>.
+    </p>
+
+    <p>
+      Warm regards,<br/>
+      <strong>Team Ryvive Roots</strong>
+    </p>
+
+  </div>
+  `,
+});
+
+
 export const goldPauseEmail = ({
   customerName,
   pauseStartDate,
   ResumeDate,
   timeSlot,
   remainingPauses,
+  maxPauses,
 }) => ({
   subject: "Your Ryvive Gold Subscription Has Been Paused",
   html: `
@@ -25,7 +89,7 @@ export const goldPauseEmail = ({
     </ul>
 
     <p>
-      As a Gold member, you are entitled to a maximum of <strong>2 pause requests</strong> under your plan.<br/>
+      As a Gold member, you are entitled to a maximum of <strong>${maxPauses} requests(s)</strong> under your plan.<br/>
       After this request, your <strong>remaining available pauses:</strong> ${remainingPauses}
     </p>
 
@@ -59,6 +123,7 @@ export const platinumPauseEmail = ({
   ResumeDate,
   timeSlot,
   remainingPauses,
+  maxPauses,
 }) => ({
   subject: "Your Ryvive Platinum Subscription Has Been Paused",
   html: `
@@ -81,7 +146,7 @@ export const platinumPauseEmail = ({
     </ul>
 
     <p>
-      As a Platinum member, you are entitled to a maximum of <strong>3 pause requests</strong> under your plan.<br/>
+      As a Platinum member, you are entitled to a maximum of <strong>${maxPauses} requests(s)</strong> under your plan.<br/>
       After this request, your <strong>remaining available pauses:</strong> ${remainingPauses}
     </p>
 
