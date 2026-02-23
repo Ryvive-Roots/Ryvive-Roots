@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Bg from "../assets/dashboard_Img.png";
 import { Lock } from "lucide-react";
 import { MdAutorenew } from "react-icons/md";
+import { WEEKLY_MENU, getCurrentWeekNumber } from "../data/weeklyMenu";
 
 
 const UserDashboard = ({ active }) => {
@@ -156,6 +157,11 @@ useEffect(() => {
 
   const { user, subscription, membershipId } = order;
 
+  const weekNumber = getCurrentWeekNumber(subscription.activationAt);
+
+const weeklyMenu =
+  WEEKLY_MENU[subscription.plan]?.[`week${weekNumber}`];
+
   // ✅ Pause count per plan
 // ⭐ Pause per month
 const PAUSE_PER_MONTH = {
@@ -166,6 +172,11 @@ const PAUSE_PER_MONTH = {
 
 // ⭐ Get duration from backend (IMPORTANT)
 const durationMonths = subscription.durationMonths || 1;
+
+const canModify =
+  subscription.plan === "GOLD" ||
+  subscription.plan === "PLATINUM" ||
+  (subscription.plan === "SILVER" && durationMonths === 3);
 
 // ⭐ Calculate max pause dynamically
 let maxPauseCount = 0;
@@ -544,7 +555,7 @@ const handleRenewPayment = async () => {
         </b>
 
         {/* 🟢 MODIFICATION BUTTON */}
-        {["GOLD", "PLATINUM"].includes(subscription.plan) && (
+        {canModify && (
           <button
             disabled={isLocked}
             onClick={() => !isLocked && setShowPauseModal(true)}
@@ -567,8 +578,7 @@ const handleRenewPayment = async () => {
         )}
       </div>
 
-      {["GOLD", "PLATINUM"].includes(subscription.plan) &&
-        finalStatus !== "UNDER_PROCESS" && (
+     {canModify && finalStatus !== "UNDER_PROCESS" && (
           <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-green-50 rounded-xl px-4 py-3">
             {/* LEFT INFO */}
             <div>
@@ -642,7 +652,37 @@ const handleRenewPayment = async () => {
         </p>
       )}
     </div>
+
+
   </>
+)}
+
+{/* SCHEDULE */}
+{active === "schedule" && (
+  <div className="bg-white/90 rounded-2xl p-4 sm:p-6 shadow">
+
+    <h2 className="text-[#4a7f34] font-cinzel font-semibold text-lg mb-1">
+      My Schedule
+    </h2>
+
+    <p className="text-sm font-semibold font-manrope text-gray-600 mb-4">
+      Week {weekNumber} Meal plan.
+    </p>
+
+    {weeklyMenu ? (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {Object.entries(weeklyMenu).map(([day, menu]) => (
+          <div key={day} className=" shadow rounded-xl p-3 bg-green-50">
+            <p className="font-semibold text-green-800">{day}</p>
+            <p className="text-sm text-gray-700">{menu}</p>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p className="text-gray-500">Schedule not available</p>
+    )}
+
+  </div>
 )}
 
       </div>
