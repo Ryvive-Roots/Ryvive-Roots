@@ -347,7 +347,11 @@ console.log("NORMALIZED PLAN:", normalizedPlan);
 
     
       subscription: {
-plan: normalizedPlan,
+plan:
+  rawPlan.startsWith("PLATINUM") ? "PLATINUM" :
+  rawPlan.startsWith("GOLD") ? "GOLD" :
+  rawPlan.startsWith("SILVER") ? "SILVER" :
+  "SILVER",
         amount: tempPayment.amount,
         durationMonths: selectedPlan.durationMonths,
         activationAt,
