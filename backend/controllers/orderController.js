@@ -89,11 +89,16 @@ export const easebuzzSuccess = async (req, res) => {
 
     const { formData, plan } = tempPayment;
 
-    let normalizedPlan = plan;
+const normalizedPlan =
+  plan?.includes("PLATINUM") ? "PLATINUM" :
+  plan?.includes("GOLD") ? "GOLD" :
+  plan?.includes("SILVER") ? "SILVER" :
+  null;
 
-if (plan.includes("PLATINUM")) normalizedPlan = "PLATINUM";
-else if (plan.includes("GOLD")) normalizedPlan = "GOLD";
-else if (plan.includes("SILVER")) normalizedPlan = "SILVER";
+if (!normalizedPlan) {
+  console.error("INVALID PLAN VALUE:", plan);
+  throw new Error("Plan normalization failed");
+}
    const selectedPlan = PLANS[plan] || { durationMonths: 1 };
 
     // =====================================================
