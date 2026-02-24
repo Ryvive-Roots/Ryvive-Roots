@@ -330,8 +330,9 @@ await sendEmail({
 
       deliverySlot: formData.slot,
 
+    
       subscription: {
-       plan: normalizedPlan,
+  plan: normalizedPlan?.toUpperCase(),
         amount: tempPayment.amount,
         durationMonths: selectedPlan.durationMonths,
         activationAt,
