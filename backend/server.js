@@ -33,6 +33,7 @@ app.use("/api/invoice", invoiceRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 app.use("/api/admin-auth", adminAuthRoutes);
+app.use("/invoices", express.static("invoices"));
 
 // Test API
 app.get("/", (req, res) => {

@@ -7,13 +7,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const generateInvoice = async (order) => {
-  const invoiceDir = "invoices";
-  if (!fs.existsSync(invoiceDir)) fs.mkdirSync(invoiceDir);
+ const invoiceDir = path.join(__dirname, "../../invoices");
 
-  const filePath = path.join(invoiceDir, `invoice-${order.receiptNumber}.pdf`);
+if (!fs.existsSync(invoiceDir)) {
+  fs.mkdirSync(invoiceDir, { recursive: true });
+}
+
+const fileName = `invoice-${order.receiptNumber}.pdf`;
+const filePath = path.join(invoiceDir, fileName);
 
   const doc = new PDFDocument({ size: "A4", margin: 0 });
-  doc.pipe(fs.createWriteStream(filePath));
+const stream = fs.createWriteStream(filePath);
+doc.pipe(stream);
 
   /* =======================
      BACKGROUND IMAGE
@@ -111,7 +116,9 @@ doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 422);
   // ✅ FINALIZE PDF
   doc.end();
 
-  return filePath;
+ await new Promise((resolve) => stream.on("finish", resolve));
+
+return `${process.env.BASE_URL}/invoices/${fileName}`;
 };
 
 export default generateInvoice;
