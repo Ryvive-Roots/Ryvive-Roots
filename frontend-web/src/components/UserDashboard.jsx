@@ -432,35 +432,60 @@ const handleRenewPayment = async () => {
 
 {/* ⚠️ RENEWAL WARNING BANNER */}
 {remainingDays > 0 && remainingDays <= 25 && (
-  <div className="relative z-20 w-full max-w-5xl mx-auto mt-4 mb-6">
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 
-      bg-white rounded-2xl shadow-lg px-6 py-4 ">
+  <div className="w-full max-w-5xl mx-auto px-3 sm:px-0 mt-4 mb-6">
+
+    <div
+      className="
+      flex flex-col sm:flex-row
+      sm:items-center sm:justify-between
+      gap-4
+      bg-white rounded-2xl shadow-lg
+      p-4 sm:p-6
+    "
+    >
 
       {/* LEFT */}
-      <div className="flex items-center gap-4">
-        <div className="bg-green-100 p-3 rounded-xl">
-          <MdAutorenew />
+      <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+
+        {/* ICON */}
+        <div className="bg-green-100 p-2 sm:p-3 rounded-xl shrink-0">
+          <MdAutorenew className="text-lg sm:text-xl" />
         </div>
-        <div>
-          <p className="font-semibold text-gray-800">
+
+        {/* TEXT */}
+        <div className="leading-tight">
+          <p className="font-semibold text-gray-800 text-sm sm:text-base">
             Your subscription is about to expire
           </p>
-          <p className="text-sm text-gray-500">
-            You have <b>{remainingDays} day{remainingDays > 1 ? "s" : ""}</b> left to renew and continue services.
+
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+            You have{" "}
+            <b>
+              {remainingDays} day{remainingDays > 1 ? "s" : ""}
+            </b>{" "}
+            left to renew and continue services.
           </p>
         </div>
       </div>
 
       {/* RIGHT */}
-      <div className="flex items-center gap-3">
-       
+      <div className="w-full sm:w-auto">
         <button
-         onClick={() => setShowRenewModal(true)}
-          className="px-5 py-2 font-fredoka rounded-full bg-[#2c511f] text-white cursor-pointer opacity-90 hover:opacity-100"
+          onClick={() => setShowRenewModal(true)}
+          className="
+            w-full sm:w-auto
+            px-5 py-2.5
+            font-fredoka
+            rounded-full
+            bg-[#2c511f] text-white
+            hover:opacity-95 shadow
+            transition
+          "
         >
           Renew
         </button>
       </div>
+
     </div>
   </div>
 )}
@@ -470,7 +495,7 @@ const handleRenewPayment = async () => {
       {active === "profile" && (
  <div className="bg-white/70 rounded-2xl p-4 sm:p-6 shadow">
   <h2 className="text-[#4a7f34] font-cinzel font-semibold text-lg mb-2">
-    MY PROFILE
+    MY INFORMATION
   </h2>
 
   <p className="text-sm lg:text-base font-roboto">
@@ -687,84 +712,107 @@ const handleRenewPayment = async () => {
 )}
 
 {active === "orders" && (
-  <div className="bg-white/90 rounded-2xl p-4 sm:p-6 shadow">
+  <div className="bg-white/90 rounded-2xl p-4 sm:p-6 shadow w-full">
 
+    {/* Header */}
     <h2 className="text-[#4a7f34] font-cinzel font-semibold text-lg mb-4">
-      Order History
+      Purchase History
     </h2>
 
     {orders.length === 0 ? (
-      <p className="text-gray-500">No orders found</p>
+      <p className="text-gray-500 text-sm">No orders found</p>
     ) : (
-      <div className="overflow-x-auto">
+      <>
+        {/* ===== DESKTOP TABLE ===== */}
+        <div className="hidden sm:block overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="text-left border-b">
+              <tr className="text-gray-500 font-manrope">
+                <th className="py-3 pr-4">Plan</th>
+                <th className="py-3 pr-4">Payment Date</th>
+                <th className="py-3 pr-4">Invoice ID</th>
+                <th className="py-3 pr-4">Payment Method</th>
+                <th className="py-3 pr-4">Amount</th>
+                <th className="py-3 pr-4">Status</th>
+              </tr>
+            </thead>
 
-        <table className="min-w-full text-sm">
+            <tbody>
+              {orders.map((o, i) => (
+                <tr key={i} className="border-b font-roboto hover:bg-green-50">
+                  <td className="py-3 pr-4">{o.subscription?.plan}</td>
 
-          <thead className="text-left border-b">
-            <tr className="text-gray-500 font-manrope">
-              <th className="py-3 pr-4">Plan</th>
-              <th className="py-3 pr-4">Payment Date</th>
-              <th className="py-3 pr-4">Invoice ID </th>
-              <th className="py-3 pr-4">Payment Method</th>
-              <th className="py-3 pr-4">Amount</th>
-              <th className="py-3 pr-4">Status</th>
-               <th className="py-3 pr-4"></th>
-            </tr>
-          </thead>
+                  <td className="py-3 pr-4">
+                    {o.createdAt
+                      ? new Date(o.createdAt).toLocaleDateString("en-IN")
+                      : "-"}
+                  </td>
 
-          <tbody>
-            {orders.map((o, i) => (
-              <tr key={i} className="border-b font-roboto hover:bg-green-50">
+                  <td className="py-3 pr-4">{o.receiptNumber || "-"}</td>
 
-                <td className="py-3 pr-4">
-                  {o.subscription?.plan}
-                </td>
+                  <td className="py-3 pr-4">
+                    {o.paymentMethod || "Online"}
+                  </td>
 
-                <td className="py-3 pr-4">
+                  <td className="py-3 pr-4">
+                    ₹{o.subscription?.amount}
+                  </td>
+
+                  <td className="py-3 pr-4">
+                    {o.subscription?.status}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ===== MOBILE CARDS ===== */}
+        <div className="sm:hidden space-y-3">
+          {orders.map((o, i) => (
+            <div
+              key={i}
+              className="bg-white rounded-xl p-4 shadow border"
+            >
+              <p className="text-sm font-semibold text-[#4a7f34] mb-2">
+                {o.subscription?.plan}
+              </p>
+
+              <div className="text-sm space-y-1 text-gray-600">
+                <p>
+                  <span className="font-semibold">Payment Date:</span>{" "}
                   {o.createdAt
                     ? new Date(o.createdAt).toLocaleDateString("en-IN")
                     : "-"}
-                </td>
+                </p>
 
-                <td className="py-3 pr-4">
+                <p>
+                  <span className="font-semibold">Invoice ID:</span>{" "}
                   {o.receiptNumber || "-"}
-                </td>
+                </p>
 
-                <td className="py-3 pr-4">
-                  {o.paymentMethod || o.payment?.method || "Online"}
-                </td>
+                <p>
+                  <span className="font-semibold">Method:</span>{" "}
+                  {o.paymentMethod || "Online"}
+                </p>
 
-                <td className="py-3 pr-4">
-                  ₹{o.subscription?.amount}
-                </td>
+                <p>
+                  <span className="font-semibold">Amount:</span> ₹
+                  {o.subscription?.amount}
+                </p>
 
-                <td className="py-3 pr-4">
+                <p>
+                  <span className="font-semibold">Status:</span>{" "}
                   {o.subscription?.status}
-                </td>
-
-<td className="py-3 pr-4">
-  {o.invoiceUrl ? (
-    <a
-      href={o.invoiceUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="px-3 py-1 rounded-lg bg-[#2c511f] text-white text-xs hover:opacity-90"
-    >
-      Download
-    </a>
-  ) : (
-    "-"
-  )}
-</td>
-              </tr>
-            ))}
-          </tbody>
-
-        </table>
-      </div>
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </>
     )}
   </div>
-)} 
+)}
 
       </div>
 
