@@ -9,6 +9,7 @@ const UserDashboard = ({ active }) => {
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState([]);
 
   const [showPauseModal, setShowPauseModal] = useState(false);
   const [pauseFromDate, setPauseFromDate] = useState("");
@@ -125,10 +126,10 @@ useEffect(() => {
        );
 
        const data = await res.json();
-
-       if (data.success && data.orders.length > 0) {
-         setOrder(data.orders[0]);
-       }
+if (data.success && data.orders.length > 0) {
+  setOrder(data.orders[0]);   // current subscription
+  setOrders(data.orders);     // ⭐ all orders for history
+}
      } catch (error) {
        console.error("Dashboard fetch error:", error);
      } finally {
@@ -685,6 +686,86 @@ const handleRenewPayment = async () => {
   </div>
 )}
 
+{active === "orders" && (
+  <div className="bg-white/90 rounded-2xl p-4 sm:p-6 shadow">
+
+    <h2 className="text-[#4a7f34] font-cinzel font-semibold text-lg mb-4">
+      Order History
+    </h2>
+
+    {orders.length === 0 ? (
+      <p className="text-gray-500">No orders found</p>
+    ) : (
+      <div className="overflow-x-auto">
+
+        <table className="min-w-full text-sm">
+
+          <thead className="text-left border-b">
+            <tr className="text-gray-500 font-manrope">
+              <th className="py-3 pr-4">Plan</th>
+              <th className="py-3 pr-4">Payment Date</th>
+              <th className="py-3 pr-4">Invoice ID </th>
+              <th className="py-3 pr-4">Payment Method</th>
+              <th className="py-3 pr-4">Amount</th>
+              <th className="py-3 pr-4">Status</th>
+               <th className="py-3 pr-4"></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {orders.map((o, i) => (
+              <tr key={i} className="border-b font-roboto hover:bg-green-50">
+
+                <td className="py-3 pr-4">
+                  {o.subscription?.plan}
+                </td>
+
+                <td className="py-3 pr-4">
+                  {o.createdAt
+                    ? new Date(o.createdAt).toLocaleDateString("en-IN")
+                    : "-"}
+                </td>
+
+                <td className="py-3 pr-4">
+                  {o.receiptNumber || "-"}
+                </td>
+
+                <td className="py-3 pr-4">
+                  {o.paymentMethod || o.payment?.method || "Online"}
+                </td>
+
+                <td className="py-3 pr-4">
+                  ₹{o.subscription?.amount}
+                </td>
+
+                <td className="py-3 pr-4">
+                  {o.subscription?.status}
+                </td>
+
+<td className="py-3 pr-4">
+  {o.invoiceUrl ? (
+    <a
+      href={o.invoiceUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="px-3 py-1 rounded-lg bg-[#2c511f] text-white text-xs hover:opacity-90"
+    >
+      Download
+    </a>
+  ) : (
+    "-"
+  )}
+</td>
+              </tr>
+            ))}
+          </tbody>
+
+        </table>
+      </div>
+    )}
+  </div>
+)} 
+
       </div>
 
       {/* 🛑 PAUSE MODAL */}
@@ -693,7 +774,7 @@ const handleRenewPayment = async () => {
         <div className="fixed inset-0 bg-black/60  flex items-center justify-center z-50">
           <div
             className="bg-white rounded-2xl p-4 sm:p-6 
-  w-[95%]  shadow-2xl relative"
+  w-[92%] max-w-md  shadow-2xl relative"
           >
             {/* ❌ Close Button */}
             <button

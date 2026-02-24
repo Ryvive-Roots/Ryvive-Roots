@@ -24,6 +24,8 @@ const OrderSchema = new mongoose.Schema(
       required: true,
     },
 
+    invoiceUrl: String,
+
     user: {
       firstName: String,
       lastName: String,
