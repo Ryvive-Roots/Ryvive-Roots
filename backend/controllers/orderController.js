@@ -138,6 +138,10 @@ const invoicePath = await generateInvoice({
   },
 });
 
+existingOrder.invoiceUrl = invoicePath;
+await existingOrder.save();
+
+
 // ✅ Send Renewal Email WITH Invoice
 await sendEmail({
   to: existingOrder.user.email,
@@ -350,6 +354,9 @@ await sendEmail({
 
     // 7️⃣ Generate Invoice
     const invoicePath = await generateInvoice(order);
+
+    order.invoiceUrl = invoicePath;
+await order.save();
     // 7️⃣ SEND CUSTOMER EMAIL (AS-IT-IS)
     await sendEmail({
       to: order.user.email,

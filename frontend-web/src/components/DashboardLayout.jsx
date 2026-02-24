@@ -81,6 +81,22 @@ const DashboardLayout = ({ children }) => {
   My Schedule
 </button>
 
+{/* ORDER HISTORY */}
+<button
+  onClick={() => {
+    setActive("orders");
+    setOpen(false);
+  }}
+  className={`w-full text-left px-4 py-2 rounded transition
+    ${
+      active === "orders"
+        ? "bg-[#3f6b2a]"
+        : "hover:bg-[#3f6b2a]/80"
+    }`}
+>
+  Order History
+</button>
+
   {/* LOGOUT */}
   <button
     onClick={handleLogout}
