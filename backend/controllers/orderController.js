@@ -332,7 +332,7 @@ await sendEmail({
 
     
       subscription: {
-  plan: normalizedPlan?.toUpperCase(),
+ plan: String(normalizedPlan),
         amount: tempPayment.amount,
         durationMonths: selectedPlan.durationMonths,
         activationAt,
