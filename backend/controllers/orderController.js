@@ -88,7 +88,13 @@ export const easebuzzSuccess = async (req, res) => {
 
 
     const { formData, plan } = tempPayment;
-    const selectedPlan = PLANS[plan];
+
+    let normalizedPlan = plan;
+
+if (plan.includes("PLATINUM")) normalizedPlan = "PLATINUM";
+else if (plan.includes("GOLD")) normalizedPlan = "GOLD";
+else if (plan.includes("SILVER")) normalizedPlan = "SILVER";
+   const selectedPlan = PLANS[plan] || { durationMonths: 1 };
 
     // =====================================================
 // 🔁 RENEWAL LOGIC (ADDED ONLY)
@@ -295,6 +301,7 @@ await sendEmail({
     }
 
     // 6️⃣ CREATE ORDER
+    
     const order = await Order.create({
       membershipId,
       receiptNumber,
@@ -319,7 +326,7 @@ await sendEmail({
       deliverySlot: formData.slot,
 
       subscription: {
-        plan,
+       plan: normalizedPlan,
         amount: tempPayment.amount,
         durationMonths: selectedPlan.durationMonths,
         activationAt,
