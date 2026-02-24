@@ -99,7 +99,7 @@ if (!normalizedPlan) {
   console.error("INVALID PLAN VALUE:", plan);
   throw new Error("Plan normalization failed");
 }
-   const selectedPlan = PLANS[plan] || { durationMonths: 1 };
+ const selectedPlan = PLANS[normalizedPlan] || { durationMonths: 1 };
 
     // =====================================================
 // 🔁 RENEWAL LOGIC (ADDED ONLY)
