@@ -306,6 +306,9 @@ await sendEmail({
     }
 
     // 6️⃣ CREATE ORDER
+
+    console.log("RAW PLAN:", plan);
+console.log("NORMALIZED PLAN:", normalizedPlan);
     
     const order = await Order.create({
       membershipId,
