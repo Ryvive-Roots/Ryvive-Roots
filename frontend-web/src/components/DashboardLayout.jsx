@@ -14,7 +14,7 @@ const DashboardLayout = ({ children }) => {
     <div className="min-h-screen font-roboto flex bg-[#f6f7f3] relative">
 
       {/* MOBILE HEADER */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-[#2c511f] text-white z-50 flex items-center justify-between px-4 py-3">
+      <div className="md:hidden fixed top-20 left-0 right-0 bg-[#2c511f] text-white z-50 flex items-center justify-between px-4 py-3">
         <h2 className="font-semibold">Dashboard</h2>
         <button onClick={() => setOpen(!open)}>
           {open ? <X /> : <Menu />}
@@ -23,7 +23,7 @@ const DashboardLayout = ({ children }) => {
 
       {/* SIDEBAR */}
       <aside
-        className={`fixed md:static top-0 left-0 h-full w-64 bg-[#2c511f] text-white z-40
+        className={`fixed md:static top-30 left-0 h-full w-64 bg-[#2c511f] text-white z-40
         transform ${open ? "translate-x-0" : "-translate-x-full"} 
         md:translate-x-0 transition-transform duration-300
         px-6 py-10`}
@@ -47,7 +47,7 @@ const DashboardLayout = ({ children }) => {
           : "hover:bg-[#3f6b2a]/80"
       }`}
   >
-    My Profile
+    My Information
   </button>
 
   {/* MY SUBSCRIPTION */}
@@ -78,7 +78,7 @@ const DashboardLayout = ({ children }) => {
         : "hover:bg-[#3f6b2a]/80"
     }`}
 >
-  My Schedule
+  My Daily Schedule
 </button>
 
 {/* ORDER HISTORY */}
@@ -94,7 +94,7 @@ const DashboardLayout = ({ children }) => {
         : "hover:bg-[#3f6b2a]/80"
     }`}
 >
-  Order History
+ Purchase History
 </button>
 
   {/* LOGOUT */}
