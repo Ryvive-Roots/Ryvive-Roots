@@ -61,11 +61,19 @@ remarks: String,
     },
 
     subscription: {
-      plan: {
-        type: String,
-        enum: ["SILVER", "GOLD", "PLATINUM"],
-        required: true,
-      },
+   plan: {
+  type: String,
+  enum: ["SILVER", "GOLD", "PLATINUM"],
+  required: true,
+  set: v => {
+    if (!v) return v;
+    const p = v.toUpperCase();
+    if (p.includes("PLATINUM")) return "PLATINUM";
+    if (p.includes("GOLD")) return "GOLD";
+    if (p.includes("SILVER")) return "SILVER";
+    return v;
+  }
+},
       amount: {
         type: Number,
         required: true,
