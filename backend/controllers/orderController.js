@@ -369,7 +369,7 @@ const order = new Order({
   deliverySlot: formData.slot,
 
   subscription: {
-    plan: normalizedPlan,
+   plan: Object.keys(PLANS).find(p => p === normalizedPlan),
     amount: tempPayment.amount,
     durationMonths: selectedPlan.durationMonths,
     activationAt,
