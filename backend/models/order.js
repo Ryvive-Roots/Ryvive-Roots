@@ -141,4 +141,4 @@ remarks: String,
 );
 
 // ✅ SAFE EXPORT (CORRECT)
-export default mongoose.models.Order || mongoose.model("Order", OrderSchema);
+export default mongoose.model("Order", OrderSchema);
