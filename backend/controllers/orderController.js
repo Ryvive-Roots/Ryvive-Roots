@@ -389,6 +389,8 @@ order.subscription.plan = normalizedPlan;
     const invoicePath = await generateInvoice(order);
 
     order.invoiceUrl = invoicePath;
+    // ⭐ HARD override (this stops enum error completely)
+order.set("subscription.plan", normalizedPlan, { strict: false });
 await order.save();
     // 7️⃣ SEND CUSTOMER EMAIL (AS-IT-IS)
     await sendEmail({
