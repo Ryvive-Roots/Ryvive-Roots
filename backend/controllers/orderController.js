@@ -31,7 +31,7 @@ export const easebuzzSuccess = async (req, res) => {
       udf10 = "",
     } = req.body;
 
-    if (status !== "success") {
+    if (String(status).toLowerCase() !== "success") {
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
     }
 
