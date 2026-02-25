@@ -102,13 +102,11 @@ console.log(
 );
 console.log("====================");
 
-// 🔥 BULLETPROOF PLAN CLEANER
 const cleanPlan = (value) => {
   return String(value || "")
-    .normalize("NFKC")               // normalize unicode
-    .replace(/\u200B/g, "")          // remove zero-width space
-    .replace(/[\r\n\t]/g, "")        // remove line breaks
-    .replace(/\s+/g, "")             // remove ALL spaces
+    .normalize("NFKC")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")   // remove ALL zero-width characters
+    .replace(/\s+/g, "")                   // remove whitespace
     .trim()
     .toUpperCase();
 };
@@ -116,12 +114,18 @@ const cleanPlan = (value) => {
 const normalizedPlan = cleanPlan(plan);
 
 // Validate against enum from Order schema (stronger than PLANS)
-if (!Order.schema.path("subscription.plan").enumValues.includes(normalizedPlan)) {
-  console.error("❌ Invalid plan from TempPayment:", normalizedPlan);
-  throw new Error("Invalid subscription plan: " + normalizedPlan);
+const allowedPlans = Order.schema.path("subscription.plan").enumValues;
+
+const exactPlan = allowedPlans.find(
+  p => cleanPlan(p) === normalizedPlan
+);
+
+if (!exactPlan) {
+  console.error("❌ Plan mismatch:", normalizedPlan);
+  throw new Error("Invalid subscription plan");
 }
 
-const selectedPlan = PLANS[normalizedPlan];
+const selectedPlan = PLANS[exactPlan];
 
 if (!selectedPlan) {
   console.error("❌ Invalid plan from TempPayment:", normalizedPlan);
@@ -369,7 +373,7 @@ const order = new Order({
   deliverySlot: formData.slot,
 
   subscription: {
-    plan: normalizedPlan,
+    plan: exactPlan,
     amount: tempPayment.amount,
     durationMonths: selectedPlan.durationMonths,
     activationAt,
