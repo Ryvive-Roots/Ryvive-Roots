@@ -89,6 +89,19 @@ export const easebuzzSuccess = async (req, res) => {
 
 const { formData, plan } = tempPayment;
 
+console.log("==== DEBUG PLAN ====");
+console.log("RAW PLAN:", JSON.stringify(plan));
+console.log("RAW LENGTH:", plan.length);
+console.log(
+  "CHAR CODES:",
+  [...plan].map(c => c.charCodeAt(0))
+);
+console.log(
+  "ENUM:",
+  Order.schema.path("subscription.plan").enumValues
+);
+console.log("====================");
+
 // 🔥 BULLETPROOF PLAN CLEANER
 const cleanPlan = (value) => {
   return String(value || "")
