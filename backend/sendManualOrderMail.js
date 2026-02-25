@@ -6,7 +6,7 @@ import Order from "../models/order.js";
 import sendEmail from "../utils/sendEmail.js";
 import generateInvoice from "../utils/generateInvoice.js";
 
-await mongoose.connect(process.env.MONGO_URI);
+await mongoose.connect(process.env.MONGODB_URI);
 
 const order = await Order.findOne({ membershipId: "RR20260201" });
 
