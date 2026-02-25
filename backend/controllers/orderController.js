@@ -348,7 +348,7 @@ console.log("NORMALIZED PLAN:", normalizedPlan);
 
     
       subscription: {
-
+ plan: normalizedPlan,
         amount: tempPayment.amount,
         durationMonths: selectedPlan.durationMonths,
         activationAt,
@@ -369,8 +369,7 @@ console.log("NORMALIZED PLAN:", normalizedPlan);
       
     });
 
-    // ⭐ IMPORTANT — set plan AFTER object created
-order.subscription.plan = normalizedPlan;
+
     
 
     // 🔄 Update temp payment
