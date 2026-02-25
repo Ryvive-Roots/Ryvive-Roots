@@ -19,6 +19,8 @@ export const initiateEasebuzzPayment = async (req, res) => {
       membershipId,
     } = req.body;
 
+    isRenewal = isRenewal === true || isRenewal === "true";
+
     // ✅ Basic validation (common fields)
     if (!firstname || !email || !phone || !plan) {
       return res.status(400).json({
@@ -82,7 +84,7 @@ if (dbAmount === undefined)
       amount: dbAmount,
       plan: plan,
       durationMonths,
-      formData: isRenewal ? null : formData,
+    formData: isRenewal ? undefined : formData,
       isRenewal: isRenewal || false,
       membershipId: membershipId || null,
       status: "PENDING",
