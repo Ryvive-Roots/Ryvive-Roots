@@ -71,7 +71,7 @@ remarks: String,
     if (p.includes("PLATINUM")) return "PLATINUM";
     if (p.includes("GOLD")) return "GOLD";
     if (p.includes("SILVER")) return "SILVER";
-    return v;
+    return undefined;
   }
 },
       amount: {

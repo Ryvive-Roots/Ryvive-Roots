@@ -102,9 +102,10 @@ if (!normalizedPlan) {
   console.error("INVALID PLAN VALUE:", plan);
   throw new Error("Plan normalization failed");
 }
-const selectedPlan = PLANS[plan] || {
-  durationMonths: tempPayment.durationMonths || 1,
-};
+const selectedPlan =
+  PLANS[tempPayment.plan] ||
+  PLANS[rawPlan] ||
+  { durationMonths: tempPayment.durationMonths || 1 };
 
     // =====================================================
 // 🔁 RENEWAL LOGIC (ADDED ONLY)
@@ -322,7 +323,7 @@ await sendEmail({
     console.log("RAW PLAN:", plan);
 console.log("NORMALIZED PLAN:", normalizedPlan);
     
-    const order = await Order.create({
+    const order = new Order({
       membershipId,
       receiptNumber,
 
@@ -347,11 +348,7 @@ console.log("NORMALIZED PLAN:", normalizedPlan);
 
     
       subscription: {
-plan:
-  rawPlan.startsWith("PLATINUM") ? "PLATINUM" :
-  rawPlan.startsWith("GOLD") ? "GOLD" :
-  rawPlan.startsWith("SILVER") ? "SILVER" :
-  "SILVER",
+
         amount: tempPayment.amount,
         durationMonths: selectedPlan.durationMonths,
         activationAt,
@@ -369,7 +366,11 @@ plan:
         txnid,
         easepayid,
       },
+      
     });
+
+    // ⭐ IMPORTANT — set plan AFTER object created
+order.subscription.plan = normalizedPlan;
     
 
     // 🔄 Update temp payment
