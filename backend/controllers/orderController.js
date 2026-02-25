@@ -87,14 +87,17 @@ export const easebuzzSuccess = async (req, res) => {
 
 
 
-    const { formData, plan } = tempPayment;
+const { formData, plan } = tempPayment;
 
-const rawPlan = String(plan || "").toUpperCase();
-const normalizedPlan = rawPlan.trim();
+const normalizedPlan = String(plan || "")
+  .trim()
+  .replace(/[^\w_]/g, "")  // removes hidden characters
+  .toUpperCase();
 
-if (!normalizedPlan) {
-  console.error("INVALID PLAN VALUE:", plan);
-  throw new Error("Plan normalization failed");
+// Validate against enum from Order schema (stronger than PLANS)
+if (!Order.schema.path("subscription.plan").enumValues.includes(normalizedPlan)) {
+  console.error("❌ Invalid plan from TempPayment:", normalizedPlan);
+  throw new Error("Invalid subscription plan: " + normalizedPlan);
 }
 
 const selectedPlan = PLANS[normalizedPlan];
