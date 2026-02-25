@@ -118,7 +118,7 @@ doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 422);
 
  await new Promise((resolve) => stream.on("finish", resolve));
 
-return `${process.env.BASE_URL}/invoices/${fileName}`;
+return path.join(__dirname, "../invoices", fileName);
 };
 
 export default generateInvoice;
