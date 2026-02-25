@@ -8,7 +8,7 @@ import generateInvoice from "./utils/generateInvoice.js";
 
 await mongoose.connect(process.env.MONGODB_URI);
 
-const order = await Order.findOne({ membershipId: "RR20260201" });
+const order = await Order.findOne().sort({ createdAt: -1 });
 
 if (!order) {
   console.log("❌ Order not found");
