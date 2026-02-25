@@ -2,9 +2,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import mongoose from "mongoose";
-import Order from "./models/order.js";
-import sendEmail from "./utils/sendEmail.js";
-import generateInvoice from "./utils/generateInvoice.js";
+import Order from "../models/order.js";
+import sendEmail from "../utils/sendEmail.js";
+import generateInvoice from "../utils/generateInvoice.js";
 
 await mongoose.connect(process.env.MONGO_URI);
 
