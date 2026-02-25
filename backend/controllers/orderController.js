@@ -320,6 +320,8 @@ await sendEmail({
 
     console.log("RAW PLAN:", plan);
 console.log("NORMALIZED PLAN:", normalizedPlan);
+console.log("ENUM VALUES:", Order.schema.path("subscription.plan").enumValues);
+console.log("SAVING PLAN:", normalizedPlan);
     
     const order = new Order({
       membershipId,
