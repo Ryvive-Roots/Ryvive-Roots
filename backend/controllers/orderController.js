@@ -275,121 +275,117 @@ await sendEmail({
 }
 
 
-    // 3️⃣ USER + MEMBERSHIP
-    let user = await User.findOne({
-      $or: [{ phone: formData.phone }, { email: formData.email }],
-    });
+  // 3️⃣ USER + MEMBERSHIP (SAFE VERSION)
 
-    const membershipId =
-      user?.membershipId ||
-      (await generateMembershipId(Order, tempPayment.amount));
+// 🔹 Find existing user first
+let user = await User.findOne({
+  $or: [{ phone: formData.phone }, { email: formData.email }],
+});
 
-    if (!user) {
-      user = await User.create({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-        membershipId,
-      });
-    }
+let membershipId;
 
-    // 4️⃣ Subscription dates
-    const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-    const startDate = new Date(activationAt);
-    const endDate = new Date(startDate);
-    endDate.setMonth(endDate.getMonth() + selectedPlan.durationMonths);
+if (user) {
+  // ✅ User already exists → reuse membershipId
+  membershipId = user.membershipId;
+} else {
+  // ❌ Create new user
+  membershipId = await generateMembershipId(Order, tempPayment.amount);
 
-    // 5️⃣ Receipt
-    const receiptNumber = await generateReceiptNumber(
-      Order,
-      tempPayment.amount
-    );
+  user = await User.create({
+    firstName: formData.firstName,
+    lastName: formData.lastName,
+    email: formData.email,
+    phone: formData.phone,
+    membershipId,
+  });
+}
 
-    const existingOrder = await Order.findOne({
-      "paymentDetails.txnid": txnid,
-    });
+// 4️⃣ Prevent Duplicate Order (VERY IMPORTANT)
+const existingOrder = await Order.findOne({
+  "paymentDetails.txnid": txnid,
+});
 
-    if (existingOrder) {
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/subscription-success?membershipId=${existingOrder.membershipId}`
-      );
-    }
+if (existingOrder) {
+  return res.redirect(
+    `${process.env.FRONTEND_URL}/subscription-success?membershipId=${existingOrder.membershipId}`
+  );
+}
 
-    // 6️⃣ CREATE ORDER
+// 5️⃣ Subscription dates
+const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+const startDate = new Date(activationAt);
+const endDate = new Date(startDate);
+endDate.setMonth(endDate.getMonth() + selectedPlan.durationMonths);
 
-    console.log("RAW PLAN:", plan);
-console.log("NORMALIZED PLAN:", normalizedPlan);
-console.log("ENUM VALUES:", Order.schema.path("subscription.plan").enumValues);
-console.log("SAVING PLAN:", normalizedPlan);
-    
-    const order = new Order({
-      membershipId,
-      receiptNumber,
+// 6️⃣ Receipt
+const receiptNumber = await generateReceiptNumber(
+  Order,
+  tempPayment.amount
+);
 
-      user: {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phone: formData.phone,
-        email: formData.email,
-        dob: new Date(formData.dob),
-      },
+// 7️⃣ CREATE ORDER
+const order = new Order({
+  membershipId,
+  receiptNumber,
 
-      address: {
-        pincode: formData.pincode,
-        house: formData.house,
-        street: formData.street,
-        landmark: formData.landmark || "",
-        city: "Dombivli",
-        state: "Maharashtra",
-      },
+  user: {
+    firstName: formData.firstName,
+    lastName: formData.lastName,
+    phone: formData.phone,
+    email: formData.email,
+    dob: new Date(formData.dob),
+  },
 
-      deliverySlot: formData.slot,
+  address: {
+    pincode: formData.pincode,
+    house: formData.house,
+    street: formData.street,
+    landmark: formData.landmark || "",
+    city: "Dombivli",
+    state: "Maharashtra",
+  },
 
-    
-      subscription: {
- plan: normalizedPlan,
-        amount: tempPayment.amount,
-        durationMonths: selectedPlan.durationMonths,
-        activationAt,
-        startDate,
-        endDate,
-        pause: { used: 0, history: [] },
-        status: "UNDER_PROCESS",
-      },
+  deliverySlot: formData.slot,
 
-      paymentStatus: "PAID",
-      paymentMethod: "ONLINE",
+  subscription: {
+    plan: normalizedPlan,
+    amount: tempPayment.amount,
+    durationMonths: selectedPlan.durationMonths,
+    activationAt,
+    startDate,
+    endDate,
+    pause: { used: 0, history: [] },
+    status: "UNDER_PROCESS",
+  },
 
-      paymentDetails: {
-        gateway: "EASEBUZZ",
-        txnid,
-        easepayid,
-      },
-      
-    });
+  paymentStatus: "PAID",
+  paymentMethod: "ONLINE",
 
+  paymentDetails: {
+    gateway: "EASEBUZZ",
+    txnid,
+    easepayid,
+  },
+});
 
-    
+await order.save(); // ✅ Save first
 
-    // 🔄 Update temp payment
-    tempPayment.status = "SUCCESS";
-    tempPayment.membershipId = membershipId;
-    await tempPayment.save();
-
-    await User.findByIdAndUpdate(user._id, {
-      firstName: order.user.firstName,
-      lastName: order.user.lastName,
-      email: order.user.email,
-      phone: order.user.phone,
-    });
-
-    // 7️⃣ Generate Invoice
-    const invoicePath = await generateInvoice(order);
-
-    order.invoiceUrl = invoicePath;
-
+// 🔹 Generate Invoice
+const invoicePath = await generateInvoice(order);
+order.invoiceUrl = invoicePath;
 await order.save();
+
+// 🔹 Update User (optional sync)
+await User.findByIdAndUpdate(user._id, {
+  firstName: order.user.firstName,
+  lastName: order.user.lastName,
+  email: order.user.email,
+  phone: order.user.phone,
+});
+
+
+
+
     // 7️⃣ SEND CUSTOMER EMAIL (AS-IT-IS)
     await sendEmail({
       to: order.user.email,
@@ -476,6 +472,11 @@ await order.save();
         },
       ],
     });
+
+    // 🔹 NOW mark TempPayment SUCCESS (AFTER everything works)
+tempPayment.status = "SUCCESS";
+tempPayment.membershipId = membershipId;
+await tempPayment.save();
 
     // 9️⃣ Redirect to success page
     return res.redirect(
