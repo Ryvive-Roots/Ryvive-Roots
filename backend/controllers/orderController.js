@@ -89,10 +89,18 @@ export const easebuzzSuccess = async (req, res) => {
 
 const { formData, plan } = tempPayment;
 
-const normalizedPlan = String(plan || "")
-  .trim()
-  .replace(/[^\w_]/g, "")  // removes hidden characters
-  .toUpperCase();
+// 🔥 BULLETPROOF PLAN CLEANER
+const cleanPlan = (value) => {
+  return String(value || "")
+    .normalize("NFKC")               // normalize unicode
+    .replace(/\u200B/g, "")          // remove zero-width space
+    .replace(/[\r\n\t]/g, "")        // remove line breaks
+    .replace(/\s+/g, "")             // remove ALL spaces
+    .trim()
+    .toUpperCase();
+};
+
+const normalizedPlan = cleanPlan(plan);
 
 // Validate against enum from Order schema (stronger than PLANS)
 if (!Order.schema.path("subscription.plan").enumValues.includes(normalizedPlan)) {
