@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { PLANS } from "../utils/planConfig.js";
+
 
 const OrderSchema = new mongoose.Schema(
  
@@ -62,9 +62,16 @@ remarks: String,
     },
 
     subscription: {
- plan: {
+plan: {
   type: String,
-  enum: Object.keys(PLANS),
+  enum: [
+    "SILVER_1M",
+    "GOLD_1M",
+    "PLATINUM_1M",
+    "SILVER_3M",
+    "GOLD_3M",
+    "PLATINUM_3M",
+  ],
 },
       amount: {
         type: Number,
