@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import mongoose from "mongoose";
 import Order from "./models/order.js";
 import sendEmail from "./utils/sendEmail.js";
