@@ -90,22 +90,19 @@ export const easebuzzSuccess = async (req, res) => {
     const { formData, plan } = tempPayment;
 
 const rawPlan = String(plan || "").toUpperCase();
-
-let normalizedPlan;
-
-if (rawPlan.startsWith("PLATINUM")) normalizedPlan = "PLATINUM";
-else if (rawPlan.startsWith("GOLD")) normalizedPlan = "GOLD";
-else if (rawPlan.startsWith("SILVER")) normalizedPlan = "SILVER";
-else throw new Error("Invalid plan value: " + rawPlan);
+const normalizedPlan = rawPlan.trim();
 
 if (!normalizedPlan) {
   console.error("INVALID PLAN VALUE:", plan);
   throw new Error("Plan normalization failed");
 }
-const selectedPlan =
-  PLANS[tempPayment.plan] ||
-  PLANS[rawPlan] ||
-  { durationMonths: tempPayment.durationMonths || 1 };
+
+const selectedPlan = PLANS[normalizedPlan];
+
+if (!selectedPlan) {
+  console.error("❌ Invalid plan from TempPayment:", normalizedPlan);
+  throw new Error("Plan not found in planConfig: " + normalizedPlan);
+}
 
     // =====================================================
 // 🔁 RENEWAL LOGIC (ADDED ONLY)
@@ -145,12 +142,10 @@ const receiptNumber = await generateReceiptNumber(
   tempPayment.amount
 );
 
-// 🔑 normalize existing subscription plan (VERY IMPORTANT)
-const subPlan = String(existingOrder.subscription.plan || "").toUpperCase();
-
-if (subPlan.includes("PLATINUM")) existingOrder.subscription.plan = "PLATINUM";
-else if (subPlan.includes("GOLD")) existingOrder.subscription.plan = "GOLD";
-else if (subPlan.includes("SILVER")) existingOrder.subscription.plan = "SILVER";
+// Keep original plan exactly as stored
+existingOrder.subscription.plan = String(
+  existingOrder.subscription.plan
+).trim().toUpperCase();
 
 // ✅ Generate renewal invoice
 const invoicePath = await generateInvoice({
