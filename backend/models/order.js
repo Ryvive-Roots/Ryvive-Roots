@@ -67,7 +67,7 @@ plan: {
   enum: [
     "SILVER_1M",
     "GOLD_1M",
-    "PLATINUM_1M",
+    "PLATINUM_1",
     "SILVER_3M",
     "GOLD_3M",
     "PLATINUM_3M",
