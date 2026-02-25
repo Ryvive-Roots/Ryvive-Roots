@@ -146,6 +146,8 @@ plan: {
   },
   { timestamps: true },
 );
+if (mongoose.models.Order) {
+  delete mongoose.models.Order;
+}
 
-// ✅ SAFE EXPORT (CORRECT)
 export default mongoose.model("Order", OrderSchema);
