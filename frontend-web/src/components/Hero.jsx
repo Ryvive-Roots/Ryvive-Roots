@@ -189,7 +189,7 @@ useEffect(() => {
             boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.20)",
           }}
           whileTap={{ scale: 0.97 }}
-          onClick={() => navigate("/our-story")}
+          onClick={() => navigate("/subscription")}
           className="bg-[#6f5849] font-merriweather rounded-4xl cursor-pointer text-white px-8 py-3 transition-all"
         >
           Subscription
