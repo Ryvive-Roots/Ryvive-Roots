@@ -154,6 +154,9 @@ existingOrder.subscription.renewal = {
   durationMonths: tempPayment.durationMonths,
 };
 
+// ⭐ IMPORTANT — dashboard depends on this
+existingOrder.subscription.durationMonths = tempPayment.durationMonths;
+
 existingOrder.subscription.activationAt = activationAt;
 existingOrder.subscription.status = "UNDER_PROCESS";
 
