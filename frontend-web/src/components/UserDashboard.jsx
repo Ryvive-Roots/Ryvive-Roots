@@ -241,9 +241,32 @@ if (subscription.plan === "SILVER" && durationMonths === 1) {
   const isLocked = remainingPauseCount === 0 || finalStatus === "UNDER_PROCESS";
 
   // ✅ Label
-  const remainingLabel = isLocked
-    ? "No pauses remaining"
-    : `${remainingPauseCount} pauses remaining`;
+let remainingLabel = "No pauses remaining";
+
+const plan = subscription.plan;
+const duration = durationMonths; // from backend
+const perMonth = PAUSE_PER_MONTH[plan] || 0;
+
+// ⭐ SILVER special rule
+if (plan === "SILVER" && duration === 1) {
+  remainingLabel = "No pause available";
+}
+
+// ⭐ If locked (used all pauses)
+else if (isLocked) {
+  remainingLabel = "No pauses remaining";
+}
+
+// ⭐ 1 month → show TOTAL remaining
+else if (duration === 1) {
+  remainingLabel = `${remainingPauseCount} pause${remainingPauseCount > 1 ? "s" : ""} remaining`;
+}
+
+// ⭐ 3 months → show per month
+else if (duration === 3) {
+  remainingLabel = `${perMonth} pause${perMonth > 1 ? "s" : ""} / month`;
+}
+
   const latestPause =
     subscription.pause?.history?.length > 0
       ? subscription.pause.history[subscription.pause.history.length - 1]
