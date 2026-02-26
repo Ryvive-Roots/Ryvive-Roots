@@ -5,6 +5,8 @@ import Admin from "../models/Admin.js";
 
 const router = express.Router();
 
+
+
 /* ============================
    CREATE ADMIN (run once only)
 ============================ */
@@ -63,5 +65,8 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ message: "Login failed" });
   }
 });
+
+
+
 
 export default router;

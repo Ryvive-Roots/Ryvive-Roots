@@ -18,7 +18,13 @@ const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-
+function addMonthsSafe(date, months) {
+  const d = new Date(date);
+  const day = d.getDate();
+  d.setMonth(d.getMonth() + months);
+  if (d.getDate() < day) d.setDate(0);
+  return d;
+} 
 
 
 /* ===========================
@@ -28,16 +34,33 @@ router.get("/orders", async (req, res) => {
   try {
     const now = new Date();
 
-    // 🔁 AUTO-ACTIVATE SUBSCRIPTIONS
-    await Order.updateMany(
-      {
-        "subscription.status": "UNDER_PROCESS",
-        "subscription.activationAt": { $lte: now },
-      },
-      {
-        $set: { "subscription.status": "ACTIVE" },
-      }
-    );
+const pendingOrders = await Order.find({
+  "subscription.status": "UNDER_PROCESS",
+  "subscription.activationAt": { $lte: now },
+});
+
+for (const order of pendingOrders) {
+
+  const start = new Date(order.subscription.activationAt);
+
+  order.subscription.startDate = start;
+
+  const months =
+    order.subscription.renewal?.pending
+      ? order.subscription.renewal.durationMonths
+      : order.subscription.durationMonths;
+
+  order.subscription.endDate = addMonthsSafe(start, months);
+
+  if (order.subscription.renewal?.pending) {
+    order.subscription.pause = { used: 0, history: [] };
+    order.subscription.renewal.pending = false;
+  }
+
+  order.subscription.status = "ACTIVE";
+
+  await order.save();
+}
 
     const orders = await Order.find().sort({ createdAt: 1 });
 
@@ -564,7 +587,205 @@ router.get("/excel", (req, res) => {
   }
 });
 
+/* =====================================
+   ADMIN MANUAL RENEW (CASH USERS)
+===================================== */
+router.post("/renew", async (req, res) => {
+  try {
+   const { membershipId, durationMonths, paymentMethod } = req.body;
 
+    if (!membershipId || !durationMonths) {
+      return res.status(400).json({ success: false, message: "Missing data" });
+    }
+
+    const existingOrder = await Order.findOne({ membershipId });
+
+    if (!existingOrder) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    // ⭐ prevent double renewal
+    if (existingOrder.subscription?.renewal?.pending) {
+      return res.status(400).json({
+        success: false,
+        message: "Renewal already pending",
+      });
+    }
+
+    /* ======================
+       PLAN + AMOUNT
+    ====================== */
+    const planKey = existingOrder.subscription.plan;
+    const selectedPlan = PLANS[planKey];
+
+    if (!selectedPlan) {
+      return res.status(400).json({ success: false, message: "Invalid plan" });
+    }
+
+    // ⭐ amount based on duration (same logic you use frontend pricing)
+    const amount =
+      durationMonths === 3
+        ? selectedPlan.price * 3 // or your discounted logic
+        : selectedPlan.price;
+
+    /* ======================
+       RENEWAL MARK PENDING
+    ====================== */
+    const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+
+    existingOrder.subscription.renewal = {
+      pending: true,
+      durationMonths,
+    };
+
+    existingOrder.subscription.durationMonths = durationMonths;
+    existingOrder.subscription.activationAt = activationAt;
+    existingOrder.subscription.status = "UNDER_PROCESS";
+
+    existingOrder.paymentMethod = paymentMethod || "CASH";
+  
+    existingOrder.paymentStatus = "PAID";
+
+    /* ======================
+       RECEIPT + INVOICE
+    ====================== */
+    const receiptNumber = await generateReceiptNumber(Order, amount);
+
+    const invoicePath = await generateInvoice({
+      ...existingOrder.toObject(),
+      receiptNumber,
+      subscription: {
+        ...existingOrder.subscription,
+        amount,
+      },
+    });
+
+    existingOrder.invoiceUrl = invoicePath;
+
+    existingOrder.subscription.amount = amount;
+existingOrder.receiptNumber = receiptNumber;
+existingOrder.subscription.renewedAt = new Date();
+existingOrder.subscription.renewalTriggeredBy = "ADMIN";
+existingOrder.subscription.renewalHistory =
+  existingOrder.subscription.renewalHistory || [];
+
+existingOrder.subscription.renewalHistory.push({
+  date: new Date(),
+  durationMonths,
+  amount,
+  paymentMethod: paymentMethod || "CASH",
+});
+
+    await existingOrder.save();
+
+    /* ======================
+       TEMP PAYMENT TRICK (EMAIL SAME)
+    ====================== */
+    const tempPayment = {
+      durationMonths,
+      amount,
+    };
+
+    /* ======================
+       CUSTOMER EMAIL (SAME TEMPLATE)
+    ====================== */
+    await sendEmail({
+      to: existingOrder.user.email,
+      subject: "You’re Back, And We’re Glad 🌿",
+      html: `
+<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+
+  <h2>Hi ${existingOrder.user.firstName},</h2>
+
+  <p><b>Welcome back. We're glad you stayed.</b></p>
+
+  <p>
+    Your renewal is a reminder of the commitment we made when we started
+    <b>Ryvive Roots</b> — to support your health with sincerity and consistency.
+  </p>
+
+  <p>
+    Thank you for continuing your wellness journey with us.
+    Here’s your renewal summary for your records:
+  </p>
+
+  <table style="border-collapse: collapse; margin-top: 10px;">
+    <tr>
+      <td style="padding: 6px 10px;"><b>Receipt Number</b></td>
+      <td style="padding: 6px 10px;">: ${receiptNumber}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Plan Renewed</b></td>
+      <td style="padding: 6px 10px;">: ${existingOrder.subscription.plan}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Renewal Duration</b></td>
+      <td style="padding: 6px 10px;">: ${tempPayment.durationMonths} Month${tempPayment.durationMonths > 1 ? "s" : ""}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Amount Paid</b></td>
+      <td style="padding: 6px 10px;">: ₹${tempPayment.amount}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Payment Date</b></td>
+      <td style="padding: 6px 10px;">: ${new Date().toLocaleDateString("en-IN")}</td>
+    </tr>
+  </table>
+
+  <br/>
+
+  <p>
+    Your subscription will be active within <b>48 hours</b>.
+  </p>
+
+</div>
+`,
+      attachments: [
+        {
+          filename: `invoice-${receiptNumber}.pdf`,
+          path: invoicePath,
+        },
+      ],
+    });
+
+    /* ======================
+       COMPANY EMAIL
+    ====================== */
+    const previewEnd = addMonthsSafe(
+      existingOrder.subscription.endDate,
+      tempPayment.durationMonths
+    );
+
+    await sendEmail({
+      to: process.env.COMPANY_EMAIL,
+      subject: `🔁 Subscription Renewed - ${existingOrder.membershipId}`,
+      html: `
+<h2>Subscription Renewal Received</h2>
+<ul>
+  <li><b>Name:</b> ${existingOrder.user.firstName} ${existingOrder.user.lastName}</li>
+  <li><b>Phone:</b> ${existingOrder.user.phone}</li>
+  <li><b>Email:</b> ${existingOrder.user.email}</li>
+  <li><b>Plan:</b> ${existingOrder.subscription.plan}</li>
+  <li><b>Amount:</b> ₹${tempPayment.amount}</li>
+  <li><b>New Expiry:</b> ${previewEnd.toLocaleDateString("en-IN")}</li>
+  <li><b>Membership ID:</b> ${existingOrder.membershipId}</li>
+  <li><b>Receipt No:</b> ${receiptNumber}</li>
+</ul>
+`,
+      attachments: [
+        {
+          filename: `invoice-${receiptNumber}.pdf`,
+          path: invoicePath,
+        },
+      ],
+    });
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("Admin renew error:", err);
+    res.status(500).json({ success: false });
+  }
+});
 
 
 

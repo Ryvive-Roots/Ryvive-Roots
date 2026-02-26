@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 const allowedPincodes = [
   { code: "421201", area: "Dombivli East" },
@@ -16,6 +17,12 @@ const AdminDashboard = () => {
   const [saving, setSaving] = useState(false);
   const [expandedRow, setExpandedRow] = useState(null);
   const [editingRow, setEditingRow] = useState(null);
+  const [showRenew, setShowRenew] = useState(false);
+const [selectedOrder, setSelectedOrder] = useState(null);
+
+const [duration, setDuration] = useState(1);
+const [paymentMethod, setPaymentMethod] = useState("CASH");
+
 const [editData, setEditData] = useState({
   phone: "",
   email: "",
@@ -24,7 +31,12 @@ const [editData, setEditData] = useState({
   remarks: "",
 });
 
-
+const openRenewModal = (order) => {
+  setSelectedOrder(order);
+  setDuration(1);
+  setPaymentMethod("CASH");
+  setShowRenew(true);
+};
 
 
  
@@ -245,9 +257,45 @@ const handleSaveEdit = async (orderId) => {
   }
 };
 
+const handleRenew = async () => {
+  try {
+    await axios.post("https://api.ryviveroots.com/api/admin/renew", {
+      membershipId: selectedOrder.membershipId,
+      durationMonths: duration,
+      paymentMethod,
+    });
 
+    alert("Renewal triggered ✅");
+    setShowRenew(false);
+
+    fetchOrders(); // refresh list
+  } catch (err) {
+    alert("Renew failed");
+  }
+};
  
+const canShowRenew = (order) => {
+  if (!order?.subscription?.endDate) return false;
+  if (order.subscription.status !== "ACTIVE") return false;
 
+  const today = new Date();
+  const expiry = new Date(order.subscription.endDate);
+
+  const diffDays = Math.ceil(
+    (expiry - today) / (1000 * 60 * 60 * 24)
+  );
+
+  return diffDays <= 10;
+};
+
+const daysLeft = (order) => {
+  const today = new Date();
+  const expiry = new Date(order.subscription.endDate);
+
+  return Math.ceil(
+    (expiry - today) / (1000 * 60 * 60 * 24)
+  );
+};
 
   return (
     <div className="p-4 md:p-8 max-w-[1400px] mx-auto">
@@ -742,6 +790,20 @@ const handleSaveEdit = async (orderId) => {
 
                 <td className="p-3 border font-semibold text-green-700">
                   {order.subscription?.plan}
+                {canShowRenew(order) && (
+  <div className="flex items-center gap-2">
+    <span className="text-xs text-red-600">
+      {daysLeft(order)} days left
+    </span>
+
+    <button
+      onClick={() => openRenewModal(order)}
+      className="px-3 py-1 bg-green-600 text-white rounded"
+    >
+      Renew
+    </button>
+  </div>
+)}
                 </td>
 
                 <td className="p-3 border">{order.deliverySlot}</td>
@@ -775,6 +837,7 @@ const handleSaveEdit = async (orderId) => {
                 <td className="p-3 border font-semibold">
                   {order.paymentMethod || "CASH"}
                 </td>
+                <td></td>
               </tr>
             ))}
           </tbody>
@@ -917,8 +980,22 @@ const handleSaveEdit = async (orderId) => {
         {order.address?.landmark || "-"},
         {order.address?.city || "-"} -{" "}
         <b>{order.address?.pincode || "-"}</b>
-      </p>
 
+      </p>
+  {canShowRenew(order) && (
+  <div className="flex items-center gap-2">
+    <span className="text-xs font-semibold text-red-600">
+      {daysLeft(order)} days left
+    </span>
+
+    <button
+      onClick={() => openRenewModal(order)}
+      className="px-3 py-1 bg-green-600 text-white rounded"
+    >
+      Renew
+    </button>
+  </div>
+)}
       <div className="flex justify-between text-sm">
         <span>
           <b>Start:</b>{" "}
@@ -970,6 +1047,56 @@ const handleSaveEdit = async (orderId) => {
     </div>
   ))}
 </div>
+
+
+{showRenew && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl p-6 w-[400px]">
+
+      <h2 className="text-lg font-semibold mb-4">
+        Renew Member
+      </h2>
+
+      {/* Duration */}
+      <label className="block mb-2 text-sm">Duration</label>
+      <select
+        value={duration}
+        onChange={(e) => setDuration(Number(e.target.value))}
+        className="w-full border rounded p-2 mb-4"
+      >
+        <option value={1}>1 Month</option>
+        <option value={3}>3 Months</option>
+      </select>
+
+      {/* Payment method */}
+      <label className="block mb-2 text-sm">Payment Method</label>
+      <select
+        value={paymentMethod}
+        onChange={(e) => setPaymentMethod(e.target.value)}
+        className="w-full border rounded p-2 mb-6"
+      >
+        <option value="CASH">Cash</option>
+        <option value="ONLINE">Online</option>
+      </select>
+
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={() => setShowRenew(false)}
+          className="px-4 py-2 border rounded"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={handleRenew}
+          className="px-4 py-2 bg-green-600 text-white rounded"
+        >
+          Confirm Renew
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
     </div>
   );
