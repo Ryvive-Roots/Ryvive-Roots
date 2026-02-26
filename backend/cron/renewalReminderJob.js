@@ -1,8 +1,49 @@
 import Order from "../models/order.js";
 import sendEmail from "../utils/sendEmail.js";
 
+function addMonthsSafe(date, months) {
+  const d = new Date(date);
+  const day = d.getDate();
+  d.setMonth(d.getMonth() + months);
+  if (d.getDate() < day) d.setDate(0);
+  return d;
+}
+
+const activatePendingRenewals = async () => {
+  
+  const now = new Date();
+
+  const orders = await Order.find({
+    "subscription.status": "UNDER_PROCESS",
+    "subscription.activationAt": { $lte: now },
+  });
+
+  for (const order of orders) {
+    if (order.subscription.renewal?.pending) {
+      order.subscription.endDate = addMonthsSafe(
+        order.subscription.endDate,
+        order.subscription.renewal.durationMonths
+      );
+
+      order.subscription.durationMonths =
+        order.subscription.renewal.durationMonths;
+
+         // ⭐ RESET PAUSES (ADD THIS LINE HERE)
+  order.subscription.pause = { used: 0, history: [] };
+
+      order.subscription.renewal.pending = false;
+    }
+
+    order.subscription.status = "ACTIVE";
+    await order.save();
+
+    console.log("✅ Subscription activated:", order.membershipId);
+  }
+};
+
 export const renewalReminderJob = async () => {
   try {
+     await activatePendingRenewals();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

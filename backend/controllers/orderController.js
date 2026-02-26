@@ -8,6 +8,19 @@ import generateInvoice from "../utils/generateInvoice.js";
 import generateReceiptNumber from "../utils/generateReceiptNumber.js";
 import TempPayment from "../models/TempPayment.js";
 
+function addMonthsSafe(date, months) {
+  const d = new Date(date);
+  const day = d.getDate();
+
+  d.setMonth(d.getMonth() + months);
+
+  if (d.getDate() < day) {
+    d.setDate(0); // clamp to last day
+  }
+
+  return d;
+}
+
 export const easebuzzSuccess = async (req, res) => {
    try {
     const {
@@ -266,9 +279,9 @@ await sendEmail({
   ],
 });
 
-const previewEnd = new Date(existingOrder.subscription.endDate);
-previewEnd.setMonth(
-  previewEnd.getMonth() + tempPayment.durationMonths
+const previewEnd = addMonthsSafe(
+  existingOrder.subscription.endDate,
+  tempPayment.durationMonths
 );
 
   // ✅ Renewal Email to Company
@@ -342,8 +355,7 @@ if (existingOrder) {
 // 5️⃣ Subscription dates
 const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 const startDate = new Date(activationAt);
-const endDate = new Date(startDate);
-endDate.setMonth(endDate.getMonth() + selectedPlan.durationMonths);
+const endDate = addMonthsSafe(startDate, selectedPlan.durationMonths);
 
 // 6️⃣ Receipt
 const receiptNumber = await generateReceiptNumber(
