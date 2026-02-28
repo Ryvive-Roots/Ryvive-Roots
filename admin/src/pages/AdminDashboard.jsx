@@ -258,6 +258,11 @@ const handleSaveEdit = async (orderId) => {
 };
 
 const handleRenew = async () => {
+  if (!selectedOrder?.membershipId) {
+    alert("Member not selected");
+    return;
+  }
+
   try {
     await axios.post("https://api.ryviveroots.com/api/admin/renew", {
       membershipId: selectedOrder.membershipId,
@@ -267,10 +272,10 @@ const handleRenew = async () => {
 
     alert("Renewal triggered ✅");
     setShowRenew(false);
-
-    fetchOrders(); // refresh list
+    fetchOrders();
   } catch (err) {
-    alert("Renew failed");
+    console.log(err.response?.data);
+    alert(err.response?.data?.message || "Renew failed");
   }
 };
  
