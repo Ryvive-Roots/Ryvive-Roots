@@ -628,10 +628,7 @@ const selectedPlan = PLANS[planKey];
     }
 
     // ⭐ amount based on duration (same logic you use frontend pricing)
-    const amount =
-      durationMonths === 3
-        ? selectedPlan.price * 3 // or your discounted logic
-        : selectedPlan.price;
+ const amount = selectedPlan.price;
 
     /* ======================
        RENEWAL MARK PENDING
@@ -756,11 +753,14 @@ existingOrder.subscription.renewalHistory.push({
     /* ======================
        COMPANY EMAIL
     ====================== */
-    const previewEnd = addMonthsSafe(
-      existingOrder.subscription.endDate,
-      tempPayment.durationMonths
-    );
+   const baseEndDate = existingOrder.subscription.endDate
+  ? new Date(existingOrder.subscription.endDate)
+  : new Date();
 
+const previewEnd = addMonthsSafe(
+  baseEndDate,
+  tempPayment.durationMonths
+);
     await sendEmail({
       to: process.env.COMPANY_EMAIL,
       subject: `🔁 Subscription Renewed - ${existingOrder.membershipId}`,
