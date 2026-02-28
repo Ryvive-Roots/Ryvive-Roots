@@ -615,8 +615,13 @@ router.post("/renew", async (req, res) => {
     /* ======================
        PLAN + AMOUNT
     ====================== */
-    const planKey = existingOrder.subscription.plan;
-    const selectedPlan = PLANS[planKey];
+   const basePlan = existingOrder.subscription.plan; 
+// example: "PLATINUM"
+
+const planKey = `${basePlan}_${durationMonths}M`;
+// example: "PLATINUM_3M"
+
+const selectedPlan = PLANS[planKey];
 
     if (!selectedPlan) {
       return res.status(400).json({ success: false, message: "Invalid plan" });
