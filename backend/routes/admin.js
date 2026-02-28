@@ -651,16 +651,14 @@ const selectedPlan = PLANS[planKey];
     /* ======================
        RECEIPT + INVOICE
     ====================== */
-    const receiptNumber = await generateReceiptNumber(Order, amount);
+   const receiptNumber = await generateReceiptNumber(Order);
 
-    const invoicePath = await generateInvoice({
-      ...existingOrder.toObject(),
-      receiptNumber,
-      subscription: {
-        ...existingOrder.subscription,
-        amount,
-      },
-    });
+existingOrder.receiptNumber = receiptNumber;
+existingOrder.subscription.amount = amount;
+
+await existingOrder.save();
+
+const invoicePath = await generateInvoice(existingOrder);
 
     existingOrder.invoiceUrl = invoicePath;
 
@@ -691,6 +689,7 @@ existingOrder.subscription.renewalHistory.push({
     /* ======================
        CUSTOMER EMAIL (SAME TEMPLATE)
     ====================== */
+    if (existingOrder.user.email) {
     await sendEmail({
       to: existingOrder.user.email,
       subject: "You’re Back, And We’re Glad 🌿",
@@ -750,6 +749,8 @@ existingOrder.subscription.renewalHistory.push({
       ],
     });
 
+    }
+
     /* ======================
        COMPANY EMAIL
     ====================== */
@@ -761,6 +762,7 @@ const previewEnd = addMonthsSafe(
   baseEndDate,
   tempPayment.durationMonths
 );
+if (process.env.COMPANY_EMAIL) {
     await sendEmail({
       to: process.env.COMPANY_EMAIL,
       subject: `🔁 Subscription Renewed - ${existingOrder.membershipId}`,
@@ -784,6 +786,7 @@ const previewEnd = addMonthsSafe(
         },
       ],
     });
+    }
 
     return res.json({ success: true });
   } catch (err) {

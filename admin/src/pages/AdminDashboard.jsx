@@ -258,25 +258,30 @@ const handleSaveEdit = async (orderId) => {
 };
 
 const handleRenew = async () => {
-  if (!selectedOrder?.membershipId) {
-    alert("Member not selected");
-    return;
-  }
-
   try {
-    await axios.post("https://api.ryviveroots.com/api/admin/renew", {
-      membershipId: selectedOrder.membershipId,
-      durationMonths: duration,
-      paymentMethod,
-    });
+    const response = await axios.post(
+      "https://api.ryviveroots.com/api/admin/renew",
+      {
+        membershipId: selectedOrder.membershipId,
+        durationMonths: duration,
+        paymentMethod,
+      }
+    );
 
-    alert("Renewal triggered ✅");
-    setShowRenew(false);
-    fetchOrders();
+    if (response.data.success) {
+      alert("✅ Renewal Successful!");
+      setShowRenew(false);
+      fetchOrders();
+    }
+
   } catch (err) {
-    console.log(err.response?.data);
-    alert(err.response?.data?.message || "Renew failed");
-  }
+  console.error("🔥🔥 ADMIN RENEW FULL ERROR:", err);
+
+  return res.status(500).json({
+    success: false,
+    message: err.message,
+  });
+}
 };
  
 const canShowRenew = (order) => {
