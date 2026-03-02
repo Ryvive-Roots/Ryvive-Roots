@@ -637,6 +637,8 @@ if (!selectedPlan) {
   });
 }
 
+existingOrder.subscription.plan = planKey;
+
     // ⭐ amount based on duration (same logic you use frontend pricing)
  const amount = selectedPlan.price;
 
