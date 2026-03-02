@@ -612,20 +612,30 @@ router.post("/renew", async (req, res) => {
       });
     }
 
-    /* ======================
-       PLAN + AMOUNT
-    ====================== */
-   const basePlan = existingOrder.subscription.plan; 
-// example: "PLATINUM"
+/* ======================
+   PLAN + AMOUNT
+====================== */
 
-const planKey = `${basePlan}_${durationMonths}M`;
-// example: "PLATINUM_3M"
+let basePlan = existingOrder.subscription.plan?.toUpperCase()?.trim();
+
+// If plan already contains _1M or _3M remove it
+if (basePlan && basePlan.includes("_")) {
+  basePlan = basePlan.split("_")[0];
+}
+
+const duration = Number(durationMonths);
+
+const planKey = `${basePlan}_${duration}M`;
 
 const selectedPlan = PLANS[planKey];
 
-    if (!selectedPlan) {
-      return res.status(400).json({ success: false, message: "Invalid plan" });
-    }
+if (!selectedPlan) {
+  console.error("Invalid plan key:", planKey);
+  return res.status(400).json({
+    success: false,
+    message: "Invalid plan configuration",
+  });
+}
 
     // ⭐ amount based on duration (same logic you use frontend pricing)
  const amount = selectedPlan.price;

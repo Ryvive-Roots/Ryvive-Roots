@@ -277,10 +277,10 @@ const handleRenew = async () => {
   } catch (err) {
   console.error("🔥🔥 ADMIN RENEW FULL ERROR:", err);
 
-  return res.status(500).json({
-    success: false,
-    message: err.message,
-  });
+  alert(
+    err.response?.data?.message ||
+    "❌ Renewal failed. Please try again."
+  );
 }
 };
  
@@ -1099,7 +1099,7 @@ const daysLeft = (order) => {
 
         <button
           onClick={handleRenew}
-          className="px-4 py-2 bg-green-600 text-white rounded"
+          className="px-4 py-2 cursor-pointer bg-green-600 text-white rounded"
         >
           Confirm Renew
         </button>
