@@ -65,6 +65,7 @@ remarks: String,
 plan: {
   type: String,
   enum: [
+   
     "SILVER_1M",
     "GOLD_1M",
     "PLATINUM_1M",
