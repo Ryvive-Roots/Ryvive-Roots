@@ -49,7 +49,14 @@ doc.pipe(stream);
   doc.fillColor(textColor).fontSize(14).text(order.receiptNumber || "-", 146, 153);
 
   // Invoice Date
-  doc.text(new Date(order.createdAt).toLocaleDateString("en-IN"), 146, 184);
+ const invoiceDate =
+  order.subscription?.renewedAt || order.createdAt;
+
+doc.text(
+  new Date(invoiceDate).toLocaleDateString("en-IN"),
+  146,
+  184
+);
 
   /* =======================
    CUSTOMER INFO
