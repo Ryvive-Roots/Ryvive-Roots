@@ -7,6 +7,7 @@ import sendEmail from "../utils/sendEmail.js";
 import generateInvoice from "../utils/generateInvoice.js";
 import generateReceiptNumber from "../utils/generateReceiptNumber.js";
 import TempPayment from "../models/TempPayment.js";
+import agenda from "../utils/emailScheduler.js";
 
 function addMonthsSafe(date, months) {
   const d = new Date(date);
@@ -486,6 +487,10 @@ await User.findByIdAndUpdate(user._id, {
       ],
     });
 
+    // ⏳ Schedule Welcome Email After 1 Hour
+await agenda.schedule("1 hour later", "send welcome email", {
+  order,
+});
 
     // 8️⃣ SEND COMPANY EMAIL (AS-IT-IS)
     await sendEmail({
