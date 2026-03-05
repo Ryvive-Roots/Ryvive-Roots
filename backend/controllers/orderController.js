@@ -331,15 +331,23 @@ if (user) {
   membershipId = user.membershipId;
 } else {
   // ❌ Create new user
-  membershipId = await generateMembershipId(Order, tempPayment.amount);
+membershipId = await generateMembershipId(User);
 
-  user = await User.create({
-    firstName: formData.firstName,
-    lastName: formData.lastName,
-    email: formData.email,
-    phone: formData.phone,
-    membershipId,
-  });
+// ensure unique membershipId
+let exists = await User.findOne({ membershipId });
+
+while (exists) {
+ membershipId = await generateMembershipId(User);
+  exists = await User.findOne({ membershipId });
+}
+
+user = await User.create({
+  firstName: formData.firstName,
+  lastName: formData.lastName,
+  email: formData.email,
+  phone: formData.phone,
+  membershipId,
+});
 }
 
 // 4️⃣ Prevent Duplicate Order (VERY IMPORTANT)
