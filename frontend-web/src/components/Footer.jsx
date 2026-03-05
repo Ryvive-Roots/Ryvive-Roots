@@ -155,7 +155,7 @@ const Footer = () => {
                 <p>Shop No 01, Saraswati Bhuvan,</p>
                 <p>Near Roshan Automobile, Phadke Road,</p>
                 <p>Opp. Hotel Nav Gomantak,</p>
-                <p>Dombivli, Maharashtra 421201.</p>
+                <p>Dombivli East, Maharashtra 421201.</p>
               </div>
             </div>
 
