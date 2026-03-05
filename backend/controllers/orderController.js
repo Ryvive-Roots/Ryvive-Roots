@@ -533,7 +533,7 @@ await User.findByIdAndUpdate(user._id, {
       <td>: ${order.receiptNumber}</td>
     </tr>
     <tr>
-      <td><b>Plan Chosen</b></td>
+      <td><b>Plan</b></td>
       <td>: ${order.subscription.plan}</td>
     </tr>
     <tr>

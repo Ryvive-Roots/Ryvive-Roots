@@ -146,7 +146,7 @@ const handlePayment = async () => {
           lastname: formData.lastName,
           email: formData.email,
           phone: formData.phone,
-          plan: "PLATINUM_1M",
+          plan: "PLATINUM_1MONTH",
           formData,
         }),
       }
