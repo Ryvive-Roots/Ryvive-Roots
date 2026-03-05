@@ -1,9 +1,13 @@
-import { Agenda } from "agenda";
+import dotenv from "dotenv";
+import Agenda from "agenda";
 import sendEmail from "./sendEmail.js";
+
+dotenv.config();
 
 const agenda = new Agenda({
   db: { address: process.env.MONGODB_URI },
 });
+
 
 agenda.define("send welcome email", async (job) => {
   const { order } = job.attrs.data;
