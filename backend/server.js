@@ -35,6 +35,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 app.use("/api/admin-auth", adminAuthRoutes);
 app.use("/invoices", express.static("invoices"));
+app.use(express.static("public"));
 
 // Test API
 app.get("/", (req, res) => {
@@ -45,7 +46,7 @@ app.get("/", (req, res) => {
 connectCloudinary();
 
 // DB Connection → THEN cron
-connectDB().then(() => {
+connectDB().then(async () => {
   createAdminIfNotExists();
 
   // ⏰ Start cron ONLY after DB is ready
@@ -54,15 +55,14 @@ connectDB().then(() => {
     await renewalReminderJob();
   });
 
+  // ✅ Start Agenda AFTER DB connection
+  await agenda.start();
+
   console.log("✅ Cron jobs started");
 });
 
-(async function () {
-  await agenda.start();
-})();
 
 
-app.use(express.static("public"));
 
 // Server Start
 app.listen(port, () =>
