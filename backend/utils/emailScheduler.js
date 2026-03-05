@@ -1,11 +1,14 @@
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 import { Agenda } from "agenda";
 import sendEmail from "./sendEmail.js";
 
 dotenv.config();
 
+
+
 const agenda = new Agenda({
-  db: { address: process.env.MONGODB_URI },
+  mongo: mongoose.connection.db,
 });
 
 
