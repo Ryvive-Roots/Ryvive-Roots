@@ -150,7 +150,7 @@ useEffect(() => {
           lastname: formData.lastName,
           email: formData.email,
           phone: formData.phone,
-          plan: "SILVER_1M",
+          plan: "SILVER_1MONTH",
           formData,
         }),
       }

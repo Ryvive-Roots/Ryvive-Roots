@@ -66,12 +66,12 @@ plan: {
   type: String,
   enum: [
    
-    "SILVER_1M",
-    "GOLD_1M",
-    "PLATINUM_1M",
-    "SILVER_3M",
-    "GOLD_3M",
-    "PLATINUM_3M",
+    "SILVER_1MONTH",
+    "GOLD_1MONTH",
+    "PLATINUM_1MONTH",
+    "SILVER_3MONTH",
+    "GOLD_3MONTH",
+    "PLATINUM_3MONTH",
   ],
 },
       amount: {
