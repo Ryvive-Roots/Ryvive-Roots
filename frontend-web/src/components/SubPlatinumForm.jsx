@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Confetti from "react-confetti";
 import { ChevronDown, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 import BgImage from "../assets/Form.png";
+import { useLocation } from "react-router-dom";
 
 
 const allowedPincodes = [
@@ -40,6 +41,7 @@ const [windowSize, setWindowSize] = useState({
   width: window.innerWidth,
   height: window.innerHeight,
 });
+const location = useLocation();
 
 useEffect(() => {
   const handleResize = () => {
@@ -172,43 +174,6 @@ const handlePayment = async () => {
 
 
 
-//  const placeFinalOrder = async () => {
-//    try {
-//      console.log("Placing order...");
-
-//      const res = await fetch("https://api.ryviveroots.com/api/orders/place-order", {
-//        method: "POST",
-//        headers: { "Content-Type": "application/json" },
-//        body: JSON.stringify({
-//          formData,
-//          plan: "PLATINUM",
-//          paymentMethod: "RAZORPAY",
-//        }),
-//      });
-
-//      const data = await res.json();
-//      console.log("Order response:", data);
-
-//      if (!data.success) {
-//        alert(data.message || "Order failed");
-//        return;
-//      }
-
-//      // ✅ SAVE MEMBERSHIP
-//      localStorage.setItem("membershipId", data.membershipId);
-
-//      // ✅ UPDATE STATE
-//      setMembershipId(data.membershipId);
-//      setStep(5); // 🔥 THIS WILL MOVE TO PAYMENT SUCCESS
-
-//      // ✅ CLEAR TEMP DATA
-//      localStorage.removeItem("subscriptionFormData");
-//      localStorage.removeItem("subscriptionDeliverySlot");
-//    } catch (error) {
-//      console.error("Order error:", error);
-//      alert("Something went wrong while placing order");
-//    }
-//   };
 
 
 
@@ -225,19 +190,19 @@ useEffect(() => {
 
 
 useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(location.search);
   const mid = params.get("membershipId");
 
- if (mid) {
-  setMembershipId(mid);
-  setStep(5);
-  setShowSuccessPopper(true); // ✅ add this
+  if (mid) {
+    setMembershipId(mid);
+    setStep(5);
+    setShowSuccessPopper(true);
 
-  localStorage.removeItem("subscriptionFormData");
-  localStorage.removeItem("subscriptionDeliverySlot");
-}
-
-}, []);
+    // clear saved form data
+    localStorage.removeItem("subscriptionFormData");
+    localStorage.removeItem("subscriptionDeliverySlot");
+  }
+}, [location.search]);
 
 
   return (

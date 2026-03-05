@@ -29,6 +29,7 @@ import Login from "./components/Login"
 import Shipping from "./components/Shipping"
 import Cancellation from "./components/Cancellation"
 import DashboardPage from "./components/DashboardPage"
+import PaymentSuccess from "./pages/PaymentSuccess"
 
 
 
@@ -61,6 +62,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
            <Route path="/shipping-delivery" element={<Shipping/>} />
             <Route path="/cancellation-refund" element={<Cancellation />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
                  
         </Routes>
       </main>

@@ -607,7 +607,9 @@ tempPayment.membershipId = membershipId;
 await tempPayment.save();
 
     // 9️⃣ Redirect to success page
-    return res.redirect(`${process.env.FRONTEND_URL}/subscription?membershipId=${membershipId}`);
+   return res.redirect(
+  `${process.env.FRONTEND_URL}/payment-success?membershipId=${membershipId}`
+);
   } catch (error) {
     console.error("Easebuzz success error:", error);
     return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
