@@ -101,6 +101,36 @@ Warm regards,<br/>
 <b>Team Ryvive Roots</b>
 </p>
 
+<table style="margin-top:30px; border-top:1px solid #ddd; padding-top:15px;">
+  <tr>
+    <td style="padding-top:15px;">
+
+      <p style="margin:0;"><b>Sakshi Batra</b></p>
+      <p style="margin:0;">Operations Associate</p>
+
+      <p style="margin:6px 0;">
+        <b>M:</b> 97656 00701
+      </p>
+
+      <p style="margin:6px 0;">
+        <b>E:</b> management@ryviveroots.com |
+        <a href="https://www.ryviveroots.com" style="color:#2e7d32;">
+          www.ryviveroots.com
+        </a>
+      </p>
+
+      <p style="margin:6px 0;">Mumbai, Maharashtra</p>
+ 
+      <img 
+        src="https://www.ryviveroots.com/Ryvive.png" 
+        alt="Ryvive Roots"
+        style="margin-top:10px; height:60px;"
+      />
+
+    </td>
+  </tr>
+</table>
+
 </div>
 `,
   });
