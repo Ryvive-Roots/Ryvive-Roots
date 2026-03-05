@@ -331,13 +331,13 @@ if (user) {
   membershipId = user.membershipId;
 } else {
   // ❌ Create new user
-membershipId = await generateMembershipId(User);
+membershipId = await generateMembershipId(User); 
 
 // ensure unique membershipId
 let exists = await User.findOne({ membershipId });
 
 while (exists) {
- membershipId = await generateMembershipId(User);
+ membershipId = await generateMembershipId(User); 
   exists = await User.findOne({ membershipId });
 }
 
@@ -367,57 +367,67 @@ const startDate = new Date(activationAt);
 const endDate = addMonthsSafe(startDate, selectedPlan.durationMonths);
 
 // 6️⃣ Receipt
-const receiptNumber = await generateReceiptNumber(
-  Order,
-  tempPayment.amount
-);
+
 
 // 7️⃣ CREATE ORDER
-const order = new Order({
-  membershipId,
-  receiptNumber,
+let orderSaved = false;
+let order;
+let receiptNumber;
 
-  user: {
-    firstName: formData.firstName,
-    lastName: formData.lastName,
-    phone: formData.phone,
-    email: formData.email,
-    dob: new Date(formData.dob),
-  },
+while (!orderSaved) {
+  try {
+    receiptNumber = await generateReceiptNumber(Order, tempPayment.amount);
 
-  address: {
-    pincode: formData.pincode,
-    house: formData.house,
-    street: formData.street,
-    landmark: formData.landmark || "",
-    city: "Dombivli",
-    state: "Maharashtra",
-  },
+    order = new Order({
+      membershipId,
+      receiptNumber,
+      user: {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        email: formData.email,
+        dob: new Date(formData.dob),
+      },
+      address: {
+        pincode: formData.pincode,
+        house: formData.house,
+        street: formData.street,
+        landmark: formData.landmark || "",
+        city: "Dombivli",
+        state: "Maharashtra",
+      },
+      deliverySlot: formData.slot,
+      subscription: {
+        plan: exactPlan,
+        amount: tempPayment.amount,
+        durationMonths: selectedPlan.durationMonths,
+        activationAt,
+        startDate,
+        endDate,
+        pause: { used: 0, history: [] },
+        status: "UNDER_PROCESS",
+      },
+      paymentStatus: "PAID",
+      paymentMethod: "ONLINE",
+      paymentDetails: {
+        gateway: "EASEBUZZ",
+        txnid,
+        easepayid,
+      },
+    });
 
-  deliverySlot: formData.slot,
+    await order.save();
 
-  subscription: {
-    plan: exactPlan,
-    amount: tempPayment.amount,
-    durationMonths: selectedPlan.durationMonths,
-    activationAt,
-    startDate,
-    endDate,
-    pause: { used: 0, history: [] },
-    status: "UNDER_PROCESS",
-  },
+    orderSaved = true;
 
-  paymentStatus: "PAID",
-  paymentMethod: "ONLINE",
-
-  paymentDetails: {
-    gateway: "EASEBUZZ",
-    txnid,
-    easepayid,
-  },
-});
-
-await order.save(); // ✅ Save first
+  } catch (err) {
+    if (err.code === 11000) {
+      console.log("Duplicate receipt detected — retrying...");
+    } else {
+      throw err;
+    }
+  }
+}
 
 // 🔹 Generate Invoice
 const invoicePath = await generateInvoice(order);
