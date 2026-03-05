@@ -62,17 +62,21 @@ export const silverPauseEmail = ({
 
    
       <p style="margin:6px 0;">
-        <b>M:</b> 97656 00701
+        <b>Phone No.:</b> 97656 00701
       </p>
 
-      <p style="margin:6px 0;">
-        <b>E:</b> management@ryviveroots.com |
+     <p style="margin:6px 0;">
+        <b>Email ID:</b> management@ryviveroots.com 
+       
+      </p>
+        <p style="margin:6px 0;">
+        <b>Website:</b> 
         <a href="https://www.ryviveroots.com" style="color:#2e7d32;">
           www.ryviveroots.com
         </a>
       </p>
 
-      <p style="margin:6px 0;">Mumbai, Maharashtra</p>
+      <p style="margin:6px 0;">Dombivli, Maharashtra 421201.</p>
  
     <img 
   src="https://ryviveroots.com/Ryvive.png"
@@ -148,17 +152,21 @@ export const goldPauseEmail = ({
 
    
       <p style="margin:6px 0;">
-        <b>M:</b> 97656 00701
+        <b>Phone No.:</b> 97656 00701
       </p>
 
-      <p style="margin:6px 0;">
-        <b>E:</b> management@ryviveroots.com |
+     <p style="margin:6px 0;">
+        <b>Email ID:</b> management@ryviveroots.com 
+       
+      </p>
+        <p style="margin:6px 0;">
+        <b>Website:</b> 
         <a href="https://www.ryviveroots.com" style="color:#2e7d32;">
           www.ryviveroots.com
         </a>
       </p>
 
-      <p style="margin:6px 0;">Mumbai, Maharashtra</p>
+      <p style="margin:6px 0;">Dombivli, Maharashtra 421201.</p>
  
     <img 
   src="https://ryviveroots.com/Ryvive.png"
@@ -230,17 +238,21 @@ export const platinumPauseEmail = ({
 
    
       <p style="margin:6px 0;">
-        <b>M:</b> 97656 00701
+        <b>Phone No.:</b> 97656 00701
       </p>
 
-      <p style="margin:6px 0;">
-        <b>E:</b> management@ryviveroots.com |
+     <p style="margin:6px 0;">
+        <b>Email ID:</b> management@ryviveroots.com 
+       
+      </p>
+        <p style="margin:6px 0;">
+        <b>Website:</b> 
         <a href="https://www.ryviveroots.com" style="color:#2e7d32;">
           www.ryviveroots.com
         </a>
       </p>
 
-      <p style="margin:6px 0;">Mumbai, Maharashtra</p>
+      <p style="margin:6px 0;">Dombivli, Maharashtra 421201.</p>
  
     <img 
   src="https://ryviveroots.com/Ryvive.png"
