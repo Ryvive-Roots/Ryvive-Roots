@@ -76,7 +76,7 @@ export const silverPauseEmail = ({
         </a>
       </p>
 
-      <p style="margin:6px 0;">Dombivli, Maharashtra 421201.</p>
+      <p style="margin:6px 0;">Dombivli East, Maharashtra 421201.</p>
  
     <img 
   src="https://ryviveroots.com/Ryvive.png"
@@ -166,7 +166,7 @@ export const goldPauseEmail = ({
         </a>
       </p>
 
-      <p style="margin:6px 0;">Dombivli, Maharashtra 421201.</p>
+      <p style="margin:6px 0;">Dombivli East, Maharashtra 421201.</p>
  
     <img 
   src="https://ryviveroots.com/Ryvive.png"
@@ -252,7 +252,7 @@ export const platinumPauseEmail = ({
         </a>
       </p>
 
-      <p style="margin:6px 0;">Dombivli, Maharashtra 421201.</p>
+      <p style="margin:6px 0;">Dombivli East, Maharashtra 421201.</p>
  
     <img 
   src="https://ryviveroots.com/Ryvive.png"

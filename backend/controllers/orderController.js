@@ -270,6 +270,39 @@ await sendEmail({
     <b>The Ryvive Roots Team</b>
   </p>
 
+    <table style="margin-top:30px; border-top:1px solid #ddd; padding-top:15px;">
+  <tr>
+    <td style="padding-top:15px;">
+
+    
+
+      <p style="margin:6px 0;">
+        <b>Phone No.:</b> 97656 00701
+      </p>
+
+     <p style="margin:6px 0;">
+        <b>Email ID:</b> management@ryviveroots.com 
+       
+      </p>
+        <p style="margin:6px 0;">
+        <b>Website:</b> 
+        <a href="https://www.ryviveroots.com" style="color:#2e7d32;">
+          www.ryviveroots.com
+        </a>
+      </p>
+
+      <p style="margin:6px 0;">Dombivli East, Maharashtra 421201.</p>
+ 
+     <img 
+  src="https://ryviveroots.com/Ryvive.png"
+  alt="Ryvive Roots"
+  width="180"
+  style="display:block; margin-top:10px;"
+/>
+
+    </td>
+  </tr>
+</table>
 </div>
 `,
   attachments: [
@@ -302,6 +335,39 @@ await sendEmail({
   <li><b>Membership ID:</b> ${existingOrder.membershipId}</li>
   <li><b>Receipt No:</b> ${receiptNumber}</li>
 </ul>
+  <table style="margin-top:30px; border-top:1px solid #ddd; padding-top:15px;">
+  <tr>
+    <td style="padding-top:15px;">
+
+    
+
+      <p style="margin:6px 0;">
+        <b>Phone No.:</b> 97656 00701
+      </p>
+
+     <p style="margin:6px 0;">
+        <b>Email ID:</b> management@ryviveroots.com 
+       
+      </p>
+        <p style="margin:6px 0;">
+        <b>Website:</b> 
+        <a href="https://www.ryviveroots.com" style="color:#2e7d32;">
+          www.ryviveroots.com
+        </a>
+      </p>
+
+      <p style="margin:6px 0;">Dombivli East, Maharashtra 421201.</p>
+ 
+     <img 
+  src="https://ryviveroots.com/Ryvive.png"
+  alt="Ryvive Roots"
+  width="180"
+  style="display:block; margin-top:10px;"
+/>
+
+    </td>
+  </tr>
+</table>
 `,
   attachments: [
     {
@@ -517,7 +583,7 @@ await User.findByIdAndUpdate(user._id, {
         </a>
       </p>
 
-      <p style="margin:6px 0;">Dombivli, Maharashtra 421201.</p>
+      <p style="margin:6px 0;">Dombivli East, Maharashtra 421201.</p>
  
      <img 
   src="https://ryviveroots.com/Ryvive.png"
@@ -580,7 +646,7 @@ await User.findByIdAndUpdate(user._id, {
       </p>
 
 
-      <p style="margin:6px 0;">Dombivli, Maharashtra 421201.</p>
+      <p style="margin:6px 0;">Dombivli East, Maharashtra 421201.</p>
  
     <img 
   src="https://ryviveroots.com/Ryvive.png"
