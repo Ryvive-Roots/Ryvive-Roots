@@ -3,6 +3,7 @@ import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
 import { ChevronDown, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 import BgImage from "../assets/Form.png";
+import { useLocation } from "react-router-dom";
 
 const allowedPincodes = [
   { code: "421201", area: "" },
@@ -40,6 +41,7 @@ const SilversubForm = () => {
   const [membershipId, setMembershipId] = useState("");
   const [loadingOrder, setLoadingOrder] = useState(false);
     const [showSuccessPopper, setShowSuccessPopper] = useState(false);
+    const location = useLocation();
  const [windowSize, setWindowSize] = useState({
   width: window.innerWidth,
   height: window.innerHeight,
@@ -185,19 +187,20 @@ useEffect(() => {
 }, [showSuccessPopper]);
   
 useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(location.search);
+
   const mid = params.get("membershipId");
 
-if (mid) {
-  setMembershipId(mid);
-  setStep(5);
-  setShowSuccessPopper(true); // ✅ add this
+  if (mid) {
+    setMembershipId(mid);
+    setStep(5);
+    setShowSuccessPopper(true);
 
-  localStorage.removeItem("subscriptionFormData");
-  localStorage.removeItem("subscriptionDeliverySlot");
-}
-
-}, []);
+    // clear saved form data
+    localStorage.removeItem("subscriptionFormData");
+    localStorage.removeItem("subscriptionDeliverySlot");
+  }
+}, [location.search]);
 
 
   return (
