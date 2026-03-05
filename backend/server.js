@@ -14,7 +14,7 @@ import adminAuthRoutes from "./routes/adminAuth.js";
 import createAdminIfNotExists from "./utils/createAdmin.js";
 import cron from "node-cron";
 import { renewalReminderJob } from "./cron/renewalReminderJob.js";
-import agenda from "./utils/emailScheduler.js";
+
 
 // App Config
 const app = express();
@@ -56,7 +56,7 @@ connectDB().then(async () => {
   });
 
   // ✅ Start Agenda AFTER DB connection
-  await agenda.start();
+
 
   console.log("✅ Cron jobs started");
 });
