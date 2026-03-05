@@ -175,15 +175,7 @@ useEffect(() => {
    }
  };
 
- useEffect(() => {
-   if (showSuccessPopper) {
-     const timer = setTimeout(() => {
-       setShowSuccessPopper(false);
-     }, 6000); // confetti lasts 6 sec
- 
-     return () => clearTimeout(timer);
-   }
- }, [showSuccessPopper]);
+
    
 useEffect(() => {
   const params = new URLSearchParams(location.search);
