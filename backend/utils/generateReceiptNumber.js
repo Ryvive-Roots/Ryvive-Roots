@@ -5,20 +5,22 @@ const generateReceiptNumber = async (Order, amount) => {
   const isTest = Number(amount) === 1;
   const prefix = isTest ? "TEST-REC" : "RR-REC";
 
-  const startOfYear = new Date(year, 0, 1);
-  const endOfYear = new Date(year + 1, 0, 1);
+  const lastOrder = await Order.findOne({
+    receiptNumber: { $regex: `^${prefix}-${year}` }
+  })
+  .sort({ createdAt: -1 })
+  .lean();
 
-  const count = await Order.countDocuments({
-    receiptNumber: { $regex: `^${prefix}-${year}` },
-    createdAt: {
-      $gte: startOfYear,
-      $lt: endOfYear,
-    },
-  });
+  let sequence = 1;
 
-  const sequence = String(count + 1).padStart(4, "0");
+  if (lastOrder && lastOrder.receiptNumber) {
+    const lastSeq = parseInt(lastOrder.receiptNumber.split("-").pop());
+    sequence = lastSeq + 1;
+  }
 
-  return `${prefix}-${year}-${sequence}`;
+  const padded = String(sequence).padStart(4, "0");
+
+  return `${prefix}-${year}-${padded}`;
 };
 
 export default generateReceiptNumber;
