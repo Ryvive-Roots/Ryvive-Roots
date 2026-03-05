@@ -191,6 +191,7 @@ useEffect(() => {
 
 useEffect(() => {
   const params = new URLSearchParams(location.search);
+
   const mid = params.get("membershipId");
 
   if (mid) {
