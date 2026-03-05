@@ -500,11 +500,10 @@ await User.findByIdAndUpdate(user._id, {
   <tr>
     <td style="padding-top:15px;">
 
-      <p style="margin:0;"><b>Sakshi Batra</b></p>
-      <p style="margin:0;">Operations Associate</p>
+    
 
       <p style="margin:6px 0;">
-        <b>M:</b> 97656 00701
+        <b>Phone No.:</b> 97656 00701
       </p>
 
       <p style="margin:6px 0;">
@@ -516,11 +515,12 @@ await User.findByIdAndUpdate(user._id, {
 
       <p style="margin:6px 0;">Mumbai, Maharashtra</p>
  
-      <img 
-        src="https://www.ryviveroots.com/Ryvive.png" 
-        alt="Ryvive Roots"
-        style="margin-top:10px; height:60px;"
-      />
+     <img 
+  src="https://ryviveroots.com/Ryvive.png"
+  alt="Ryvive Roots"
+  width="180"
+  style="display:block; margin-top:10px;"
+/>
 
     </td>
   </tr>
@@ -559,9 +559,7 @@ await User.findByIdAndUpdate(user._id, {
   <tr>
     <td style="padding-top:15px;">
 
-      <p style="margin:0;"><b>Sakshi Batra</b></p>
-      <p style="margin:0;">Operations Associate</p>
-
+   
       <p style="margin:6px 0;">
         <b>M:</b> 97656 00701
       </p>
@@ -575,11 +573,12 @@ await User.findByIdAndUpdate(user._id, {
 
       <p style="margin:6px 0;">Mumbai, Maharashtra</p>
  
-      <img 
-        src="https://www.ryviveroots.com/Ryvive.png" 
-        alt="Ryvive Roots"
-        style="margin-top:10px; height:60px;"
-      />
+    <img 
+  src="https://ryviveroots.com/Ryvive.png"
+  alt="Ryvive Roots"
+  width="180"
+  style="display:block; margin-top:10px;"
+/>
 
     </td>
   </tr>
