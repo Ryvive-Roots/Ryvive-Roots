@@ -86,6 +86,20 @@ useEffect(() => {
     }
 
     const membershipId = localStorage.getItem("membershipId");
+    const hasOverlap = subscription.pause?.history?.some((p) => {
+  const existingStart = new Date(p.startDate);
+  const existingEnd = new Date(p.resumeDate);
+
+  const newStart = new Date(pauseFromDate);
+  const newEnd = new Date(pauseToDate);
+
+  return newStart <= existingEnd && newEnd >= existingStart;
+});
+
+if (hasOverlap) {
+  alert("Pause dates overlap with an existing pause.");
+  return;
+}
 
     const res = await fetch("https://api.ryviveroots.com/api/subscription/pause", {
       method: "POST",
@@ -157,6 +171,7 @@ if (data.success && data.orders.length > 0) {
   if (!order) return null;
 
   const { user, subscription, membershipId } = order;
+  const basePlan = subscription.plan.split("_")[0];
 
   const weekNumber = getCurrentWeekNumber(subscription.activationAt);
 
@@ -175,19 +190,20 @@ const PAUSE_PER_MONTH = {
 const durationMonths = subscription.durationMonths || 1;
 
 const canModify =
-  subscription.plan === "GOLD" ||
-  subscription.plan === "PLATINUM" ||
-  (subscription.plan === "SILVER" && durationMonths === 3);
+  basePlan === "GOLD" ||
+  basePlan === "PLATINUM" ||
+  (basePlan === "SILVER" && durationMonths === 3);
 
 // ⭐ Calculate max pause dynamically
 let maxPauseCount = 0;
 
 // SILVER rule → 1 month = no pause
-if (subscription.plan === "SILVER" && durationMonths === 1) {
+if (basePlan === "SILVER" && durationMonths === 1) {
   maxPauseCount = 0;
 } else {
-  maxPauseCount =
-    (PAUSE_PER_MONTH[subscription.plan] || 0) * durationMonths;
+
+    maxPauseCount =
+  (PAUSE_PER_MONTH[basePlan] || 0) * durationMonths;
 }
 
   // ✅ Max days per pause
@@ -219,6 +235,18 @@ if (subscription.plan === "SILVER" && durationMonths === 1) {
 
     return "ACTIVE"; // ✅ Pause completed
   };
+  const hasUpcomingPause = () => {
+  const pause = subscription.pause;
+
+  if (!pause || pause.history.length === 0) return false;
+
+  const now = new Date();
+
+  return pause.history.some((p) => {
+    const start = new Date(p.startDate);
+    return start > now;
+  });
+};
   const getMaxToDate = () => {
     if (!pauseFromDate) return null;
 
@@ -231,19 +259,29 @@ if (subscription.plan === "SILVER" && durationMonths === 1) {
   const pauseStatus = getSubscriptionStatus(); // PAUSED or ACTIVE (pause logic)
 
   // Final status priority
-  const finalStatus =
-    backendStatus === "UNDER_PROCESS"
-      ? "UNDER_PROCESS"
-      : pauseStatus === "PAUSED"
-        ? "PAUSED"
-        : backendStatus;
+ const now = new Date();
+const end = new Date(subscription.endDate);
 
-  const isLocked = remainingPauseCount === 0 || finalStatus === "UNDER_PROCESS";
+const isExpired = now > end;
+
+const finalStatus =
+  backendStatus === "UNDER_PROCESS"
+    ? "UNDER_PROCESS"
+    : isExpired
+    ? "EXPIRED"
+    : pauseStatus === "PAUSED"
+    ? "PAUSED"
+    : "ACTIVE";
+
+const isLocked =
+  remainingPauseCount === 0 ||
+  finalStatus === "UNDER_PROCESS" ||
+  finalStatus === "EXPIRED";
 
   // ✅ Label
 let remainingLabel = "No pauses remaining";
 
-const plan = subscription.plan;
+const plan = basePlan;  
 const duration = durationMonths; // from backend
 const perMonth = PAUSE_PER_MONTH[plan] || 0;
 
@@ -454,7 +492,7 @@ const handleRenewPayment = async () => {
 >
 
 {/* ⚠️ RENEWAL WARNING BANNER */}
-{remainingDays > 0 && remainingDays <= 25 && (
+{remainingDays <= 25 && finalStatus !== "UNDER_PROCESS" && finalStatus !== "PAUSED" && (
   <div className="w-full max-w-5xl mx-auto px-3 sm:px-0 mt-4 mb-6">
 
     <div
@@ -482,11 +520,7 @@ const handleRenewPayment = async () => {
           </p>
 
           <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            You have{" "}
-            <b>
-              {remainingDays} day{remainingDays > 1 ? "s" : ""}
-            </b>{" "}
-            left to renew and continue services.
+           Please renew your subscription to continue services
           </p>
         </div>
       </div>
@@ -588,26 +622,35 @@ const handleRenewPayment = async () => {
         <b>
           Status:{" "}
           <span
-            className={`font-cinzel font-semibold
-              ${
-                finalStatus === "UNDER_PROCESS"
-                  ? "text-orange-500"
-                  : finalStatus === "ACTIVE"
-                  ? "text-green-700"
-                  : finalStatus === "PAUSED"
-                  ? "text-yellow-600"
-                  : "text-gray-500"
-              }`}
-          >
+  className={`font-cinzel font-semibold
+    ${
+      finalStatus === "UNDER_PROCESS"
+        ? "text-orange-500"
+        : finalStatus === "ACTIVE"
+        ? "text-green-700"
+        : finalStatus === "PAUSED"
+        ? "text-yellow-600"
+        : finalStatus === "EXPIRED"
+        ? "text-red-600"
+        : "text-gray-500"
+    }`}
+> 
             {finalStatus.replace("_", " ")}
           </span>
         </b>
 
         {/* 🟢 MODIFICATION BUTTON */}
-        {canModify && (
+      {canModify && finalStatus !== "EXPIRED" && (
           <button
             disabled={isLocked}
-            onClick={() => !isLocked && setShowPauseModal(true)}
+           onClick={() => {
+  if (hasUpcomingPause()) {
+    alert("You already have a scheduled pause.");
+    return;
+  }
+
+  if (!isLocked) setShowPauseModal(true);
+}}
             className={`flex items-center justify-center gap-2 px-5 py-2 text-sm sm:text-base
               rounded-full shadow-lg font-fredoka
               ${
@@ -627,7 +670,7 @@ const handleRenewPayment = async () => {
         )}
       </div>
 
-     {canModify && finalStatus !== "UNDER_PROCESS" && (
+    {canModify && finalStatus !== "UNDER_PROCESS" && finalStatus !== "EXPIRED" && (
           <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-green-50 rounded-xl px-4 py-3">
             {/* LEFT INFO */}
             <div>

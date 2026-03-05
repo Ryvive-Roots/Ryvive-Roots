@@ -36,14 +36,15 @@ router.post("/pause",  async (req, res) => {
         message: "Order not found",
       });
     }
+const basePlan = order.subscription.plan.split("_")[0];
 
   // ⭐ Plan pause eligibility check (dynamic)
 const durationMonths = order.subscription.durationMonths || 1;
 
 const maxAllowed =
-  order.subscription.plan === "SILVER" && durationMonths === 1
+  basePlan === "SILVER" && durationMonths === 1
     ? 0
-    : (PAUSE_PER_MONTH[order.subscription.plan] || 0) * durationMonths;
+    : (PAUSE_PER_MONTH[basePlan] || 0) * durationMonths;
 
 if (maxAllowed === 0) {
   return res.status(400).json({
@@ -179,9 +180,9 @@ if (isOverlapping) {
 
    let emailTemplate;
 
-if (order.subscription.plan === "GOLD") {
+if (basePlan === "GOLD") {
   emailTemplate = goldPauseEmail(emailPayload);
-} else if (order.subscription.plan === "PLATINUM") {
+} else if (basePlan === "PLATINUM") {
   emailTemplate = platinumPauseEmail(emailPayload);
 } else {
   emailTemplate = silverPauseEmail(emailPayload);
