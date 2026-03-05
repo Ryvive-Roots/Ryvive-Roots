@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import Agenda from "agenda";
+import { Agenda } from "agenda";
 import sendEmail from "./sendEmail.js";
 
 dotenv.config();
