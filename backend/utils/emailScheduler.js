@@ -1,4 +1,4 @@
-import Agenda from "agenda";
+import { Agenda } from "agenda";
 import sendEmail from "./sendEmail.js";
 
 const agenda = new Agenda({
