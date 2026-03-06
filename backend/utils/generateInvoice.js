@@ -79,7 +79,9 @@ doc.fillColor("#2a2a2a").fontSize(14);
   // Row Y position aligned to background table
   const planRowY = 389;
 
-  doc.text(order.subscription?.plan || "-", 55, planRowY);
+ const planName = (order.subscription?.plan || "-").split("_")[0];
+
+doc.text(planName, 55, planRowY);
   doc.text(`${order.subscription?.durationMonths || 0} Month`, 321, planRowY);
   doc.text("1", 423, planRowY);
   doc.text(`₹ ${order.subscription?.amount || 0}`, 490, planRowY);
