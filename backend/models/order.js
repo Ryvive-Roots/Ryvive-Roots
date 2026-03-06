@@ -128,7 +128,19 @@ plan: {
       renewalReminderDate: {
         type: Date,
       },
-    },
+    
+      thankYouEmailSentAt: Date,
+welcomeEmailSent: {
+  type: Boolean,
+  default: false,
+},
+renewal: {
+  pending: {
+    type: Boolean,
+    default: false,
+  },
+  durationMonths: Number,
+},},
 
     
 
