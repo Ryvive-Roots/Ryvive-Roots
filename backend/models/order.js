@@ -106,6 +106,7 @@ plan: {
         history: [
           {
             startDate: Date,
+            endDate: Date,   
             resumeDate: Date,
             days: Number,
           },

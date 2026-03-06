@@ -153,7 +153,7 @@ const Footer = () => {
               <FaLocationDot className="text-[#895C40] text-lg mt-1" />
               <div className="text-black/75 font-semibold">
                 <p>Shop No 01, Saraswati Bhuvan,</p>
-                <p>Near Roshan Automobile, Phadke Road,</p>
+                <p>Near Roshan Automobile, Phadke Cross Road,</p>
                 <p>Opp. Hotel Nav Gomantak,</p>
                 <p>Dombivli East, Maharashtra 421201.</p>
               </div>
