@@ -605,6 +605,10 @@ await User.findByIdAndUpdate(user._id, {
       ],
     });
 
+    order.subscription.thankYouEmailSentAt = new Date();
+order.subscription.welcomeEmailSent = false;
+
+await order.save();
 
 
     // 8️⃣ SEND COMPANY EMAIL (AS-IT-IS)

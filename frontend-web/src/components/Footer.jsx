@@ -70,7 +70,7 @@ const Footer = () => {
         {/* Quick Links */}
         <motion.div variants={itemVariants} className="text-left">
           <h3 className="uppercase font-semibold mb-6 text-lg tracking-wide text-black">
-            Quick Links
+            Links
           </h3>
 
           <ul className="space-y-3 text-sm font-montserrat">

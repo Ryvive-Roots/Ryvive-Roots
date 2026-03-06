@@ -14,6 +14,7 @@ import adminAuthRoutes from "./routes/adminAuth.js";
 import createAdminIfNotExists from "./utils/createAdmin.js";
 import cron from "node-cron";
 import { renewalReminderJob } from "./cron/renewalReminderJob.js";
+import { welcomeEmailJob } from "./cron/welcomeEmailJob.js";
 
 
 // App Config
@@ -55,7 +56,14 @@ connectDB().then(async () => {
     await renewalReminderJob();
   });
 
-  // ✅ Start Agenda AFTER DB connection
+ cron.schedule("*/10 * * * *", async () => {
+  try {
+    console.log("📧 Checking pending welcome emails...");
+    await welcomeEmailJob();
+  } catch (err) {
+    console.error("Welcome cron error:", err);
+  }
+});
 
 
   console.log("✅ Cron jobs started");
