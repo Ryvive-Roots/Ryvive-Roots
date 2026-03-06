@@ -31,13 +31,14 @@ const Login = () => {
 
       console.log("✅ LOGIN RESPONSE:", data); // 👈 ADD THIS
 
-      if (data.success) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-        localStorage.setItem("membershipId", data.membershipId);
+     if (data.success) {
+  localStorage.setItem("token", "loggedin"); // ⭐ ADD THIS
+  localStorage.setItem("user", JSON.stringify(data.user));
+  localStorage.setItem("membershipId", data.membershipId);
 
-        console.log("➡️ Redirecting to /dashboard...");
-        window.location.href = "/dashboard";
-      } else {
+  console.log("➡️ Redirecting to /dashboard...");
+  window.location.href = "/dashboard";
+} else {
         alert(data.message || "Invalid login details");
       }
     } catch (error) {

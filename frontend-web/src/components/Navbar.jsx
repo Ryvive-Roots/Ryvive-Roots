@@ -9,7 +9,12 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation(); // 👈 Get current route
-    const isLoggedIn = !!localStorage.getItem("token");
+const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+useEffect(() => {
+  const token = localStorage.getItem("token");
+  setIsLoggedIn(!!token);
+}, [location]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -68,35 +73,34 @@ const Navbar = () => {
           </div>
 
           {/* RIGHT SIDE: Button */}
-          <div className="hidden lg:flex items-center gap-6">
-            {!isLoggedIn ? (
-              /* 🔓 NOT LOGGED IN → SHOW LOGIN BUTTON */
-              <motion.a
-                whileHover={{
-                  scale: 1.05,
-                  y: -2,
-                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.20)",
-                }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ duration: 0.15, ease: "easeOut" }}
-                href="/login"
-                className="bg-[#895C40] flex items-center gap-2 rounded-full text-white px-8 py-3"
-              >
-                <IoPersonOutline className="text-xl" />
-                login
-              </motion.a>
-            ) : (
-              /* 🔐 LOGGED IN → SHOW ONLY ICON */
-              <motion.a
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                href="/login"
-                className="w-12 h-12 flex items-center justify-center rounded-full bg-[#895C40] text-white"
-              >
-                <IoPersonOutline className="text-2xl" />
-              </motion.a>
-            )}
-          </div>
+        <div className="hidden lg:flex items-center gap-6">
+  {!isLoggedIn ? (
+    /* 🔓 NOT LOGGED IN → LOGIN BUTTON */
+    <motion.a
+      whileHover={{
+        scale: 1.05,
+        y: -2,
+        boxShadow: "0px 4px 10px rgba(0,0,0,0.20)",
+      }}
+      whileTap={{ scale: 0.97 }}
+      href="/login"
+      className="bg-[#895C40] flex items-center gap-2 rounded-full text-white px-6 py-2"
+    >
+      <IoPersonOutline className="text-xl" />
+      Login
+    </motion.a>
+  ) : (
+    /* 🔐 LOGGED IN → SHOW ICON */
+    <motion.a
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.95 }}
+      href="/dashboard"
+      className="w-12 h-12 flex items-center justify-center rounded-full bg-[#895C40] text-white"
+    >
+      <IoPersonOutline className="text-2xl" />
+    </motion.a>
+  )}
+</div>
 
           {/* MOBILE MENU BUTTON */}
           <button
@@ -131,14 +135,24 @@ const Navbar = () => {
               );
             })}
 
-            <a
-              href="/login"
-              onClick={() => setMenuOpen(false)}
-              className="bg-[#895C40] inline-flex w-fit items-center gap-2 rounded-full text-white px-8 py-3"
-            >
-              <IoPersonOutline className="text-xl" />
-              login
-            </a>
+          {!isLoggedIn ? (
+  <a
+    href="/login"
+    onClick={() => setMenuOpen(false)}
+    className="bg-[#895C40] inline-flex w-fit items-center gap-2 rounded-full text-white px-8 py-3"
+  >
+    <IoPersonOutline className="text-xl" />
+    Login
+  </a>
+) : (
+  <a
+    href="/dashboard"
+    onClick={() => setMenuOpen(false)}
+    className="w-12 h-12 flex items-center justify-center rounded-full bg-[#895C40] text-white"
+  >
+    <IoPersonOutline className="text-2xl" />
+  </a>
+)}
           </div>
         )}
       </header>

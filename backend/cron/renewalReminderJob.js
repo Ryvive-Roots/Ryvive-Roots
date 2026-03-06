@@ -34,10 +34,62 @@ const activatePendingRenewals = async () => {
       order.subscription.renewal.pending = false;
     }
 
-    order.subscription.status = "ACTIVE";
-    await order.save();
+ order.subscription.status = "ACTIVE";
+await order.save();
 
-    console.log("✅ Subscription activated:", order.membershipId);
+// 📧 Send activation email
+await sendEmail({
+  to: order.user.email,
+  subject: "Your Ryvive Roots Subscription is Now Active 🌿",
+  html: `
+  <div style="font-family:Arial, Helvetica, sans-serif; line-height:1.7; color:#333;">
+
+    <h2 style="color:#166534;">Dear ${order.user.firstName},</h2>
+
+    <p>
+      Great news! Your <b>${order.subscription.plan.split("_")[0]}</b> subscription 
+      is now <b>ACTIVE</b>.
+    </p>
+
+    <p>
+      Your healthy journey with <b>Ryvive Roots – Live • Relive • Believe 🌱</b>
+      officially begins today.
+    </p>
+
+    <p>
+      Your first delivery will be arriving soon and we are excited to be part
+      of your daily wellness routine.
+    </p>
+
+    <h4 style="color:#15803d;">With your subscription you will enjoy:</h4>
+
+    <ul>
+      <li>🥤 Fresh Healthy Juices</li>
+      <li>🥗 Wholesome Healthy Salads</li>
+      <li>🥪 Premium Healthy Sandwiches</li>
+      <li>🌯 Delicious Healthy Wraps</li>
+      <li>🌿 Flavorful Healthy Chaat</li>
+    </ul>
+
+    <p>
+      If you need any assistance, feel free to contact us anytime.
+    </p>
+
+    <p>
+      📞 <b>+91 97656 00701</b><br/>
+      📞 <b>+91 90760 00468</b>
+    </p>
+
+    <p style="margin-top:25px;">
+      Warm Regards,<br/>
+      <b>Team Ryvive Roots</b>
+    </p>
+
+  </div>
+  `,
+});
+
+console.log("✅ Subscription activated:", order.membershipId);
   }
 };
 
