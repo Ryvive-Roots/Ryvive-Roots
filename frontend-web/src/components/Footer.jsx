@@ -5,6 +5,7 @@ import { FaLocationDot } from "react-icons/fa6";
 import { motion } from "framer-motion";
 import Logo from "../assets/optimized/logo.webp";
 import useIsMobile from "./useIsMobile";
+import Insta from "../assets/optimized/ins.png"
 
 // ✅ GPU-safe animation variants
 const containerVariants = {
@@ -54,16 +55,23 @@ const Footer = () => {
           </p>
 
           {/* Social Icons */}
-          <div className="flex gap-4 my-6 text-2xl">
-            <a
-              href="https://www.instagram.com/ryvive_roots/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Visit Ryvive Roots on Instagram"
-              className="cursor-pointer hover:text-[#895C40] transition-colors duration-200 text-black"
-            >
-              <FaInstagram />
-            </a>
+          <div className="flex flex-col mt-4  text-2xl">
+             <h3 className="uppercase font-semibold text-sm font-roboto text-black">
+          Follow us for offers and updates
+          </h3>
+          <a
+  href="https://www.instagram.com/ryvive_roots/"
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="Visit Ryvive Roots on Instagram"
+  className="cursor-pointer mt-2 transition duration-200"
+>
+  <img
+    src={Insta}
+    alt="Instagram"
+    className="w-6 h-6 hover:scale-110 transition-transform duration-200"
+  />
+</a>
           </div>
         </motion.div>
 
