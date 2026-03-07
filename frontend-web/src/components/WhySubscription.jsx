@@ -83,7 +83,7 @@ export default function WhySubscribe() {
           whileInView={{ opacity: 1, transform: "translateY(0px)" }}
           transition={{ duration: isMobile ? 0.3 : 0.8, ease: "easeOut" }}
           viewport={{ once: true, amount: 0.3 }}
-          className="md:text-3xl text-2xl text-center font-cinzel uppercase font-semibold text-[#243E36] pb-10"
+          className="md:text-3xl text-2xl text-center font-cinzel uppercase font-bold text-[#243E36] pb-10"
         >
           Why Choose Ryvive Roots Subscription?
         </motion.h3>

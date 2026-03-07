@@ -32,9 +32,9 @@ const WhatsAppButton = () => {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat with us on WhatsApp"
-        className="text-green-500 rounded-full flex items-center justify-center"
+        className="text-green-500 bg-white p-2 shadow-2xl rounded-full flex items-center justify-center"
       >
-        <FaWhatsapp size={56} />
+        <FaWhatsapp size={34} />
       </a>
     </motion.div>
   );
