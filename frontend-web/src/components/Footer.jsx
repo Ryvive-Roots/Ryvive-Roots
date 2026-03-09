@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Logo from "../assets/optimized/logo.webp";
 import useIsMobile from "./useIsMobile";
 import Insta from "../assets/optimized/ins.png"
+import Link from "../assets/optimized/link.png"
 
 // ✅ GPU-safe animation variants
 const containerVariants = {
@@ -55,10 +56,8 @@ const Footer = () => {
           </p>
 
           {/* Social Icons */}
-          <div className="flex flex-col mt-4  text-2xl">
-             <h3 className="uppercase font-semibold text-sm font-roboto text-black">
-          Follow us for offers and updates
-          </h3>
+          <div className="flex gap-4 mt-4  text-2xl">
+            
           <a
   href="https://www.instagram.com/ryvive_roots/"
   target="_blank"
@@ -69,7 +68,21 @@ const Footer = () => {
   <img
     src={Insta}
     alt="Instagram"
-    className="w-6 h-6 hover:scale-110 transition-transform duration-200"
+    className="w-7 h-7 hover:scale-110 transition-transform duration-200"
+  />
+</a>
+
+<a
+  href="https://www.linkedin.com/in/ryvive-roots-750b533a7/"
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="Visit Ryvive Roots on Linkedin"
+  className="cursor-pointer flex items-center justify-center mt-2 transition duration-200"
+>
+  <img
+    src={Link}
+    alt="Linkedin"
+    className="w-6 h-6  hover:scale-110 transition-transform duration-200"
   />
 </a>
           </div>
@@ -150,7 +163,7 @@ const Footer = () => {
             <div className="flex items-center space-x-3">
               <MdEmail className="text-[#895C40] text-lg" />
               <span className="text-black/75 font-semibold">
-                contact@ryviveroots.com
+               customersupport@ryviveroots.com, subscribe@ryviveroots.com
               </span>
             </div>
 
