@@ -194,6 +194,34 @@ useEffect(() => {
   }
 }, [location.search]);
 
+useEffect(() => {
+  const handleAbandoned = () => {
+    if (step > 0 && step < 4 && !membershipId && (formData.email || formData.phone)) {
+
+      const payload = new Blob(
+        [
+          JSON.stringify({
+            email: formData.email,
+            phone: formData.phone,
+            firstName: formData.firstName,
+          }),
+        ],
+        { type: "application/json" }
+      );
+
+      navigator.sendBeacon(
+        "https://api.ryviveroots.com/api/payment/abandoned-form",
+        payload
+      );
+    }
+  };
+
+  window.addEventListener("beforeunload", handleAbandoned);
+
+  return () => {
+    window.removeEventListener("beforeunload", handleAbandoned);
+  };
+}, [formData, step, membershipId]);
 
   return (
     <div

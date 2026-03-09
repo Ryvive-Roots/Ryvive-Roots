@@ -552,7 +552,7 @@ await User.findByIdAndUpdate(user._id, {
 
   <p>
     If you ever need help, reach us at:<br />
-    <b>customersupport@ryviveroots.com</b>
+    <b>subscribe@ryviveroots.com</b>
   </p>
 
   <br />
@@ -573,7 +573,7 @@ await User.findByIdAndUpdate(user._id, {
       </p>
 
      <p style="margin:6px 0;">
-        <b>Email ID:</b> management@ryviveroots.com 
+        <b>Email ID:</b> subscribe@ryviveroots.com 
        
       </p>
         <p style="margin:6px 0;">
@@ -639,7 +639,7 @@ await order.save();
       </p>
 
       <p style="margin:6px 0;">
-        <b>Email ID:</b> management@ryviveroots.com 
+        <b>Email ID:</b> subscribe@ryviveroots.com
        
       </p>
         <p style="margin:6px 0;">

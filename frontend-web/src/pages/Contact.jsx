@@ -147,7 +147,7 @@ const Contact = () => {
             <div className="bg-[#FEF7F0] rounded-xl p-7 flex flex-col items-center shadow-md">
               <MdEmail size={30} className="text-[#895C40]" />
               <h3 className="font-semibold mt-2">Email</h3>
-              <p className="text-sm text-gray-600 mt-3">contact@ryviveroots.com</p>
+              <p className="text-sm text-gray-600 mt-3"> customersupport@ryviveroots.com, subscribe@ryviveroots.com</p>
             </div>
 
             {/* Shop */}
