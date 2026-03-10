@@ -12,6 +12,7 @@ import Sandwitch1 from "../assets/Sandwitch2.webp"
 
 import BgDesktop from "../assets/optimized/HeroL.webp";
 import BgMobile from "../assets/optimized/BgMobile-small.webp";
+import Sustainable from "../assets/optimized/sustainable.png";
 import useIsMobile from "./useIsMobile";
 
 
@@ -310,7 +311,7 @@ Book a Consultation
       >
         <div className="relative w-full flex flex-col lg:flex-row items-center lg:items-start gap-0 md:gap-10 justify-center">
           <motion.img
-            src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765360072/sustainable_r2gifi.png"
+            src={Sustainable}
             alt="Fresh healthy salad bowl in eco friendly sustainable packaging by Ryvive Roots in Dombivli"
              loading="lazy"
             variants={imageVariant}
