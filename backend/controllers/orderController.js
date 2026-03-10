@@ -514,7 +514,7 @@ await User.findByIdAndUpdate(user._id, {
     // 7️⃣ SEND CUSTOMER EMAIL (AS-IT-IS)
     await sendEmail({
       to: order.user.email,
-      subject: "Thank You! Your Payment Has Been Received — Ryvive Roots",
+      subject: "Thank You — You’re Now Part of the Ryvive Roots Family!",
       html: `
 <div style="font-family: Arial, sans-serif; line-height: 1.6;">
   <h2>Hi ${order.user.firstName},</h2>
