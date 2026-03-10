@@ -307,7 +307,7 @@ Book a Consultation
         whileInView="visible"
         viewport={{ once: true, amount: 0.25 }}
         variants={containerVariant}
-        className="relative flex flex-col lg:flex-row items-center justify-center bg-white px-8 overflow-visible"
+        className="relative flex flex-col lg:flex-row items-center justify-center bg-white md:px-20  px-8 overflow-visible"
       >
         <div className="relative w-full flex flex-col lg:flex-row items-center lg:items-start gap-0 md:gap-10 justify-center">
           <motion.img
@@ -315,12 +315,12 @@ Book a Consultation
             alt="Fresh healthy salad bowl in eco friendly sustainable packaging by Ryvive Roots in Dombivli"
              loading="lazy"
             variants={imageVariant}
-            className="relative -top-20 translate-x-0 shadow-2xl lg:translate-x-40 w-[500px] lg:w-[550px] h-[300px] lg:h-[400px] object-cover"
+           className="relative -top-10 rounded-xl shadow-2xl w-[500px] lg:w-[520px] h-[300px] lg:h-[340px] object-cover"
           />
 
           <motion.div
             variants={textVariant}
-            className="w-full font-manrope lg:w-1/2 md: py-8 text-center lg:text-left lg:ml-16 lg:pl-20"
+            className="w-full font-manrope lg:w-1/2 md: py-8 text-center lg:text-left "
           >
             <h2 className="text-3xl md:text-4xl font-bold font-cinzel uppercase text-[#4b3b2a] mb-8">
               SUSTAINABLE PACKAGING
@@ -345,10 +345,10 @@ Book a Consultation
               }}
               whileTap={{ scale: 0.97 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
-              onClick={() => navigate("/subscription")}
-              className="bg-[#895C40] cursor-pointer text-white px-8 py-3 tracking-wide font-semibold"
+              onClick={() => navigate("/our-story")}
+              className="bg-[#895C40] rounded-full cursor-pointer text-white px-8 py-3 tracking-wide font-semibold"
             >
-              Subscription
+              Our Story
             </motion.button>
           </motion.div>
         </div>
