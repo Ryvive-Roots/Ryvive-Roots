@@ -176,25 +176,19 @@ useEffect(() => {
         </motion.p>
 
         {/* Button */}
-        <motion.button
-          initial={
-    isMobile
-      ? { opacity: 0 }
-      : { opacity: 0, transform: "translateY(30px)" }
-  }
-  animate={{ opacity: 1, transform: "translateY(0px)" }}
-  transition={{ duration: isMobile ? 0.3 : 0.7, ease: "easeOut", delay: 0.7 }}
-          whileHover={{
-            scale: 1.05,
-            y: -2,
-            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.20)",
-          }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => navigate("/subscription")}
-          className="bg-[#6f5849] font-merriweather rounded-4xl cursor-pointer text-white px-8 py-3 transition-all"
-        >
-          Subscription
-        </motion.button>
+     <motion.button
+  whileHover={{
+    scale: 1.07,
+    y: -3,
+    boxShadow: "0px 10px 22px rgba(0,0,0,0.2)",
+  }}
+  whileTap={{ scale: 0.96 }}
+  transition={{ duration: 0.23, ease: "easeOut" }}
+  onClick={() => navigate("/subscription")}
+  className="bg-[#895C40] rounded-full cursor-pointer text-white px-8 py-3 tracking-wide font-semibold"
+>
+  Subscription
+</motion.button>
 
       </div>
     </div>

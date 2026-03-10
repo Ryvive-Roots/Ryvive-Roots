@@ -163,7 +163,7 @@ const Footer = () => {
             <div className="flex items-center space-x-3">
               <MdEmail className="text-[#895C40] text-lg" />
               <span className="text-black/75 font-semibold">
-               customersupport@ryviveroots.com, subscribe@ryviveroots.com
+               customersupport@ryviveroots.com, management@ryviveroots.com
               </span>
             </div>
 
