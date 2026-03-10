@@ -79,7 +79,8 @@ doc.fillColor("#2a2a2a").fontSize(14);
   // Row Y position aligned to background table
   const planRowY = 389;
 
- const planName = (order.subscription?.plan || "-").split("_")[0];
+ const rawPlan = order.subscription?.plan || "";
+const planName = `RYVIVE ${rawPlan.split("_")[0]}`;
 
 doc.text(planName, 55, planRowY);
   doc.text(`${order.subscription?.durationMonths || 0} Month`, 321, planRowY);
