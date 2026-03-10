@@ -16,7 +16,6 @@ import cron from "node-cron";
 import { renewalReminderJob } from "./cron/renewalReminderJob.js";
 import { welcomeEmailJob } from "./cron/welcomeEmailJob.js";
 
-
 // App Config
 const app = express();
 const port = process.env.PORT || 4000;
