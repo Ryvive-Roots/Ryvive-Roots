@@ -106,39 +106,57 @@ Warm regards,<br/>
 <b>Team Ryvive Roots</b>
 </p>
 
-<table style="margin-top:30px; border-top:1px solid #ddd; padding-top:15px;">
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
   <tr>
-    <td style="padding-top:15px;">
-
-   
-      <p style="margin:6px 0;">
-        <b>Phone No.:</b> 97656 00701
-      </p>
-
-      <p style="margin:6px 0;">
-        <b>Email ID:</b> management@ryviveroots.com 
-       
-      </p>
-        <p style="margin:6px 0;">
-        <b>Website:</b> 
-        <a href="https://www.ryviveroots.com" style="color:#2e7d32;">
-          www.ryviveroots.com
-        </a>
-      </p>
 
 
-      <p style="margin:6px 0;">Dombivli East, Maharashtra 421201.</p>
- 
-    <img 
-  src="https://ryviveroots.com/Ryvive.png"
-  alt="Ryvive Roots"
-  width="180"
-  style="display:block; margin-top:10px;"
-/>
+<!-- LEFT SIDE -->
+<td style="width:35%; vertical-align:top;">
+  <h2 style="margin:0; font-size:22px; color:#000;">Ryvive Roots</h2>
+  <p style="margin:3px 0 15px 0; color:#555;">Wellness & Nutrition</p>
 
-    </td>
+  <!-- SOCIAL ICONS -->
+  <div>
+    <a href="#" style="margin-right:8px;">
+      <img src="https://img.icons8.com/ios-filled/22/000000/facebook.png"/>
+    </a>
+
+    <a href="#" style="margin-right:8px;">
+      <img src="https://img.icons8.com/ios-filled/22/000000/twitter.png"/>
+    </a>
+
+    <a href="#" style="margin-right:8px;">
+      <img src="https://img.icons8.com/ios-filled/22/000000/youtube-play.png"/>
+    </a>
+
+    <a href="#" style="margin-right:8px;">
+      <img src="https://img.icons8.com/ios-filled/22/000000/linkedin.png"/>
+    </a>
+
+    <a href="#">
+      <img src="https://img.icons8.com/ios-filled/22/000000/instagram-new.png"/>
+    </a>
+  </div>
+</td>
+
+<!-- CENTER LOGO -->
+<td style="width:30%; text-align:center;">
+  <img src="https://ryviveroots.com/Ryvive.png" width="85" alt="Ryvive Roots"/>
+</td>
+
+<!-- RIGHT SIDE -->
+<td style="width:35%; vertical-align:top; font-size:14px; color:#333;">
+  <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+  <p style="margin:5px 0;"><b>T:</b> 97656 00701</p>
+  <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
+  <p style="margin:5px 0;">www.ryviveroots.com</p>
+  <p style="margin:5px 0;">Dombivli East, Maharashtra 421201, India</p>
+</td>
+
+
   </tr>
 </table>
+
 
 </div>
         `,
