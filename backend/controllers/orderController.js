@@ -537,7 +537,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
       html:  `
 <div style="font-family: Arial, sans-serif; line-height: 1.6;">
 
-<h2 style="font-family: Georgia, 'Times New Roman', serif;  font-size:18px; margin-bottom:10px;">
+<h2 style="font-family: Georgia, 'Times New Roman', serif;  font-size:16px; margin-bottom:10px;">
   Dear ${order.user.firstName},
 </h2>
 
@@ -551,7 +551,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
     Here’s a quick summary for your records:
   </p>
 
-<table style="font-family: Arial, 'Times New Roman', serif; font-weight: bold; font-size:22px; margin-bottom:10px;">
+<table style="font-family: Arial, 'Times New Roman', serif;  font-size:15px; margin-bottom:10px;">
   <tr>
     <td><b>Receipt Number</b></td>
     <td>: <b>${order.receiptNumber}</b></td>
@@ -606,11 +606,11 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 }
 </style>
 
-<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
+<table class="footer-table" style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
 <tr>
 
 <!-- LEFT SIDE -->
-<td width="33%" valign="top">
+<td style="width:33.33%; vertical-align:middle; text-align:left;">
   <h2 style="margin:0; font-weight:bold; font-size:22px; color:#243E36;">
     Ryvive Roots
   </h2>
@@ -619,22 +619,24 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
     Live | Relive | Believe
   </p>
 
-  <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
-    <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
-  </a>
+  <div class="footer-icons">
+    <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
+      <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
+    </a>
 
-  <a href="https://www.instagram.com/ryvive_roots/">
-    <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram"/>
-  </a>
+    <a href="https://www.instagram.com/ryvive_roots/">
+      <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram"/>
+    </a>
+  </div>
 </td>
 
 <!-- CENTER LOGO -->
-<td width="34%" align="center" valign="middle">
-  <img src="https://ryviveroots.com/Ryvive.png" width="170" alt="Ryvive Roots" style="display:block; margin:auto;">
+<td style="width:33.33%; text-align:center; vertical-align:middle;">
+  <img src="https://ryviveroots.com/Ryvive.png" width="160" alt="Ryvive Roots"/>
 </td>
 
 <!-- RIGHT SIDE -->
-<td width="33%" valign="top" style="font-size:14px; color:#333;">
+<td style="width:33.33%; vertical-align:middle; font-size:14px; color:#333; text-align:left;">
   <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
   <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
   <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
