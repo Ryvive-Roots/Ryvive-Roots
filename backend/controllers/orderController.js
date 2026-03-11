@@ -606,15 +606,14 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 }
 </style>
 
-<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; text-align:center;">
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; text-align:left;">
 
 <!-- LOGO -->
 <tr>
 <td style="padding-bottom:15px;">
-  <img src="https://ryviveroots.com/Ryvive.png" width="160" alt="Ryvive Roots" style="display:block; margin:auto;">
+  <img src="https://ryviveroots.com/Ryvive.png" width="160" alt="Ryvive Roots" style="display:block;">
 </td>
 </tr>
-
 
 <!-- SOCIAL ICON -->
 <tr>
