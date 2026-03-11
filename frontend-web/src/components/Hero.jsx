@@ -393,12 +393,12 @@ Book a Consultation
         <tr>
           {/* LEFT SIDE */}
           <td style={{ width: "35%", verticalAlign: "top" }}>
-            <h2 style={{ margin: 0, fontSize: "22px", color: "#000" }}>
+            <h2 style={{ margin: 0, fontSize: "22px", color: "#243E36" }}>
               Ryvive Roots
             </h2>
 
             <p style={{ margin: "3px 0 15px 0", color: "#555" }}>
-              Wellness & Nutrition
+              Live | Relive | Believe
             </p>
 
             {/* SOCIAL ICONS */}
