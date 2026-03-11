@@ -537,7 +537,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
       html:  `
 <div style="font-family: Arial, sans-serif; line-height: 1.6;">
 
-<h2 style="font-family: Georgia, 'Times New Roman', serif; font-weight: bold; font-size:22px; margin-bottom:10px;">
+<h2 style="font-family: Georgia, 'Times New Roman', serif;  font-size:18px; margin-bottom:10px;">
   Dear ${order.user.firstName},
 </h2>
 
@@ -557,7 +557,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
       <td>: ${order.receiptNumber}</td>
     </tr>
     <tr>
-      <td><b>Plan Chosen</b></td>
+      <td><b>Your Plan</b></td>
       <td>: ${formattedPlan}</td>
     </tr>
     <tr>
@@ -595,7 +595,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
   <tr>
 
     <!-- LEFT SIDE -->
-    <td style="width:35%; vertical-align:top;">
+    <td style="width:33.33%; vertical-align:middle;">
       <h2 style="margin:0; font-weight:bold; font-size:22px; color:#243E36;">
         Ryvive Roots
       </h2>
@@ -604,7 +604,6 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
         Live | Relive | Believe
       </p>
 
-      <!-- SOCIAL ICONS -->
       <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
         <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
       </a>
@@ -615,12 +614,12 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
     </td>
 
     <!-- CENTER LOGO -->
-    <td style="width:30%; text-align:center; vertical-align:middle;">
+    <td style="width:33.33%; text-align:center; vertical-align:middle;">
       <img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots"/>
     </td>
 
     <!-- RIGHT SIDE -->
-    <td style="width:35%; vertical-align:top; font-size:14px; color:#333;">
+    <td style="width:33.33%; vertical-align:middle; font-size:14px; color:#333;">
       <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
       <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
       <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
@@ -658,21 +657,21 @@ await order.save();
 <h2>New Customer Subscription Received</h2>
 
 <ul>
-  <li><b>Name:</b> ${order.user.firstName} ${order.user.lastName}</li>
-  <li><b>Phone:</b> ${order.user.phone}</li>
-  <li><b>Email:</b> ${order.user.email}</li>
- <li><b>Plan:</b> ${formattedPlan}</li>
-  <li><b>Amount:</b> ₹${order.subscription.amount}</li>
-  <li><b>Slot:</b> ${order.deliverySlot}</li>
-  <li><b>Receipt No:</b> ${order.receiptNumber}</li>
-  <li><b>Membership ID:</b> ${order.membershipId}</li>
+  <li><b>Name:</b> <b>${order.user.firstName} ${order.user.lastName}</b></li>
+  <li><b>Phone:</b> <b>${order.user.phone}</b></li>
+  <li><b>Email:</b> <b>${order.user.email}</b></li>
+  <li><b>Plan:</b> <b>${formattedPlan}</b></li>
+  <li><b>Amount:</b> <b>₹${order.subscription.amount}</b></li>
+  <li><b>Slot:</b> <b>${order.deliverySlot}</b></li>
+  <li><b>Receipt No:</b> <b>${order.receiptNumber}</b></li>
+  <li><b>Membership ID:</b> <b>${order.membershipId}</b></li>
 </ul>
 
 <table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
   <tr>
 
     <!-- LEFT SIDE -->
-    <td style="width:35%; vertical-align:top;">
+    <td style="width:33.33%; vertical-align:middle;">
       <h2 style="margin:0; font-weight:bold; font-size:22px; color:#243E36;">
         Ryvive Roots
       </h2>
@@ -681,7 +680,6 @@ await order.save();
         Live | Relive | Believe
       </p>
 
-      <!-- SOCIAL ICONS -->
       <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
         <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
       </a>
@@ -692,12 +690,12 @@ await order.save();
     </td>
 
     <!-- CENTER LOGO -->
-    <td style="width:30%; text-align:center; vertical-align:middle;">
+    <td style="width:33.33%; text-align:center; vertical-align:middle;">
       <img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots"/>
     </td>
 
     <!-- RIGHT SIDE -->
-    <td style="width:35%; vertical-align:top; font-size:14px; color:#333;">
+    <td style="width:33.33%; vertical-align:middle; font-size:14px; color:#333;">
       <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
       <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
       <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
