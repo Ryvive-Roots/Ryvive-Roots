@@ -272,37 +272,45 @@ await sendEmail({
     <b>The Ryvive Roots Team</b>
   </p>
 
-    <table style="margin-top:30px; border-top:1px solid #ddd; padding-top:15px;">
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
   <tr>
-    <td style="padding-top:15px;">
 
-    
+    <!-- LEFT SIDE -->
+    <td style="width:35%; vertical-align:top;">
+      <h2 style="margin:0; font-weight:bold; font-size:22px; color:#243E36;">
+        Ryvive Roots
+      </h2>
 
-      <p style="margin:6px 0;">
-        <b>Phone No.:</b> 97656 00701
+      <p style="margin:3px 0 15px 0; color:#555;">
+        Live | Relive | Believe
       </p>
 
-     <p style="margin:6px 0;">
-        <b>Email ID:</b> management@ryviveroots.com 
-       
-      </p>
-        <p style="margin:6px 0;">
-        <b>Website:</b> 
-        <a href="https://www.ryviveroots.com" style="color:#2e7d32;">
-          www.ryviveroots.com
-        </a>
-      </p>
+      <!-- SOCIAL ICONS -->
+      <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
+        <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
+      </a>
 
-      <p style="margin:6px 0;">Dombivli East, Maharashtra 421201.</p>
- 
-     <img 
-  src="https://ryviveroots.com/Ryvive.png"
-  alt="Ryvive Roots"
-  width="180"
-  style="display:block; margin-top:10px;"
-/>
-
+      <a href="https://www.instagram.com/ryvive_roots/">
+        <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram"/>
+      </a>
     </td>
+
+    <!-- CENTER LOGO -->
+    <td style="width:30%; text-align:center; vertical-align:middle;">
+      <img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots"/>
+    </td>
+
+    <!-- RIGHT SIDE -->
+    <td style="width:35%; vertical-align:top; font-size:14px; color:#333;">
+      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+      <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
+      <p style="margin:5px 0;">www.ryviveroots.com</p>
+      <p style="margin:5px 0;">
+        Dombivli East, Maharashtra 421201, India
+      </p>
+    </td>
+
   </tr>
 </table>
 </div>
@@ -337,37 +345,45 @@ await sendEmail({
   <li><b>Membership ID:</b> ${existingOrder.membershipId}</li>
   <li><b>Receipt No:</b> ${receiptNumber}</li>
 </ul>
-  <table style="margin-top:30px; border-top:1px solid #ddd; padding-top:15px;">
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
   <tr>
-    <td style="padding-top:15px;">
 
-    
+    <!-- LEFT SIDE -->
+    <td style="width:35%; vertical-align:top;">
+      <h2 style="margin:0; font-weight:bold; font-size:22px; color:#243E36;">
+        Ryvive Roots
+      </h2>
 
-      <p style="margin:6px 0;">
-        <b>Phone No.:</b> 97656 00701
+      <p style="margin:3px 0 15px 0; color:#555;">
+        Live | Relive | Believe
       </p>
 
-     <p style="margin:6px 0;">
-        <b>Email ID:</b> management@ryviveroots.com 
-       
-      </p>
-        <p style="margin:6px 0;">
-        <b>Website:</b> 
-        <a href="https://www.ryviveroots.com" style="color:#2e7d32;">
-          www.ryviveroots.com
-        </a>
-      </p>
+      <!-- SOCIAL ICONS -->
+      <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
+        <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
+      </a>
 
-      <p style="margin:6px 0;">Dombivli East, Maharashtra 421201.</p>
- 
-     <img 
-  src="https://ryviveroots.com/Ryvive.png"
-  alt="Ryvive Roots"
-  width="180"
-  style="display:block; margin-top:10px;"
-/>
-
+      <a href="https://www.instagram.com/ryvive_roots/">
+        <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram"/>
+      </a>
     </td>
+
+    <!-- CENTER LOGO -->
+    <td style="width:30%; text-align:center; vertical-align:middle;">
+      <img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots"/>
+    </td>
+
+    <!-- RIGHT SIDE -->
+    <td style="width:35%; vertical-align:top; font-size:14px; color:#333;">
+      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+      <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
+      <p style="margin:5px 0;">www.ryviveroots.com</p>
+      <p style="margin:5px 0;">
+        Dombivli East, Maharashtra 421201, India
+      </p>
+    </td>
+
   </tr>
 </table>
 `,
@@ -563,11 +579,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
   </p>
 
   <p>
-    And if you ever have a question, a concern, or just want to say hello, we’re always here for you.
-  </p>
-
-  <p>
-    Reach out anytime at <b>customersupport@ryviveroots.com</b> and we’ll get back to you with a smile.
+  And hey, if you ever have a question, a concern, or just want to say hello, we’re always here for you. Reach out anytime at customersupport@ryviveroots.com and we’ll get back to you with a smile.
   </p>
 
   <p>
@@ -579,43 +591,44 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
     <b>Team Ryvive Roots</b>
   </p>
 
-  <table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
+ <table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
   <tr>
 
+    <!-- LEFT SIDE -->
+    <td style="width:35%; vertical-align:top;">
+      <h2 style="margin:0; font-weight:bold; font-size:22px; color:#243E36;">
+        Ryvive Roots
+      </h2>
 
-<!-- LEFT SIDE -->
-<td style="width:35%; vertical-align:top;">
-  <h2 style="margin:0; font-size:22px; color:#000;">Ryvive Roots</h2>
-  <p style="margin:3px 0 15px 0; color:#555;">Wellness & Nutrition</p>
+      <p style="margin:3px 0 15px 0; color:#555;">
+        Live | Relive | Believe
+      </p>
 
-  <!-- SOCIAL ICONS -->
-  <div>
+      <!-- SOCIAL ICONS -->
+      <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
+        <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
+      </a>
 
+      <a href="https://www.instagram.com/ryvive_roots/">
+        <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram"/>
+      </a>
+    </td>
 
-    <a href="#" style="margin-right:8px;">
-      <img src="https://img.icons8.com/ios-filled/22/000000/linkedin.png"/>
-    </a>
+    <!-- CENTER LOGO -->
+    <td style="width:30%; text-align:center; vertical-align:middle;">
+      <img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots"/>
+    </td>
 
-    <a href="#">
-      <img src="https://img.icons8.com/ios-filled/22/000000/instagram-new.png"/>
-    </a>
-  </div>
-</td>
-
-<!-- CENTER LOGO -->
-<td style="width:30%; text-align:center;">
-  <img src="https://ryviveroots.com/Ryvive.png" width="200" alt="Ryvive Roots"/>
-</td>
-
-<!-- RIGHT SIDE -->
-<td style="width:35%; vertical-align:top; font-size:14px; color:#333;">
-  <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
-  <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
-  <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
-  <p style="margin:5px 0;">www.ryviveroots.com</p>
-  <p style="margin:5px 0;">Dombivli East, Maharashtra 421201, India</p>
-</td>
-
+    <!-- RIGHT SIDE -->
+    <td style="width:35%; vertical-align:top; font-size:14px; color:#333;">
+      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+      <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
+      <p style="margin:5px 0;">www.ryviveroots.com</p>
+      <p style="margin:5px 0;">
+        Dombivli East, Maharashtra 421201, India
+      </p>
+    </td>
 
   </tr>
 </table>
@@ -655,37 +668,45 @@ await order.save();
   <li><b>Membership ID:</b> ${order.membershipId}</li>
 </ul>
 
-<table style="margin-top:30px; border-top:1px solid #ddd; padding-top:15px;">
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
   <tr>
-    <td style="padding-top:15px;">
 
-   
-      <p style="margin:6px 0;">
-        <b>Phone No.:</b> 97656 00701
+    <!-- LEFT SIDE -->
+    <td style="width:35%; vertical-align:top;">
+      <h2 style="margin:0; font-weight:bold; font-size:22px; color:#243E36;">
+        Ryvive Roots
+      </h2>
+
+      <p style="margin:3px 0 15px 0; color:#555;">
+        Live | Relive | Believe
       </p>
 
-      <p style="margin:6px 0;">
-        <b>Email ID:</b> subscribe@ryviveroots.com
-       
-      </p>
-        <p style="margin:6px 0;">
-        <b>Website:</b> 
-        <a href="https://www.ryviveroots.com" style="color:#2e7d32;">
-          www.ryviveroots.com
-        </a>
-      </p>
+      <!-- SOCIAL ICONS -->
+      <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
+        <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
+      </a>
 
-
-      <p style="margin:6px 0;">Dombivli East, Maharashtra 421201.</p>
- 
-    <img 
-  src="https://ryviveroots.com/Ryvive.png"
-  alt="Ryvive Roots"
-  width="180"
-  style="display:block; margin-top:10px;"
-/>
-
+      <a href="https://www.instagram.com/ryvive_roots/">
+        <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram"/>
+      </a>
     </td>
+
+    <!-- CENTER LOGO -->
+    <td style="width:30%; text-align:center; vertical-align:middle;">
+      <img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots"/>
+    </td>
+
+    <!-- RIGHT SIDE -->
+    <td style="width:35%; vertical-align:top; font-size:14px; color:#333;">
+      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+      <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
+      <p style="margin:5px 0;">www.ryviveroots.com</p>
+      <p style="margin:5px 0;">
+        Dombivli East, Maharashtra 421201, India
+      </p>
+    </td>
+
   </tr>
 </table>
 `,
