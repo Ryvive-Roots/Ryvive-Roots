@@ -606,45 +606,36 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 }
 </style>
 
-<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; text-align:center;">
+
+<!-- LOGO -->
 <tr>
-
-<!-- LEFT SIDE -->
-<td align="left" valign="middle">
-  <h2 style="margin:0; font-weight:bold; font-size:22px; color:#243E36;">
-    Ryvive Roots
-  </h2>
-
-  <p style="margin:3px 0 15px 0; color:#555;">
-    Live | Relive | Believe
-  </p>
-
-  <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
-    <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
-  </a>
-
-  <a href="https://www.instagram.com/ryvive_roots/">
-    <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram"/>
-  </a>
-</td>
-
-<!-- CENTER LOGO -->
-<td align="center" valign="middle">
+<td style="padding-bottom:15px;">
   <img src="https://ryviveroots.com/Ryvive.png" width="160" alt="Ryvive Roots" style="display:block; margin:auto;">
 </td>
-
-<!-- RIGHT SIDE -->
-<td align="left" valign="middle" style="font-size:14px; color:#333;">
-  <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
-  <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
-  <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
-  <p style="margin:5px 0;">www.ryviveroots.com</p>
-  <p style="margin:5px 0;">
-    Dombivli East, Maharashtra 421201, India
-  </p>
-</td>
-
 </tr>
+
+
+<!-- SOCIAL ICON -->
+<tr>
+<td style="padding-bottom:15px;">
+  <a href="https://www.instagram.com/ryvive_roots/">
+    <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram">
+  </a>
+</td>
+</tr>
+
+<!-- CONTACT DETAILS -->
+<tr>
+<td style="font-size:14px; color:#333; line-height:1.6;">
+  97656 00701<br/>
+  97656 00701<br/>
+  subscribe@ryviveroots.com<br/>
+  www.ryviveroots.com<br/>
+  Dombivli East, Maharashtra 421201, India
+</td>
+</tr>
+
 </table>
 
 
