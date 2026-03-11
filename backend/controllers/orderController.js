@@ -606,11 +606,11 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 }
 </style>
 
-<table class="footer-table" style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
 <tr>
 
 <!-- LEFT SIDE -->
-<td style="width:33.33%; vertical-align:middle; text-align:left;">
+<td align="left" valign="middle">
   <h2 style="margin:0; font-weight:bold; font-size:22px; color:#243E36;">
     Ryvive Roots
   </h2>
@@ -619,24 +619,22 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
     Live | Relive | Believe
   </p>
 
-  <div class="footer-icons">
-    <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
-      <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
-    </a>
+  <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
+    <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
+  </a>
 
-    <a href="https://www.instagram.com/ryvive_roots/">
-      <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram"/>
-    </a>
-  </div>
+  <a href="https://www.instagram.com/ryvive_roots/">
+    <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram"/>
+  </a>
 </td>
 
 <!-- CENTER LOGO -->
-<td style="width:33.33%; text-align:center; vertical-align:middle;">
-  <img src="https://ryviveroots.com/Ryvive.png" width="160" alt="Ryvive Roots"/>
+<td align="center" valign="middle">
+  <img src="https://ryviveroots.com/Ryvive.png" width="160" alt="Ryvive Roots" style="display:block; margin:auto;">
 </td>
 
 <!-- RIGHT SIDE -->
-<td style="width:33.33%; vertical-align:middle; font-size:14px; color:#333; text-align:left;">
+<td align="left" valign="middle" style="font-size:14px; color:#333;">
   <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
   <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
   <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
