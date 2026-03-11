@@ -621,7 +621,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 <tr>
 <td style="font-size:14px; color:#333; line-height:1.6;">
   +91 9076000468 /
-  97656 00701
+  97656 00701 <br/>
   subscribe@ryviveroots.com<br/>
   www.ryviveroots.com, https://www.instagram.com/ryvive_roots/<br/>
   Dombivli East, Maharashtra 421201, India
