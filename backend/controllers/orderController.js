@@ -521,9 +521,11 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
       html:  `
 <div style="font-family: Arial, sans-serif; line-height: 1.6;">
 
-  <h2>Dear ${order.user.firstName},</h2>
+<h2 style="font-family: Georgia, 'Times New Roman', serif; font-weight: bold; font-size:22px; margin-bottom:10px;">
+  Dear ${order.user.firstName},
+</h2>
 
-  <p>
+  <p font-family: Arial, 'Times New Roman', serif; font-weight: bold; font-size:22px; margin-bottom:10px;>
     We just wanted to say thank you so much! We’re genuinely thrilled to have you as part of the 
     <b>Ryvive Roots family</b>, and we can’t wait to walk alongside you on this wonderful wellness journey.
   </p>
@@ -533,7 +535,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
     Here’s a quick summary for your records:
   </p>
 
-  <table style="border-collapse: collapse;">
+  <table font-family: Arial, 'Times New Roman', serif; font-weight: bold; font-size:22px; margin-bottom:10px;>
     <tr>
       <td><b>Receipt Number</b></td>
       <td>: ${order.receiptNumber}</td>
@@ -588,17 +590,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 
   <!-- SOCIAL ICONS -->
   <div>
-    <a href="#" style="margin-right:8px;">
-      <img src="https://img.icons8.com/ios-filled/22/000000/facebook.png"/>
-    </a>
 
-    <a href="#" style="margin-right:8px;">
-      <img src="https://img.icons8.com/ios-filled/22/000000/twitter.png"/>
-    </a>
-
-    <a href="#" style="margin-right:8px;">
-      <img src="https://img.icons8.com/ios-filled/22/000000/youtube-play.png"/>
-    </a>
 
     <a href="#" style="margin-right:8px;">
       <img src="https://img.icons8.com/ios-filled/22/000000/linkedin.png"/>
@@ -612,7 +604,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 
 <!-- CENTER LOGO -->
 <td style="width:30%; text-align:center;">
-  <img src="https://ryviveroots.com/Ryvive.png" width="85" alt="Ryvive Roots"/>
+  <img src="https://ryviveroots.com/Ryvive.png" width="200" alt="Ryvive Roots"/>
 </td>
 
 <!-- RIGHT SIDE -->
