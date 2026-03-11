@@ -381,79 +381,7 @@ Book a Consultation
      <Suspense fallback={<div className="h-[300px]" />}>
   <TestimonialsSection />
 </Suspense>
- <table
-      style={{
-        width: "100%",
-        background: "#f3f3f3",
-        padding: "25px",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <tbody>
-        <tr>
-          {/* LEFT SIDE */}
-          <td style={{ width: "35%", verticalAlign: "top" }}>
-            <h2 style={{ margin: 0, fontSize: "22px", color: "#243E36" }}>
-              Ryvive Roots
-            </h2>
 
-            <p style={{ margin: "3px 0 15px 0", color: "#555" }}>
-              Live | Relive | Believe
-            </p>
-
-            {/* SOCIAL ICONS */}
-            <div>
-              <a href="#" style={{ marginRight: "8px" }}>
-                <img
-                  src="https://img.icons8.com/ios-filled/22/000000/linkedin.png"
-                  alt="LinkedIn"
-                />
-              </a>
-
-              <a href="#">
-                <img
-                  src="https://img.icons8.com/ios-filled/22/000000/instagram-new.png"
-                  alt="Instagram"
-                />
-              </a>
-            </div>
-          </td>
-
-          {/* CENTER LOGO */}
-          <td style={{ width: "30%", textAlign: "center" }}>
-            <img
-              src="https://ryviveroots.com/Ryvive.png"
-              width="200"
-              alt="Ryvive Roots"
-            />
-          </td>
-
-          {/* RIGHT SIDE */}
-          <td
-            style={{
-              width: "35%",
-              verticalAlign: "top",
-              fontSize: "14px",
-              color: "#333",
-            }}
-          >
-            <p style={{ margin: "5px 0" }}>
-              <b>M:</b> 97656 00701
-            </p>
-            <p style={{ margin: "5px 0" }}>
-              <b>M:</b> 97656 00701
-            </p>
-            <p style={{ margin: "5px 0" }}>
-              <b>E:</b> subscribe@ryviveroots.com
-            </p>
-            <p style={{ margin: "5px 0" }}>www.ryviveroots.com</p>
-            <p style={{ margin: "5px 0" }}>
-              Dombivli East, Maharashtra 421201, India
-            </p>
-          </td>
-        </tr>
-      </tbody>
-    </table>
     </>
   );
 };

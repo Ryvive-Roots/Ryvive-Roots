@@ -40,55 +40,112 @@ await order.save();
 // 📧 Send activation email
 await sendEmail({
   to: order.user.email,
-  subject: "Your Ryvive Roots Subscription is Now Active 🌿",
+  subject: "🌿 Your Ryvive Roots Journey Starts NOW!",
   html: `
-  <div style="font-family:Arial, Helvetica, sans-serif; line-height:1.7; color:#333;">
+  <div style="font-family:Arial, Helvetica, sans-serif; line-height:1.7; color:#333; max-width:650px; margin:auto;">
 
-    <h2 style="color:#166534;">Dear ${order.user.firstName},</h2>
+    <h2 style="color:#166534;">Hi ${order.user.firstName},</h2>
 
     <p>
-      Great news! Your <b>${order.subscription.plan.split("_")[0]}</b> subscription 
-      is now <b>ACTIVE</b>.
+      The wait is over! Your <b>Ryvive Roots membership is officially ACTIVE!</b>
     </p>
 
     <p>
-      Your healthy journey with <b>Ryvive Roots – Live • Relive • Believe 🌱</b>
-      officially begins today.
+      What an exciting moment! We are so thrilled to have you with us, and we want to make sure your start is as smooth and seamless as possible. Below you'll find everything you need to jump right in — how to log in and how to stay connected with our wonderful community.
+    </p>
+
+    <p><b>Let's get you started!</b></p>
+
+    <h3 style="color:#166534;">Log into Your Account</h3>
+
+    <p>Getting in is simple! Just follow these steps:</p>
+
+    <ol>
+      <li>Visit our website at <a href="https://ryviveroots.com">www.ryviveroots.com</a></li>
+      <li>Click on <b>"Member Login"</b> at the top right corner</li>
+      <li>Enter your <b>Membership ID</b></li>
+      <li>Enter your <b>registered email address</b></li>
+      <li>Click <b>"Login"</b> and you'll be taken straight to your personal wellness dashboard</li>
+    </ol>
+
+    <p>
+      Having trouble logging in? Drop us a line at 
+      <b>customersupport@ryviveroots.com</b> and we'll sort it out for you right away!
+    </p>
+
+    <h3 style="color:#166534;">Let's Stay Connected</h3>
+
+    <p>
+      The Ryvive Roots community doesn't stop at your inbox! Come find us on social media where we show up daily with wellness inspiration, real member stories, and content that actually feels good to scroll through.
     </p>
 
     <p>
-      Your first delivery will be arriving soon and we are excited to be part
-      of your daily wellness routine.
-    </p>
-
-    <h4 style="color:#15803d;">With your subscription you will enjoy:</h4>
-
-    <ul>
-      <li>🥤 Fresh Healthy Juices</li>
-      <li>🥗 Wholesome Healthy Salads</li>
-      <li>🥪 Premium Healthy Sandwiches</li>
-      <li>🌯 Delicious Healthy Wraps</li>
-      <li>🌿 Flavorful Healthy Chaat</li>
-    </ul>
-
-    <p>
-      If you need any assistance, feel free to contact us anytime.
+      • Instagram: 
+      <a href="https://www.instagram.com/ryvive_roots/">@ryvive_roots</a>
+      <br/>
+      • Facebook: 
+      <a href="https://www.facebook.com/">Ryvive Roots</a>
     </p>
 
     <p>
-      📞 <b>+91 97656 00701</b><br/>
-      📞 <b>+91 90760 00468</b>
+      We'd love to see you there, give us a follow and say hi!
+    </p>
+
+    <p>
+      A gentle reminder, wellness is a journey, and questions are always welcome along the way. We're here for you anytime at 
+      <b>customersupport@ryviveroots.com</b>.
     </p>
 
     <p style="margin-top:25px;">
-      Warm Regards,<br/>
+      Warmly,<br/>
       <b>Team Ryvive Roots</b>
     </p>
+
+    <table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
+  <tr>
+
+    <!-- LEFT SIDE -->
+    <td style="width:35%; vertical-align:top;">
+      <h2 style="margin:0; font-weight:bold; font-size:22px; color:#243E36;">
+        Ryvive Roots
+      </h2>
+
+      <p style="margin:3px 0 15px 0; color:#555;">
+        Live | Relive | Believe
+      </p>
+
+      <!-- SOCIAL ICONS -->
+      <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
+        <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
+      </a>
+
+      <a href="https://www.instagram.com/ryvive_roots/">
+        <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram"/>
+      </a>
+    </td>
+
+    <!-- CENTER LOGO -->
+    <td style="width:30%; text-align:center; vertical-align:middle;">
+      <img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots"/>
+    </td>
+
+    <!-- RIGHT SIDE -->
+    <td style="width:35%; vertical-align:top; font-size:14px; color:#333;">
+      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+      <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
+      <p style="margin:5px 0;">www.ryviveroots.com</p>
+      <p style="margin:5px 0;">
+        Dombivli East, Maharashtra 421201, India
+      </p>
+    </td>
+
+  </tr>
+</table>
 
   </div>
   `,
 });
-
 console.log("✅ Subscription activated:", order.membershipId);
   }
 };
@@ -117,79 +174,121 @@ export const renewalReminderJob = async () => {
       for (const order of orders) {
         const renewLink = `https://ryviveroots.com/renew?membershipId=${order.membershipId}`;
 
-      await sendEmail({
+await sendEmail({
   to: order.user.email,
- subject:
-  daysLeft === 1
-    ? " Just 1 Day Left⏰ Renew Your Ryvive Roots Subscription"
-    : " Just 4 Days Left🌿 Renew Your Ryvive Roots Subscription",
+  subject:
+    daysLeft === 1
+      ? " Just 1 Day Left⏰ Renew Your Ryvive Roots Subscription"
+      : " Just 4 Days Left🌿 Renew Your Ryvive Roots Subscription",
 
   html: `
-    <div style="font-family:Arial, Helvetica, sans-serif; line-height:1.7; color:#333;">
-      
-      <h2 style="color:#166534;">
-        Dear ${order.user.firstName},
+  <div style="font-family:Arial, Helvetica, sans-serif; line-height:1.7; color:#333; max-width:650px; margin:auto;">
+    
+    <h2 style="color:#166534;">
+      Hi ${order.user.firstName},
+    </h2>
+
+    <p>
+      Just popping in to let you know your <b>Ryvive Roots membership</b> expires on 
+      <b>${order.subscription.endDate.toLocaleDateString("en-IN")}</b>.
+    </p>
+
+    <p>
+      You've been doing so well on your wellness journey, and honestly renewing is simple 
+      and keeps everything going right where you left off. We'd love to have you stay.
+    </p>
+
+    <h3 style="color:#166534;">Let's Get You Renewed!</h3>
+
+    <p><b>Renewing is Quick & Easy</b></p>
+
+    <ol>
+      <li>Log in to your account at <a href="https://ryviveroots.com">www.ryviveroots.com</a></li>
+      <li>Go to <b>"My Membership"</b></li>
+      <li>Click on <b>"Renew My Plan"</b></li>
+      <li>Confirm your details and you're all set!</li>
+    </ol>
+
+    <p>
+      Your journey keeps going just like that!
+    </p>
+
+    <h3 style="color:#166534;">Your Renewal Details</h3>
+
+    <p>
+      • <b>Membership ID:</b> ${order.membershipId || "Your Membership ID"} <br/>
+      • <b>Current Plan:</b> ${order.subscription.plan} <br/>
+      • <b>Expiry Date:</b> ${order.subscription.endDate.toLocaleDateString("en-IN")} <br/>
+      • <b>Renewal Amount:</b> ₹${order.subscription.amount}
+    </p>
+
+    <div style="margin:25px 0;">
+      <a href="${renewLink}"
+        style="background:#16a34a;color:#ffffff;
+        padding:14px 22px;border-radius:6px;
+        text-decoration:none;font-weight:bold;">
+        Renew Now
+      </a>
+    </div>
+
+    <p>
+      Need help renewing or have questions about your plan? We're right here at 
+      <b>customersupport@ryviveroots.com</b> always happy to help!
+    </p>
+
+    <p>
+      Just a gentle reminder: your wellness journey deserves to keep going. 
+      Every step forward counts, and we're excited to keep walking alongside you.
+    </p>
+
+    <p style="margin-top:25px;">
+      Warmly,<br/>
+      <b>Team Ryvive Roots</b>
+    </p>
+
+    <table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
+  <tr>
+
+    <!-- LEFT SIDE -->
+    <td style="width:35%; vertical-align:top;">
+      <h2 style="margin:0; font-weight:bold; font-size:22px; color:#243E36;">
+        Ryvive Roots
       </h2>
 
-      <p>
-        We hope you’re loving your healthy journey with 
-        <b>Ryvive Roots – Live • Relive • Believe 🌱</b>
+      <p style="margin:3px 0 15px 0; color:#555;">
+        Live | Relive | Believe
       </p>
 
-      <p>
-        This is a friendly reminder that your 
-        <b>${order.subscription.plan}</b> subscription will be expiring in 
-        <b>${daysLeft} day${daysLeft > 1 ? "s" : ""}</b> 
-        (on <b>${order.subscription.endDate.toLocaleDateString("en-IN")}</b>).
+      <!-- SOCIAL ICONS -->
+      <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
+        <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
+      </a>
+
+      <a href="https://www.instagram.com/ryvive_roots/">
+        <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram"/>
+      </a>
+    </td>
+
+    <!-- CENTER LOGO -->
+    <td style="width:30%; text-align:center; vertical-align:middle;">
+      <img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots"/>
+    </td>
+
+    <!-- RIGHT SIDE -->
+    <td style="width:35%; vertical-align:top; font-size:14px; color:#333;">
+      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+      <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
+      <p style="margin:5px 0;">www.ryviveroots.com</p>
+      <p style="margin:5px 0;">
+        Dombivli East, Maharashtra 421201, India
       </p>
+    </td>
 
-      <p>
-        We truly value being a part of your wellness routine and would love to 
-        continue serving you fresh, <b>100% vegetarian</b>, nourishing meals every day.
-      </p>
+  </tr>
+</table>
 
-      <h4 style="color:#15803d;">With your subscription, you continue enjoying:</h4>
-      <ul>
-        <li>🥤 Fresh Healthy Juices</li>
-        <li>🥗 Wholesome Healthy Salads</li>
-        <li>🥪 Premium Healthy Sandwiches</li>
-        <li>🌯 Delicious Healthy Wraps</li>
-        <li>🌿 Flavorful Healthy Chaat</li>
-      </ul>
-
-      <p>
-        At Ryvive Roots, every week brings something new and refreshing to your plate — 
-        so your healthy lifestyle never feels boring ✨
-      </p>
-
-      <p>
-        To avoid any interruption in your plan, we recommend renewing before 
-        <b>${order.subscription.endDate.toLocaleDateString("en-IN")}</b>.
-      </p>
-
-      <div style="margin:25px 0;">
-        <a href="${renewLink}"
-           style="background:#16a34a;color:#ffffff;
-           padding:14px 22px;border-radius:6px;
-           text-decoration:none;font-weight:bold;">
-          Renew Now
-        </a>
-      </div>
-
-      <p>
-        You can also simply reply to this email or contact us at:<br/>
-        📞 <b>+91 97656 00701</b> / <b>+91 90760 00468</b>
-      </p>
-
-      <p>
-        We look forward to continuing your wellness journey with us 🌿
-      </p>
-
-      <p style="margin-top:25px;">
-        Warm Regards,<br/>
-        <b>Team Ryvive Roots</b>
-      </p>
-    </div>
+  </div>
   `,
 });
 
