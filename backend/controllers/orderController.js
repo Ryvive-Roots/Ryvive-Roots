@@ -606,7 +606,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 }
 </style>
 
-<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; text-align:left;">
+<table style="width:100%; background:#FFFFFF; padding:25px; font-family:Arial, sans-serif; text-align:left;">
 
 <!-- LOGO -->
 <tr>
@@ -615,22 +615,15 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 </td>
 </tr>
 
-<!-- SOCIAL ICON -->
-<tr>
-<td style="padding-bottom:15px;">
-  <a href="https://www.instagram.com/ryvive_roots/">
-    <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram">
-  </a>
-</td>
-</tr>
+
 
 <!-- CONTACT DETAILS -->
 <tr>
 <td style="font-size:14px; color:#333; line-height:1.6;">
-  97656 00701<br/>
-  97656 00701<br/>
+  +91 9076000468 /
+  97656 00701
   subscribe@ryviveroots.com<br/>
-  www.ryviveroots.com<br/>
+  www.ryviveroots.com, https://www.instagram.com/ryvive_roots/<br/>
   Dombivli East, Maharashtra 421201, India
 </td>
 </tr>
