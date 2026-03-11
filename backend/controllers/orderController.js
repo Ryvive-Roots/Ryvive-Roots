@@ -551,24 +551,24 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
     Here’s a quick summary for your records:
   </p>
 
-  <table font-family: Arial, 'Times New Roman', serif; font-weight: bold; font-size:22px; margin-bottom:10px;>
-    <tr>
-      <td><b>Receipt Number</b></td>
-      <td>: ${order.receiptNumber}</td>
-    </tr>
-    <tr>
-      <td><b>Your Plan</b></td>
-      <td>: ${formattedPlan}</td>
-    </tr>
-    <tr>
-      <td><b>Amount Paid</b></td>
-      <td>: ₹${order.subscription.amount}</td>
-    </tr>
-    <tr>
-      <td><b>Payment Date</b></td>
-      <td>: ${order.createdAt.toLocaleDateString("en-IN")}</td>
-    </tr>
-  </table>
+<table style="font-family: Arial, 'Times New Roman', serif; font-weight: bold; font-size:22px; margin-bottom:10px;">
+  <tr>
+    <td><b>Receipt Number</b></td>
+    <td>: <b>${order.receiptNumber}</b></td>
+  </tr>
+  <tr>
+    <td><b>Your Plan</b></td>
+    <td>: <b>${formattedPlan}</b></td>
+  </tr>
+  <tr>
+    <td><b>Amount Paid</b></td>
+    <td>: <b>₹${order.subscription.amount}</b></td>
+  </tr>
+  <tr>
+    <td><b>Payment Date</b></td>
+    <td>: <b>${order.createdAt.toLocaleDateString("en-IN")}</b></td>
+  </tr>
+</table>
 
   <br/>
 
@@ -591,45 +591,60 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
     <b>Team Ryvive Roots</b>
   </p>
 
- <table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
-  <tr>
+<style>
+@media only screen and (max-width:600px) {
+  .footer-table td {
+    display:block !important;
+    width:100% !important;
+    text-align:center !important;
+    margin-bottom:15px;
+  }
 
-    <!-- LEFT SIDE -->
-    <td style="width:33.33%; vertical-align:middle;">
-      <h2 style="margin:0; font-weight:bold; font-size:22px; color:#243E36;">
-        Ryvive Roots
-      </h2>
+  .footer-icons img{
+    margin:0 6px !important;
+  }
+}
+</style>
 
-      <p style="margin:3px 0 15px 0; color:#555;">
-        Live | Relive | Believe
-      </p>
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
+<tr>
 
-      <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
-        <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
-      </a>
+<!-- LEFT SIDE -->
+<td width="33%" valign="top">
+  <h2 style="margin:0; font-weight:bold; font-size:22px; color:#243E36;">
+    Ryvive Roots
+  </h2>
 
-      <a href="https://www.instagram.com/ryvive_roots/">
-        <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram"/>
-      </a>
-    </td>
+  <p style="margin:3px 0 15px 0; color:#555;">
+    Live | Relive | Believe
+  </p>
 
-    <!-- CENTER LOGO -->
-    <td style="width:33.33%; text-align:center; vertical-align:middle;">
-      <img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots"/>
-    </td>
+  <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
+    <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
+  </a>
 
-    <!-- RIGHT SIDE -->
-    <td style="width:33.33%; vertical-align:middle; font-size:14px; color:#333;">
-      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
-      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
-      <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
-      <p style="margin:5px 0;">www.ryviveroots.com</p>
-      <p style="margin:5px 0;">
-        Dombivli East, Maharashtra 421201, India
-      </p>
-    </td>
+  <a href="https://www.instagram.com/ryvive_roots/">
+    <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram"/>
+  </a>
+</td>
 
-  </tr>
+<!-- CENTER LOGO -->
+<td width="34%" align="center" valign="middle">
+  <img src="https://ryviveroots.com/Ryvive.png" width="170" alt="Ryvive Roots" style="display:block; margin:auto;">
+</td>
+
+<!-- RIGHT SIDE -->
+<td width="33%" valign="top" style="font-size:14px; color:#333;">
+  <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+  <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+  <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
+  <p style="margin:5px 0;">www.ryviveroots.com</p>
+  <p style="margin:5px 0;">
+    Dombivli East, Maharashtra 421201, India
+  </p>
+</td>
+
+</tr>
 </table>
 
 
