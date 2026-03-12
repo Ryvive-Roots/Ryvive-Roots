@@ -611,7 +611,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 <tr>
 <td align="center">
 
-<table  text-align:center; border-spacing:0;">
+<table style="text-align:center; border-spacing:0;">
 
 <tr>
 <td style="padding:6px 0;">
@@ -620,7 +620,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 </tr>
 
 <tr>
-<td style="padding:6px 0; font-size:13px; color:#333; line-height:1.5;">
+<td style="padding:6px 0; font-size:13px; color:#333; line-height:1.5; text-align:center;">
 You're receiving this email because you recently activated a Ryvive Roots membership.<br>
 If you have any concerns, please contact us at 
 <a href="mailto:customersupport@ryviveroots.com" style="text-decoration:none;">
@@ -630,7 +630,7 @@ customersupport@ryviveroots.com
 </tr>
 
 <tr>
-<td style="padding:8px 0;">
+<td style="padding:8px 0; text-align:center;">
 <a href="https://www.instagram.com/ryvive_roots/" style="margin-right:12px; text-decoration:none;">
 <img src="https://cdn-icons-png.flaticon.com/512/1400/1400829.png" width="22" alt="Instagram" style="vertical-align:middle; border:none;">
 </a>
@@ -642,13 +642,13 @@ customersupport@ryviveroots.com
 </tr>
 
 <tr>
-<td style="padding:3px 0; font-size:13px; color:#333;">
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
 +91 9076000468 / 97656 00701
 </td>
 </tr>
 
 <tr>
-<td style="padding:3px 0; font-size:13px; color:#333;">
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
 <a href="https://www.ryviveroots.com" style="text-decoration:none;">
 www.ryviveroots.com
 </a>
@@ -656,23 +656,21 @@ www.ryviveroots.com
 </tr>
 
 <tr>
-<td style="padding:6px 0;">
+<td style="padding:6px 0; text-align:center;">
 <a href="https://ryviveroots.com/privacy-policy" style="text-decoration:none;">
 Privacy Policy
 </a>
 </td>
 </tr>
 
-
 <tr>
-<td style="padding:3px 0; font-size:13px; color:#333;">
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
 Dombivli East, Maharashtra 421201, India
 </td>
 </tr>
 
-
 <tr>
-<td style="padding-top:10px; font-size:13px; color:#333;">
+<td style="padding-top:10px; font-size:13px; color:#333; text-align:center;">
 © 2026 RYVIVE ROOTS All Rights Reserved.
 </td>
 </tr>
@@ -759,6 +757,7 @@ await order.save();
 
   </tr>
 </table>
+
 `,
       attachments: [
         {
