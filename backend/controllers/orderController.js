@@ -611,7 +611,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 <tr>
 <td align="center">
 
-<table style="width:420px; text-align:center; border-spacing:0;">
+<table  text-align:center; border-spacing:0;">
 
 <tr>
 <td style="padding:6px 0;">
@@ -656,18 +656,20 @@ www.ryviveroots.com
 </tr>
 
 <tr>
-<td style="padding:3px 0; font-size:13px; color:#333;">
-Dombivli East, Maharashtra 421201, India
-</td>
-</tr>
-
-<tr>
 <td style="padding:6px 0;">
 <a href="https://ryviveroots.com/privacy-policy" style="text-decoration:none;">
 Privacy Policy
 </a>
 </td>
 </tr>
+
+
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333;">
+Dombivli East, Maharashtra 421201, India
+</td>
+</tr>
+
 
 <tr>
 <td style="padding-top:10px; font-size:13px; color:#333;">
