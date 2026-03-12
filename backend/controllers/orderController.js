@@ -621,19 +621,20 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 
 <tr>
 <td style="padding:6px 0; font-size:14px; color:#333; line-height:1.4;">
-You're receiving this email because you recently activated a Ryvive Roots membership. If you have any concerns, please contact us at 
+You're receiving this email because you recently activated a Ryvive Roots membership.<br><br>
+If you have any concerns, please contact us at 
 <a href="mailto:customersupport@ryviveroots.com">customersupport@ryviveroots.com</a>.
 </td>
 </tr>
 
 <tr>
 <td style="padding:6px 0;">
-<a href="https://www.instagram.com/ryvive_roots/" style="margin-right:10px;">
-<img src="https://cdn-icons-png.flaticon.com/512/1400/1400829.png" width="22" alt="Instagram" style="filter:grayscale(100%) brightness(60%);">
+<a href="https://www.instagram.com/ryvive_roots/" style="margin-right:10px; text-decoration:none;">
+<img src="https://cdn-icons-png.flaticon.com/512/1400/1400829.png" width="22" alt="Instagram" style="display:inline-block; border:none;">
 </a>
 
-<a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/">
-<img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" width="22" alt="LinkedIn" style="filter:grayscale(100%) brightness(60%);">
+<a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="text-decoration:none;">
+<img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" width="22" alt="LinkedIn" style="display:inline-block; border:none;">
 </a>
 </td>
 </tr>
@@ -651,12 +652,6 @@ www.ryviveroots.com
 </tr>
 
 <tr>
-<td style="padding:3px 0; font-size:14px; color:#333;">
-Dombivli East, Maharashtra 421201, India
-</td>
-</tr>
-
-<tr>
 <td style="padding:6px 0;">
 <a href="https://ryviveroots.com/privacy-policy">
 Privacy Policy
@@ -665,8 +660,16 @@ Privacy Policy
 </tr>
 
 <tr>
+<td style="padding:3px 0; font-size:14px; color:#333;">
+Dombivli East, Maharashtra 421201, India
+</td>
+</tr>
+
+
+
+<tr>
 <td style="padding:6px 0; font-size:14px; color:#333;">
-© 2026 RYVIVE ROOTS All rights reserved.
+© 2026 RYVIVE ROOTS All Rights Reserved.
 </td>
 </tr>
 
