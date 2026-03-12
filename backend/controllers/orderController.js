@@ -621,7 +621,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 
 <tr>
 <td style="padding:6px 0; font-size:14px; color:#333; line-height:1.4;">
-You're receiving this email because you recently activated a Ryvive Roots membership.<br><br>
+You're receiving this email because you recently activated a Ryvive Roots membership.<br>
 If you have any concerns, please contact us at 
 <a href="mailto:customersupport@ryviveroots.com">customersupport@ryviveroots.com</a>.
 </td>
