@@ -190,7 +190,7 @@ const Footer = () => {
         variants={itemVariants}
       >
         <div className="font-spectral-sc-regular pt-6 text-base text-black/75 font-semibold">
-          &copy; {new Date().getFullYear()} Ryvive Roots. All rights reserved.
+          &copy; {new Date().getFullYear()} RYVIVE ROOTS. All rights reserved.
         </div>
       </motion.div>
     </motion.footer>
