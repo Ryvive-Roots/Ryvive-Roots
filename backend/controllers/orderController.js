@@ -606,11 +606,16 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 }
 </style>
 
-<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; text-align:center; border-spacing:0;">
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; border-spacing:0;">
+
+<tr>
+<td align="left" style="width:420px;">
+
+<table style="width:100%; text-align:left; border-spacing:0;">
 
 <tr>
 <td style="padding:6px 0;">
-<img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots" style="display:block; margin:auto;">
+<img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots">
 </td>
 </tr>
 
@@ -624,11 +629,11 @@ You're receiving this email because you recently activated a Ryvive Roots member
 <tr>
 <td style="padding:6px 0;">
 <a href="https://www.instagram.com/ryvive_roots/" style="margin-right:10px;">
-<img src="https://cdn-icons-png.flaticon.com/512/1400/1400829.png" width="24" alt="Instagram">
+<img src="https://cdn-icons-png.flaticon.com/512/1400/1400829.png" width="22" alt="Instagram" style="filter:grayscale(100%) brightness(60%);">
 </a>
 
 <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/">
-<img src="https://img.icons8.com/ios-filled/50/808080/linkedin.png" width="24" alt="LinkedIn">
+<img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" width="22" alt="LinkedIn" style="filter:grayscale(100%) brightness(60%);">
 </a>
 </td>
 </tr>
@@ -661,7 +666,12 @@ Privacy Policy
 
 <tr>
 <td style="padding:6px 0; font-size:14px; color:#333;">
-© 2026 RYVIVE ROOTS. All rights reserved.
+© 2026 RYVIVE ROOTS All rights reserved.
+</td>
+</tr>
+
+</table>
+
 </td>
 </tr>
 
