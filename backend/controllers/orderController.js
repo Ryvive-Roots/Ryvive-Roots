@@ -606,60 +606,62 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 }
 </style>
 
-<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; text-align:center;">
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; text-align:center; border-spacing:0;">
 
-<!-- LOGO -->
 <tr>
-<td style="padding-bottom:15px;">
-  <img src="https://ryviveroots.com/Ryvive.png" width="160" alt="Ryvive Roots" style="display:block; margin:auto;">
+<td style="padding:6px 0;">
+<img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots" style="display:block; margin:auto;">
 </td>
 </tr>
 
 <tr>
-<td style="font-size:14px; color:#333; line-height:1.6;">
-You're receiving this email because you recently activated a Ryvive Roots membership. If you have any concerns, please contact us at customersupport@ryviveroots.com.
-</td>
-</tr>
-
-<!-- SOCIAL ICON -->
-<tr>
-<td style="padding-bottom:15px;">
-
-
-
-
-
-  <a href="https://www.instagram.com/ryvive_roots/">
-    <img src="https://img.icons8.com/ios-filled/50/808080/instagram-new.png" width="24" alt="Instagram">
-  </a>
-    <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:10px;">
-    <img src="https://img.icons8.com/ios-filled/50/808080/linkedin.png" width="24" alt="LinkedIn">
-  </a>
-
-</td>
-</tr>
-
-<!-- CONTACT DETAILS -->
-<tr>
-<td style="font-size:14px; color:#333; line-height:1.6;">
- +91 9076000468 /
-  97656 00701<br/>
-  www.ryviveroots.com<br/>
-  Dombivli East, Maharashtra 421201, India
+<td style="padding:6px 0; font-size:14px; color:#333; line-height:1.4;">
+You're receiving this email because you recently activated a Ryvive Roots membership. If you have any concerns, please contact us at 
+<a href="mailto:customersupport@ryviveroots.com">customersupport@ryviveroots.com</a>.
 </td>
 </tr>
 
 <tr>
-<td style="padding-bottom:15px;">
-  <a href="https://ryviveroots.com/privacy-policy">
-   Privacy Policy
-  </a>
+<td style="padding:6px 0;">
+<a href="https://www.instagram.com/ryvive_roots/" style="margin-right:10px;">
+<img src="https://cdn-icons-png.flaticon.com/512/1400/1400829.png" width="24" alt="Instagram">
+</a>
+
+<a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/">
+<img src="https://img.icons8.com/ios-filled/50/808080/linkedin.png" width="24" alt="LinkedIn">
+</a>
 </td>
 </tr>
 
 <tr>
-<td style="font-size:14px; color:#333; line-height:1.6;">
-© 2026 Ryvive Roots. All rights reserved.
+<td style="padding:3px 0; font-size:14px; color:#333;">
++91 9076000468 / 97656 00701
+</td>
+</tr>
+
+<tr>
+<td style="padding:3px 0; font-size:14px; color:#333;">
+www.ryviveroots.com
+</td>
+</tr>
+
+<tr>
+<td style="padding:3px 0; font-size:14px; color:#333;">
+Dombivli East, Maharashtra 421201, India
+</td>
+</tr>
+
+<tr>
+<td style="padding:6px 0;">
+<a href="https://ryviveroots.com/privacy-policy">
+Privacy Policy
+</a>
+</td>
+</tr>
+
+<tr>
+<td style="padding:6px 0; font-size:14px; color:#333;">
+© 2026 RYVIVE ROOTS. All rights reserved.
 </td>
 </tr>
 
