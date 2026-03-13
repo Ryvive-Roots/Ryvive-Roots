@@ -7,6 +7,7 @@ import Logo from "../assets/optimized/logo.webp";
 import useIsMobile from "./useIsMobile";
 import Insta from "../assets/optimized/ins.png"
 import Link from "../assets/optimized/link.png"
+import YuTU from "../assets/optimized/you.png"
 
 // ✅ GPU-safe animation variants
 const containerVariants = {
@@ -56,36 +57,51 @@ const Footer = () => {
           </p>
 
           {/* Social Icons */}
-          <div className="flex gap-4 mt-4  text-2xl">
-            
-          <a
-  href="https://www.instagram.com/ryvive_roots/"
-  target="_blank"
-  rel="noopener noreferrer"
-  aria-label="Visit Ryvive Roots on Instagram"
-  className="cursor-pointer mt-2 transition duration-200"
->
-  <img
-    src={Insta}
-    alt="Instagram"
-    className="w-7 h-7 hover:scale-110 transition-transform duration-200"
-  />
-</a>
+        <div className="flex gap-3 mt-4">
 
-<a
-  href="https://www.linkedin.com/in/ryvive-roots-750b533a7/"
-  target="_blank"
-  rel="noopener noreferrer"
-  aria-label="Visit Ryvive Roots on Linkedin"
-  className="cursor-pointer flex items-center justify-center mt-2 transition duration-200"
->
-  <img
-    src={Link}
-    alt="Linkedin"
-    className="w-6 h-6  hover:scale-110 transition-transform duration-200"
-  />
-</a>
-          </div>
+  {/* Instagram */}
+  <a
+    href="https://www.instagram.com/ryvive_roots/"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center transition hover:scale-105"
+  >
+    <img
+      src={Insta}
+      alt="Instagram"
+      className="w-5 h-5"
+    />
+  </a>
+
+  {/* LinkedIn */}
+  <a
+    href="https://www.linkedin.com/in/ryvive-roots-750b533a7/"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center transition hover:scale-105"
+  >
+    <img
+      src={Link}
+      alt="LinkedIn"
+      className="w-5 h-5"
+    />
+  </a>
+
+  {/* YouTube */}
+  <a
+    href="https://www.youtube.com/channel/UCLmGUQhHC7kmN7lCaQ4PoDg"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center transition hover:scale-105"
+  >
+    <img
+      src={YuTU}
+      alt="YouTube"
+      className="w-5 h-5"
+    />
+  </a>
+
+</div>
         </motion.div>
 
         {/* Quick Links */}
