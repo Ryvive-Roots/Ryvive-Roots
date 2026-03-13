@@ -56,17 +56,26 @@ useEffect(() => {
               {navItems.map((item, index) => {
                 const isActive = location.pathname === item.href; // 👈 Check active link
                 return (
-                  <a
-                    key={index}
-                    href={item.href}
-                    className={`text-lg transition-colors duration-200 ${
-                      isActive
-                        ? "text-[#895C40] font-bold" // Active color
-                        : "text-[#243E36] font-bold hover:text-[#895C40]"
-                    }`}
-                  >
-                    {item.label}
-                  </a>
+                 <a
+  key={index}
+  href={item.href}
+  className={`text-lg font-bold transition-colors duration-200 ${
+    isActive
+      ? "text-[#895C40]"
+      : "text-[#243E36] hover:text-[#895C40]"
+  }`}
+  style={{
+    WebkitTextStroke: "0.5px #243E36",
+    textShadow: `
+      1px 1px 0 #ffffff,
+      -1px 1px 0 #ffffff,
+      1px -1px 0 #ffffff,
+      -1px -1px 0 #ffffff
+    `
+  }}
+>
+  {item.label}
+</a>
                 );
               })}
             </nav>
