@@ -80,7 +80,7 @@ for (const order of pendingOrders) {
 =========================== */
 router.post("/manual-order", async (req, res) => {
   try {
-   const { user, plan, slot, paymentMethod, healthInfo, remarks } = req.body;
+   const { user, address, plan, slot, paymentMethod, healthInfo, remarks } = req.body;
 
 
     if (!user?.firstName || !user?.phone) {
@@ -90,7 +90,7 @@ router.post("/manual-order", async (req, res) => {
       });
     }
 
-    if (!user?.address?.pincode) {
+    if (!address?.pincode) {
       return res.status(400).json({
         success: false,
         message: "Address pincode is required",
@@ -196,14 +196,14 @@ console.log("🧪 months:", months);
 
 remarks: remarks || "",
 
-      address: {
-        pincode: user.address.pincode,
-        house: user.address.house,
-        street: user.address.street,
-        landmark: user.address.landmark || "",
-        city: user.address.city || "Dombivli",
-        state: user.address.state || "Maharashtra",
-      },
+     address: {
+  pincode: address.pincode,
+  house: address.house,
+  street: address.street,
+  landmark: address.landmark || "",
+  city: address.city || "Dombivli",
+  state: address.state || "Maharashtra",
+},
 
       deliverySlot: slot,
 

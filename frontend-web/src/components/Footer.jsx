@@ -189,8 +189,8 @@ const Footer = () => {
         className="flex md:flex-row flex-col mt-10 items-center justify-center border-t border-gray-300 px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]"
         variants={itemVariants}
       >
-        <div className="font-spectral-sc-regular pt-6 text-base text-black/75 font-semibold">
-          &copy; {new Date().getFullYear()} RYVIVE ROOTS. All rights reserved.
+        <div className="font-spectral-sc-regular pt-11 text-sm text-black/75 font-semibold">
+          &copy; {new Date().getFullYear()} RYVIVE ROOTS All Rights Reserved.
         </div>
       </motion.div>
     </motion.footer>
