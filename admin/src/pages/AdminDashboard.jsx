@@ -61,6 +61,7 @@ const openRenewModal = (order) => {
   plan: "",
   slot: "",
   paymentMethod: "CASH",
+  startDate: "",
 
   healthInfo: {
     allergies: "",
@@ -124,6 +125,7 @@ const openRenewModal = (order) => {
   plan: manualUser.plan,
   slot: manualUser.slot,
   paymentMethod: manualUser.paymentMethod,
+   startDate: manualUser.startDate,
 };
 
 
@@ -431,6 +433,15 @@ const daysLeft = (order) => {
   value={manualUser.remarks}
   onChange={(e) =>
     setManualUser({ ...manualUser, remarks: e.target.value })
+  }
+/>
+
+<input
+  type="date"
+  className="border p-2 w-full rounded"
+  value={manualUser.startDate || ""}
+  onChange={(e) =>
+    setManualUser({ ...manualUser, startDate: e.target.value })
   }
 />
 
