@@ -436,18 +436,23 @@ const daysLeft = (order) => {
 
 
             {/* PLAN */}
-            <select
-              className="border p-2 w-full rounded"
-              value={manualUser.plan}
-              onChange={(e) =>
-                setManualUser({ ...manualUser, plan: e.target.value })
-              }
-            >
-              <option value="">Select Plan</option>
-              <option>SILVER</option>
-              <option>GOLD</option>
-              <option>PLATINUM</option>
-            </select>
+           <select
+  className="border p-2 w-full rounded"
+  value={manualUser.plan}
+  onChange={(e) =>
+    setManualUser({ ...manualUser, plan: e.target.value })
+  }
+>
+  <option value="">Select Plan</option>
+
+  <option value="SILVER_1MONTH">Silver – 1 Month</option>
+  <option value="GOLD_1MONTH">Gold – 1 Month</option>
+  <option value="PLATINUM_1MONTH">Platinum – 1 Month</option>
+
+  <option value="SILVER_3MONTH">Silver – 3 Months</option>
+  <option value="GOLD_3MONTH">Gold – 3 Months</option>
+  <option value="PLATINUM_3MONTH">Platinum – 3 Months</option>
+</select>
 
             {/* SLOT */}
             {/* ⏰ DELIVERY SLOT */}

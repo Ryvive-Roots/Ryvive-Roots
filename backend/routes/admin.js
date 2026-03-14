@@ -625,7 +625,7 @@ if (basePlan && basePlan.includes("_")) {
 
 const duration = Number(durationMonths);
 
-const planKey = `${basePlan}_${duration}M`;
+const planKey = `${basePlan}_${duration}MONTH`;
 
 const selectedPlan = PLANS[planKey];
 
