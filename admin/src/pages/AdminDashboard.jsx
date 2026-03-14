@@ -26,6 +26,7 @@ const [paymentMethod, setPaymentMethod] = useState("CASH");
 const [editData, setEditData] = useState({
   phone: "",
   email: "",
+  dob: "",   // ⭐ add this
   allergies: "",
   medicalConditions: "",
   remarks: "",
@@ -58,6 +59,7 @@ const openRenewModal = (order) => {
   lastName: "",
   phone: "",
   email: "",
+   dob: "",  
   plan: "",
   slot: "",
   paymentMethod: "CASH",
@@ -115,6 +117,7 @@ const openRenewModal = (order) => {
     lastName: manualUser.lastName,
     phone: manualUser.phone,
     email: manualUser.email,
+    dob: manualUser.dob,
   },
 
   address: manualUser.address,
@@ -236,6 +239,7 @@ const handleSaveEdit = async (orderId) => {
           user: {
             phone: editData.phone,
             email: editData.email,
+            dob: editData.dob, 
           },
           healthInfo: {
             allergies: editData.allergies,
@@ -395,6 +399,15 @@ const daysLeft = (order) => {
                 setManualUser({ ...manualUser, email: e.target.value })
               }
             />
+           <label className="text-sm text-gray-600">Date of Birth</label>
+<input
+  type="date"
+  className="border p-2 w-full rounded"
+  value={manualUser.dob || ""}
+  onChange={(e) =>
+    setManualUser({ ...manualUser, dob: e.target.value })
+  }
+/>
             {/* 🩺 HEALTH INFORMATION */}
 <textarea
   placeholder="Allergies (if any)"
@@ -694,7 +707,13 @@ const daysLeft = (order) => {
   <div className="text-xs break-words">
     📧 {order.user?.email || "-"}
   </div>
-
+ <div className="text-xs">
+  🎂 DOB:{" "}
+  {order.user?.dob && order.user.dob !== "0000-00-00"
+    ? new Date(order.user.dob).toLocaleDateString("en-GB")
+    : "—"}
+</div>
+ 
   {/* TOGGLE BUTTON */}
   <button
     onClick={() =>
@@ -729,6 +748,15 @@ const daysLeft = (order) => {
   value={editData.email}
   onChange={(e) =>
     setEditData({ ...editData, email: e.target.value })
+  }
+/>
+
+<input
+  type="date"
+  className="border p-1 rounded w-full"
+  value={editData.dob || ""}
+  onChange={(e) =>
+    setEditData({ ...editData, dob: e.target.value })
   }
 />
 
@@ -883,21 +911,22 @@ const daysLeft = (order) => {
           {order.user?.firstName} {order.user?.lastName}
         </h3>
 
-        <button
-          onClick={() => {
-            setEditingRow(order._id);
-            setEditData({
-              phone: order.user?.phone || "",
-              email: order.user?.email || "",
-              allergies: order.healthInfo?.allergies || "",
-              medicalConditions: order.healthInfo?.medicalConditions || "",
-              remarks: order.remarks || "",
-            });
-          }}
-          className="text-xs text-blue-600 underline"
-        >
-          ✏️ Edit
-        </button>
+      <button
+  onClick={() => {
+    setEditingRow(order._id);
+    setEditData({
+      phone: order.user?.phone || "",
+      email: order.user?.email || "",
+       dob: order.user?.dob ? order.user.dob.split("T")[0] : "",
+      allergies: order.healthInfo?.allergies || "",
+      medicalConditions: order.healthInfo?.medicalConditions || "",
+      remarks: order.remarks || "",
+    });
+  }}
+  className="text-blue-600 text-xs hover:underline"
+>
+  ✏️ Edit
+</button>
       </div>
 
       <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded inline-block">
@@ -928,21 +957,42 @@ const daysLeft = (order) => {
         </p>
       )}
 
-      {/* EMAIL */}
-      {editingRow === order._id ? (
-        <input
-          className="border p-2 w-full rounded text-sm"
-          value={editData.email}
-          onChange={(e) =>
-            setEditData({ ...editData, email: e.target.value })
-          }
-        />
-      ) : (
-        <p className="text-sm break-all">
-          <b>📧 Email:</b> {order.user?.email || "-"}
-        </p>
-      )}
+    {/* EMAIL */}
+{editingRow === order._id ? (
+  <>
+    <input
+      className="border p-2 w-full rounded text-sm mb-2"
+      value={editData.email}
+      onChange={(e) =>
+        setEditData({ ...editData, email: e.target.value })
+      }
+      placeholder="Email"
+    />
 
+    {/* DOB EDIT */}
+    <input
+      type="date"
+      className="border p-2 w-full rounded text-sm"
+      value={editData.dob || ""}
+      onChange={(e) =>
+        setEditData({ ...editData, dob: e.target.value })
+      }
+    />
+  </>
+) : (
+  <>
+    <p className="text-sm break-all">
+      <b>📧 Email:</b> {order.user?.email || "-"}
+    </p>
+
+    <p className="text-sm">
+      <b>🎂 DOB:</b>{" "}
+      {order.user?.dob
+        ? new Date(order.user.dob).toLocaleDateString("en-GB")
+        : "-"}
+    </p>
+  </>
+)}
       {/* ALLERGIES */}
       {editingRow === order._id ? (
         <textarea
