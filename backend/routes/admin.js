@@ -153,12 +153,38 @@ if (recentOrder) {
 const now = new Date();
 
 // ✅ Always force valid activation date
-const activationAt =
-  new Date(Date.now() + 48 * 60 * 60 * 1000) || new Date();
+let startDate;
+let activationAt;
+let status = "UNDER_PROCESS";
 
+const today = new Date();
+today.setHours(0,0,0,0);
 
-// ✅ Clone date properly (important)
-const startDate = new Date(activationAt);
+if (req.body.startDate) {
+
+  const selected = new Date(req.body.startDate);
+  selected.setHours(0,0,0,0);
+
+  // ⭐ If admin selected past date → activate immediately
+  if (selected < today) {
+    startDate = new Date(req.body.startDate);
+    activationAt = new Date(startDate);
+    status = "ACTIVE";
+  }
+
+  // ⭐ If today or future → 48 hour activation
+  else {
+    activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+    startDate = new Date(activationAt);
+  }
+
+} else {
+
+  // Default behaviour
+  activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+  startDate = new Date(activationAt);
+
+}
 
 // ✅ Ensure months is always a number
 const months = Number(selectedPlan.durationMonths) || 1;
@@ -207,7 +233,7 @@ remarks: remarks || "",
 
       deliverySlot: slot,
 
-      subscription: {
+     subscription: {
   plan,
   amount: selectedPlan.price,
   durationMonths: months,
@@ -215,7 +241,7 @@ remarks: remarks || "",
   startDate,
   endDate,
   pause: { used: 0, history: [] },
-  status: "UNDER_PROCESS",   // optional
+  status,
 },
       paymentStatus: "PAID",
      paymentMethod: paymentMethod || "CASH",
