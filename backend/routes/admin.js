@@ -235,7 +235,7 @@ remarks: remarks || "",
   startDate,
   endDate,
   pause: { used: 0, history: [] },
-  statusb,   // optional
+  status,   // optional
 },
       paymentStatus: "PAID",
      paymentMethod: paymentMethod || "CASH",
@@ -348,6 +348,11 @@ try {
          ],
          
        });
+
+       order.subscription.thankYouEmailSentAt = new Date();
+order.subscription.welcomeEmailSent = false;
+
+await order.save();
     }
 
     // 📩 SEND COMPANY EMAIL

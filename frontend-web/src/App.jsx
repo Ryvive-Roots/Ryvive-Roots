@@ -30,6 +30,7 @@ import Shipping from "./components/Shipping"
 import Cancellation from "./components/Cancellation"
 import DashboardPage from "./components/DashboardPage"
 import PaymentSuccess from "./pages/PaymentSuccess"
+import MealPlanLayout from "./components/SubscriptionPlans"
 
 
 
@@ -46,6 +47,7 @@ function App() {
           <Route path="/our-story" element={<OurStory />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/subscription" element={<Subscription />} />
+            <Route path="/subscriptionPlans" element={<MealPlanLayout />} />
           <Route path="/franchise" element={<Franchise />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/career" element={<Career />} />
