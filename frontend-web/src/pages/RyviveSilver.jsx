@@ -4,6 +4,7 @@ import saladIcon from "../assets/bowl1.png";
 import wrapIcon from "../assets/wraps.avif";
 import juiceIcon from "../assets/juices.png";
 import chaatIcon from "../assets/chat.png";
+import { useLocation } from "react-router-dom";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import BgImage from "../assets/optimized/ImgP.png";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -20,6 +21,12 @@ const categories = [
 { name: "Juices", icon: juiceIcon },
 { name: "Chaat", icon: chaatIcon },
 ];
+
+const location = useLocation();
+
+const duration = location.state?.duration || "1";
+const plan = location.state?.plan || "SILVER";
+const price = location.state?.price || 4999;
 
 const weeklyMenus = [
   {
@@ -198,7 +205,7 @@ loop={true}
 
       <div className="flex justify-between">
         <span>Subtotal</span>
-        <span>₹4,999</span>
+       <span>₹{price.toLocaleString()}</span>
       </div>
 
       <div className="flex justify-between">
@@ -208,7 +215,7 @@ loop={true}
 
       <div className="flex justify-between font-bold border-t pt-2">
         <span>Total</span>
-        <span>₹4,999</span>
+       <span>₹{price.toLocaleString()}</span>
       </div>
 
     </div>

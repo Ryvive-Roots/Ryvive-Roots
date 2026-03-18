@@ -43,6 +43,10 @@ const [windowSize, setWindowSize] = useState({
 });
 const location = useLocation();
 
+const duration = location.state?.duration || "1";
+const price = location.state?.price || 6999;
+const monthlyPrice = location.state?.monthlyPrice || 6999;
+
 useEffect(() => {
   const handleResize = () => {
     setWindowSize({
@@ -146,7 +150,7 @@ const handlePayment = async () => {
           lastname: formData.lastName,
           email: formData.email,
           phone: formData.phone,
-          plan: "PLATINUM_1MONTH",
+          plan: `PLATINUM_${duration}MONTH`,
           formData,
         }),
       }
@@ -516,10 +520,19 @@ useEffect(() => {
                       <h4 className="font-semibold text-gray-800 mb-2">
                         Subscription Summary
                       </h4>
-                      <div className="flex justify-between text-sm">
-                        <span>Platinum Subscription Plan</span>
-                        <span>₹ 6,999.00</span>
-                      </div>
+                     <div className="flex justify-between text-sm">
+  <span>Platinum Subscription Plan</span>
+
+  <div className="text-right">
+    {duration === "3" && (
+      <p className="text-gray-500 text-xs">
+        ₹{monthlyPrice.toLocaleString()} × 3
+      </p>
+    )}
+
+    <p>₹ {price.toLocaleString()}</p>
+  </div>
+</div>
 
                       <div className="flex justify-between text-sm text-green-600">
                         <span>Delivery Fee</span>
@@ -528,7 +541,7 @@ useEffect(() => {
 
                       <div className="border-t pt-3 flex justify-between font-semibold text-lg">
                         <span>Total Payable</span>
-                        <span>₹ 6,999.00</span>
+                       <span>₹ {price.toLocaleString()}</span>
                       </div>
 
                       <p className="text-xs text-gray-500 mt-2">
@@ -544,7 +557,9 @@ useEffect(() => {
   className={`w-full py-4 rounded-xl text-white font-fredoka
     ${loadingOrder ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"}`}
 >
-  {loadingOrder ? "REDIRECTING TO PAYMENT..." : "PAY ₹6,999 & PLACE ORDER"}
+  {loadingOrder 
+  ? "REDIRECTING TO PAYMENT..." 
+  : `PAY ₹${price.toLocaleString()} & PLACE ORDER`}
 </button>
 
                     {/* <button

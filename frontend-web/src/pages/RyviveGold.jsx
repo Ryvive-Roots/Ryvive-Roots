@@ -1,4 +1,5 @@
 import React from 'react'
+import { useLocation } from "react-router-dom";
 import saladIcon from "../assets/bowl1.png";
 import wrapIcon from "../assets/wraps.avif/";
 import juiceIcon from "../assets/juices.png";
@@ -15,6 +16,11 @@ const RyviveGold = () => {
       { name: "Pasta", icon: Pasta },
     ]
 
+    const location = useLocation();
+
+const duration = location.state?.duration || "1";
+const plan = location.state?.plan || "GOLD";
+const price = location.state?.price || 5999;
   return (
     <div
       className="min-h-screen bg-cover bg-top mt-20 bg-no-repeat flex items-center justify-center"
@@ -107,7 +113,7 @@ const RyviveGold = () => {
             <div className="space-y-2 text-sm  text-black font-bold font-manrope">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>₹5,999</span>
+                <span>₹{price.toLocaleString()}</span>
               </div>
 
               <div className="flex justify-between">
@@ -117,7 +123,7 @@ const RyviveGold = () => {
 
               <div className="flex justify-between font-semibold border-t pt-2">
                 <span>Total</span>
-                <span>₹5,999</span>
+                <span>₹{price.toLocaleString()}</span>
               </div>
             </div>
 

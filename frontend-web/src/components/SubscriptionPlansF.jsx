@@ -1,94 +1,73 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 
+export default function SubscriptionPlans() {
 
-import BgImage from "../assets/optimized/bg.webp";
+const [selectedPlan, setSelectedPlan] = useState("PLATINUM");
+const [duration, setDuration] = useState("3");
 
+const planColors = {
+  SILVER: "#C0C0C0",
+  GOLD: "#eab041",
+  PLATINUM: "#b68413"
+};
 
+const planBackgrounds = {
+  SILVER: "#ADA794",
+  GOLD: "#CEAC56",
+  PLATINUM: "#BB8714"
+};
 
-import ScrollToTop from "./ScrollToTop";
-import { useState } from "react";
+const prices = {
+SILVER: {
+"1": { price: 4999, original: 4999 },
+"3": { price: 13999, original: 14997 }
+},
+GOLD: {
+"1": { price: 5999, original: 5999 },
+"3": { price: 15999, original: 17997 }
+},
+PLATINUM: {
+"1": { price: 6999, original: 6999 },
+"3": { price: 18897, original: 20997 }
+}
+};
 
-const SubscriptionTypes = () => {
-  const navigate = useNavigate();
-  const [selectedPlan, setSelectedPlan] = useState("PLATINUM");
-  const [duration, setDuration] = useState("3");
-  
-  const planColors = {
-    SILVER: "#C0C0C0",
-    GOLD: "#eab041",
-    PLATINUM: "#b68413"
-  };
-  
-  const planBackgrounds = {
-    SILVER: "#ADA794",
-    GOLD: "#CEAC56",
-    PLATINUM: "#BB8714"
-  };
-  
-  const prices = {
-  SILVER: {
-  "1": { price: 4999, original: 4999 },
-  "3": { price: 14997, original: 14997 }
-  },
-  GOLD: {
-  "1": { price: 5999, original: 5999 },
-  "3": { price: 17997, original: 17997 }
-  },
-  PLATINUM: {
-  "1": { price: 6999, original: 6999 },
-  "3": { price: 20997, original: 20997 }
-  }
-  };
-  
-  const features = {
-  
-  PLATINUM: [
-  "Chef’s signature menu",
-  "3 pauses / month",
-  "Glow, metabolism & recovery juices",
-  "Guilt-Free Wraps & Zoodle Options",
-  "Elite combinations",
-  "Surprise upgrades"
-  ],
-  
-  GOLD: [
-  "6 High-protein meals / week",
-  "2 pauses / month",
-  "Gut & Skin-Friendly Meals",
-  "Advanced energy juices",
-  "Boost Energy Levels",
-  "Naturally Detoxifying Ingredients"
-  ],
-  
-  SILVER: [
-  "Clean Meals",
-  duration === "1"
-  ? "No pause available"
-  : "1 pause available / month",
-  "Easy Digestion",
-  "Weekly Variety",
-  "Functional Juices",
-  "No calorie stress"
-  ]
-  
-  };
+const features = {
 
-  return (
-    <>
-      <ScrollToTop />
+PLATINUM: [
+"Chef’s signature menu",
+"3 pauses / month",
+"Glow, metabolism & recovery juices",
+"Guilt-Free Wraps & Zoodle Options",
+"Elite combinations",
+"Surprise upgrades"
+],
 
-      {/* MAIN WRAPPER */}
-      <div className="relative w-full min-h-screen overflow-hidden bg-[#f0f7ec] md:bg-transparent">
+GOLD: [
+"6 High-protein meals / week",
+"2 pauses / month",
+"Gut & Skin-Friendly Meals",
+"Advanced energy juices",
+"Boost Energy Levels",
+"Naturally Detoxifying Ingredients"
+],
 
-        {/* BACKGROUND */}
-        <img
-          src={BgImage}
-          alt="background"
-          className="hidden md:block absolute inset-0 w-full h-full object-top object-cover -z-10"
-        />
+SILVER: [
+"Clean Meals",
+duration === "1"
+? "No pause available"
+: "1 pause available / month",
+"Easy Digestion",
+"Weekly Variety",
+"Functional Juices",
+"No calorie stress"
+]
 
-<div className=" font-roboto mt-20  min-h-screen p-6">
+};
+
+return (
+
+<div className="bg-[#f7f7f7] font-roboto mt-20  min-h-screen p-6">
 
 <div className="max-w-7xl mx-auto">
 
@@ -96,7 +75,7 @@ const SubscriptionTypes = () => {
 Choose Your Plan
 </h2>
 
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:mx-20 lg:grid-cols-3 gap-6">
+<div className="grid grid-cols-1 sm:grid-cols-2 mx-20 lg:grid-cols-3 gap-6">
 
 {["PLATINUM","GOLD","SILVER"].map((plan)=>{
 
@@ -239,20 +218,8 @@ ${isActive && duration==="3" ? "border-green-600" : "border-gray-900"}
 
 <div className="flex mb-4 justify-center">
 
-<button
-  onClick={(e) => {
-    e.stopPropagation();
-    navigate(`/subscription/${plan.toLowerCase()}`, {
-      state: {
-        plan,
-        duration,
-        price: prices[plan][duration].price
-      }
-    });
-  }}
-  className="px-5 py-2 rounded-xl cursor-pointer font-semibold bg-white text-black shadow"
->
-  Start Your Plan
+<button className="px-5 py-2 rounded-xl font-semibold bg-white text-black shadow">
+Start Your Plan
 </button>
 
 </div>
@@ -289,11 +256,6 @@ ${isActive && duration==="3" ? "border-green-600" : "border-gray-900"}
 
 </div>
 
+);
 
-      </div>
-    </>
-  );
-};
-
-export default SubscriptionTypes; 
- 
+}
