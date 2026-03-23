@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 
-import BgImage from "../assets/optimized/subBg.png";
+import BgImage from "../assets/optimized/StoryBgg.webp";
 
 
 
@@ -91,14 +91,14 @@ const SubscriptionTypes = () => {
        <img
   src={BgImage}
   alt="background"
-  className="hidden md:block absolute inset-0 w-full h-full object-top -z-10"
+  className="hidden md:block blur-xl absolute inset-0 w-full h-full object-top -z-10"
 />
 
 <div className=" font-roboto   min-h-screen p-6">
 
 <div className="max-w-7xl mx-auto">
 
-<h2 className="text-2xl font-merriweather text-center font-bold mb-8">
+<h2 className="text-2xl text-white font-merriweather text-center font-bold mb-8">
 Choose Your Plan
 </h2>
 
@@ -153,7 +153,7 @@ setDuration("1");
 }}
 className={`flex justify-between items-center rounded-xl border p-4
 ${isActive && duration==="1"
-? "border-[#eab041] bg-green-50"
+? "border-[#eab041] bg-green-50 "
 : "border-gray-200 hover:border-[#eab041]"}
 `}
 >
@@ -161,7 +161,7 @@ ${isActive && duration==="1"
 <div className="flex items-start gap-3">
 
 <div className={`w-4 h-4 mt-1 rounded-full border flex items-center justify-center
-${isActive && duration==="1" ? "border-[#eab041]" : "border-gray-900"}
+${isActive && duration==="1" ? "border-[#eab041]" : "border-white"}
 `}>
 
 {isActive && duration==="1" && (
@@ -171,13 +171,15 @@ ${isActive && duration==="1" ? "border-[#eab041]" : "border-gray-900"}
 </div>
 
 <div>
-<p className="font-medium">1 Month</p>
+<p className={`font-medium ${isActive && duration==="1" ? "text-black" : "text-white"}`}>
+  1 Month
+</p>
 </div>
 
 </div>
 
-<p className="font-semibold">
-₹{planPrices["1"].price.toLocaleString()}
+<p className={`font-semibold ${isActive && duration==="1" ? "text-black" : "text-white"}`}>
+  ₹{planPrices["1"].price.toLocaleString()}
 </p>
 
 </div>
@@ -203,7 +205,7 @@ ${isActive && duration==="3"
 <div className="flex items-start gap-3">
 
 <div className={`w-4 h-4 mt-1 rounded-full border flex items-center justify-center
-${isActive && duration==="3" ? "border-[#eab041]" : "border-gray-900"}
+${isActive && duration==="3" ? "border-[#eab041]" : "border-white"}
 `}>
 
 {isActive && duration==="3" && (
@@ -214,8 +216,8 @@ ${isActive && duration==="3" ? "border-[#eab041]" : "border-gray-900"}
 
 <div>
 
-<p className="font-semibold text-black">
-3 Months
+<p className={`font-semibold ${isActive && duration==="3" ? "text-black" : "text-white"}`}>
+  3 Months
 </p>
 
 
@@ -231,8 +233,8 @@ ${isActive && duration==="3" ? "border-[#eab041]" : "border-gray-900"}
 
 </div>
 
-<p className="font-bold text-black">
-₹{planPrices["3"].original.toLocaleString()}
+<p className={`font-bold ${isActive && duration==="3" ? "text-black" : "text-white"}`}>
+  ₹{planPrices["3"].original.toLocaleString()}
 </p>
 
 </div>
