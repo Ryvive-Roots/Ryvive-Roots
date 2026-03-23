@@ -1,5 +1,5 @@
 
-import { Route, Routes } from "react-router-dom"
+import { Route, Routes, useLocation } from "react-router-dom"
 import Navbar from "./components/Navbar"
 import Home from "./pages/Home"
 import OurStory from "./pages/OurStory"
@@ -37,9 +37,14 @@ import SubscriptionPlans from "./components/SubscriptionPlansF"
 
 
 function App() {
+
+  const location = useLocation();
+
+  // ✅ Check if current route is dashboard
+  const isDashboard = location.pathname.startsWith("/dashboard");
   return (
     <div className="min-h-[100svh] flex flex-col overflow-x-hidden ">
-      <Navbar />
+     {!isDashboard && <Navbar />}
       <ScrollToTop />
       <WhatsAppButton />
       <main className="flex-1 overflow-x-hidden">

@@ -2,9 +2,10 @@
 
 
 import React from 'react'
-import { useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useLocation, useNavigate } from "react-router-dom";
 import saladIcon from "../assets/bowl1.png";
-import wrapIcon from "../assets/wraps.avif/";
+import wrapIcon from "../assets/wraps.avif";
 import juiceIcon from "../assets/juices.png";
 import chaatIcon from "../assets/chat.png";
 import Pasta from "../assets/pasta.png"
@@ -25,10 +26,24 @@ const RyvivePlatinum = () => {
     ]
 
     const location = useLocation();
+    const navigate = useNavigate();
+    const fallbackPrices = {
+  PLATINUM: {
+    "1": { price: 6999 },
+    "3": { price: 20997 }
+  }
+};
 
-const duration = location.state?.duration || "1";
 const plan = location.state?.plan || "PLATINUM";
-const price = location.state?.price || 6999;
+const duration = location.state?.duration || "1";
+
+const price =
+  location.state?.price ||
+  fallbackPrices[plan][duration].price;
+
+const monthlyPrice =
+  location.state?.monthlyPrice ||
+  fallbackPrices[plan]["1"].price;
 
   return (
     <div
@@ -122,10 +137,19 @@ const price = location.state?.price || 6999;
             </h2>
 
             <div className="space-y-2 text-sm text-black font-manrope">
-              <div className="flex font-bold justify-between">
-                <span>Subtotal</span>
-                <span>₹{price.toLocaleString()}</span>
-              </div>
+             <div className="flex justify-between">
+  <span>Subtotal</span>
+
+  <div className="text-right">
+    {duration === "3" && (
+      <p className="text-gray-500 text-xs">
+        ₹{monthlyPrice.toLocaleString()} × 3
+      </p>
+    )}
+
+    <p>₹{price.toLocaleString()}</p>
+  </div>
+</div>
 
               <div className="flex font-bold justify-between">
                 <span>Food Delivery Fee</span>
@@ -139,12 +163,25 @@ const price = location.state?.price || 6999;
             </div>
 
             {/* CHECKOUT BUTTON */}
-            <a
-              href="/subscription-platinum"
-              className="block w-full mt-4 cursor-pointer text-sm py-2 text-center bg-[#895C40] text-white rounded-xl font-medium hover:bg-[#B38E6A] transition"
+             <motion.button
+              onClick={() =>
+                navigate("/subscription-platinum", {
+                  state: {
+                    plan,
+                    duration,
+                    price,
+                    monthlyPrice: location.state?.monthlyPrice
+                  }
+                })
+              }
+              whileHover={{ scale: 1.03, y: -3 }}
+              whileTap={{ scale: 0.95, y: 0 }}
+              transition={{ type: "spring", stiffness: 250, damping: 18 }}
+              className="block w-full mt-4 cursor-pointer text-sm py-2 text-center bg-[#895C40] text-white rounded-full font-medium"
             >
               PROCEED TO CHECKOUT
-            </a>
+            </motion.button>
+           
           </div>
         </div>
       </div>

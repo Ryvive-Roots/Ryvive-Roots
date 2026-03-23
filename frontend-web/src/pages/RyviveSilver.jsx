@@ -4,7 +4,7 @@ import saladIcon from "../assets/bowl1.png";
 import wrapIcon from "../assets/wraps.avif";
 import juiceIcon from "../assets/juices.png";
 import chaatIcon from "../assets/chat.png";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import BgImage from "../assets/optimized/ImgP.png";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -23,10 +23,25 @@ const categories = [
 ];
 
 const location = useLocation();
+const navigate = useNavigate();
 
-const duration = location.state?.duration || "1";
+const fallbackPrices = {
+  SILVER: {
+    "1": { price: 4999 },
+    "3": { price: 14997 }
+  }
+};
+
 const plan = location.state?.plan || "SILVER";
-const price = location.state?.price || 4999;
+const duration = location.state?.duration || "1";
+
+const price =
+  location.state?.price ||
+  fallbackPrices[plan][duration].price;
+
+const monthlyPrice =
+  location.state?.monthlyPrice ||
+  fallbackPrices[plan]["1"].price;
 
 const weeklyMenus = [
   {
@@ -204,9 +219,18 @@ loop={true}
     <div className="space-y-2 text-sm font-manrope">
 
       <div className="flex justify-between">
-        <span>Subtotal</span>
-       <span>₹{price.toLocaleString()}</span>
-      </div>
+  <span>Subtotal</span>
+
+  <div className="text-right">
+    {duration === "3" && (
+      <p className="text-gray-500 text-xs">
+        ₹{monthlyPrice.toLocaleString()} × 3
+      </p>
+    )}
+
+    <p>₹{price.toLocaleString()}</p>
+  </div>
+</div>
 
       <div className="flex justify-between">
         <span>Food Delivery Fee</span>
@@ -220,15 +244,24 @@ loop={true}
 
     </div>
 
-    <motion.a
-      href="/subscription-silver"
-      whileHover={{ scale: 1.03, y: -3 }}
-      whileTap={{ scale: 0.95, y: 0 }}
-      transition={{ type: "spring", stiffness: 250, damping: 18 }}
-      className="block w-full mt-4 cursor-pointer text-sm py-2 text-center bg-[#895C40] text-white rounded-full font-medium"
-    >
-      PROCEED TO CHECKOUT
-    </motion.a>
+   <motion.button
+  onClick={() =>
+    navigate("/subscription-silver", {
+      state: {
+        plan,
+        duration,
+        price,
+        monthlyPrice: location.state?.monthlyPrice
+      }
+    })
+  }
+  whileHover={{ scale: 1.03, y: -3 }}
+  whileTap={{ scale: 0.95, y: 0 }}
+  transition={{ type: "spring", stiffness: 250, damping: 18 }}
+  className="block w-full mt-4 cursor-pointer text-sm py-2 text-center bg-[#895C40] text-white rounded-full font-medium"
+>
+  PROCEED TO CHECKOUT
+</motion.button>
 
   </div>
 

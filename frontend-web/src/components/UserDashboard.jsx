@@ -20,6 +20,15 @@ const [renewDuration, setRenewDuration] = useState("3");
 const [selectedPlan, setSelectedPlan] = useState(null);
 const [showSummary, setShowSummary] = useState(false);
 
+const [editMode, setEditMode] = useState(false);
+
+const [formData, setFormData] = useState({
+  email: "",
+  phone: "",
+  deliverySlot: "",
+});
+
+
 useEffect(() => {
   if (showSummary || showRenewModal || showPauseModal) {
     document.body.style.overflow = "hidden";
@@ -371,15 +380,15 @@ const getDynamicPauseFeature = (plan, duration) => {
 const RENEWAL_PRICING = {
   SILVER: {
     "1": { original: 4999, discount: 0, final: 4999 },
-    "3": { original: 14997, discount: 998, final: 13999 },
+    "3": { original: 14997, discount: 998, final: 14997},
   },
   GOLD: {
     "1": { original: 5999, discount: 0, final: 5999 },
-    "3": { original: 17997, discount: 1998, final: 15999 },
+    "3": { original: 17997, discount: 1998, final: 17997},
   },
   PLATINUM: {
     "1": { original: 6999, discount: 0, final: 6999 },
-    "3": { original: 20997, discount: 2100, final: 18897 },
+    "3": { original: 20997, discount: 2100, final: 20997 },
   },
 };
 const PLAN_ORDER = ["PLATINUM", "GOLD", "SILVER"];
@@ -471,22 +480,17 @@ const handleRenewPayment = async () => {
 
   return (
   
- <div className="min-h-screen flex bg-[#f6f7f3] px-3 sm:px-6 md:px-20 mt-20 sm:mt-28">
+ <div className="min-h-screen flex bg-[#f6f7f3] px-3 sm:px-6 md:px-20 ">
 
     
 
-      {/* 🌿 Background */}
-      <img
-        src={Bg}
-        alt="Dashboard"
-        className="absolute inset-0 w-full h-full object-cover"
-      />
+     
 
       {/* CONTENT */}
      <div
   className="relative z-10 w-full max-w-3xl
   px-4 sm:px-6 md:px-10
-  py-6 sm:py-10
+  py-6 
   space-y-5
   mx-auto"
 >
@@ -536,7 +540,7 @@ const handleRenewPayment = async () => {
             rounded-full
             bg-[#2c511f] text-white
             hover:opacity-95 shadow
-            transition
+            transition cursor-pointer
           "
         >
           Renew
@@ -549,53 +553,124 @@ const handleRenewPayment = async () => {
 
 
         {/* PROFILE */}
-      {active === "profile" && (
- <div className="bg-white/70 rounded-2xl p-4 sm:p-6 shadow">
-  <h2 className="text-[#4a7f34] font-cinzel font-semibold text-lg mb-2">
-    MY INFORMATION
-  </h2>
+{active === "profile" && (
+  <div className="bg-white rounded-2xl p-5 sm:p-6 shadow border border-gray-200">
 
-  <p className="text-sm lg:text-base font-roboto">
-    <b>Name:</b> {user.firstName} {user.lastName}
-  </p>
+    {/* HEADER */}
+    <div className="flex justify-between items-center mb-4">
+      <h2 className="text-[#4a7f34] font-cinzel font-semibold text-lg">
+        MY INFORMATION
+      </h2>
 
-  <p className="text-sm lg:text-base font-roboto">
-    <b>Email:</b> {user.email}
-  </p>
+      {!editMode ? (
+        <button
+          onClick={() => setEditMode(true)}
+          className="text-sm px-4 py-1 rounded-full bg-gray-100 hover:bg-gray-200"
+        >
+          Edit
+        </button>
+      ) : (
+        <button
+          onClick={() => setEditMode(false)}
+          className="text-sm px-4 py-1 rounded-full bg-red-100 text-red-600"
+        >
+          Cancel
+        </button>
+      )}
+    </div>
 
-  <p className="text-sm lg:text-base font-roboto">
-    <b>Phone:</b> {user.phone}
-  </p>
+    <div className="space-y-3 text-sm">
 
-  {/* ⭐ DOB */}
-  <p className="text-sm lg:text-base font-roboto">
-    <b>DOB:</b>{" "}
-    {user.dob ? new Date(user.dob).toLocaleDateString("en-IN") : "-"}
-  </p>
+      {/* NAME (READ ONLY) */}
+      <p><b>Name:</b> {user.firstName} {user.lastName}</p>
 
-  {/* ⭐ Address full */}
-  <p className="text-sm lg:text-base font-roboto">
-    <b>Address:</b>{" "}
-    {order.address
-      ? `${order.address.house}, ${order.address.street}, ${order.address.landmark}, ${order.address.city}, ${order.address.state} - ${order.address.pincode}`
-      : "-"}
-  </p>
+      {/* EMAIL (EDITABLE) */}
+      <div>
+        <label className="text-gray-500">Email</label>
+        {editMode ? (
+          <input
+            value={formData.email}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
+            className="border rounded px-2 py-1 w-full"
+          />
+        ) : (
+          <p>{user.email}</p>
+        )}
+      </div>
 
-  {/* ⭐ Delivery slot */}
-  <p className="text-sm lg:text-base font-roboto">
-    <b>Delivery Slot:</b> {order.deliverySlot || "-"}
-  </p>
+      {/* PHONE (EDITABLE) */}
+      <div>
+        <label className="text-gray-500">Phone</label>
+        {editMode ? (
+          <input
+            value={formData.phone}
+            onChange={(e) =>
+              setFormData({ ...formData, phone: e.target.value })
+            }
+            className="border rounded px-2 py-1 w-full"
+          />
+        ) : (
+          <p>{user.phone}</p>
+        )}
+      </div>
 
-  {/* ⭐ Payment method */}
-  <p className="text-sm lg:text-base font-roboto">
-    <b>Payment Method:</b>{" "}
-    {order.paymentMethod || order.payment?.method || "Online"}
-  </p>
+      {/* DOB (READ ONLY) */}
+      <p>
+        <b>DOB:</b>{" "}
+        {user.dob ? new Date(user.dob).toLocaleDateString("en-IN") : "-"}
+      </p>
 
-  <p className="text-sm lg:text-base font-roboto">
-    <b>Membership ID:</b> {membershipId}
-  </p>
-</div>
+      {/* ADDRESS (READ ONLY) */}
+      <p>
+        <b>Address:</b>{" "}
+        {order.address
+          ? `${order.address.house}, ${order.address.street}, ${order.address.city}`
+          : "-"}
+      </p>
+
+      {/* DELIVERY SLOT (EDITABLE) */}
+      <div>
+        <label className="text-gray-500">Delivery Slot</label>
+        {editMode ? (
+          <select
+            value={formData.deliverySlot}
+            onChange={(e) =>
+              setFormData({ ...formData, deliverySlot: e.target.value })
+            }
+            className="border rounded px-2 py-1 w-full"
+          >
+            <option value="">Select Slot</option>
+            <option value="Morning">Morning</option>
+            <option value="Afternoon">Afternoon</option>
+            <option value="Evening">Evening</option>
+          </select>
+        ) : (
+          <p>{order.deliverySlot || "-"}</p>
+        )}
+      </div>
+
+      {/* PAYMENT (READ ONLY) */}
+      <p><b>Payment Method:</b> {order.paymentMethod || "Online"}</p>
+
+      {/* MEMBERSHIP */}
+      <p><b>Membership ID:</b> {membershipId}</p>
+
+      {/* SAVE BUTTON */}
+      {editMode && (
+        <button
+          onClick={() => {
+            console.log("SAVE DATA", formData); // 👉 connect API here
+            setEditMode(false);
+          }}
+          className="mt-4 w-full bg-[#2c511f] text-white py-2 rounded-xl"
+        >
+          Save Changes
+        </button>
+      )}
+    </div>
+  </div>
 )}
 
 
@@ -882,8 +957,7 @@ const handleRenewPayment = async () => {
 
       </div>
 
-      {/* 🛑 PAUSE MODAL */}
-      {/* 🛑 PAUSE MODAL */}
+      
       {showPauseModal && (
         <div className="fixed inset-0 bg-black/60  flex items-center justify-center z-50">
           <div
@@ -1098,9 +1172,7 @@ const handleRenewPayment = async () => {
     `}
   >
     {/* badge */}
-    <div className="absolute -top-2 left-4 font-fredoka bg-green-600 text-white text-[10px] px-2 py-1 rounded-full">
-      SAVE MORE
-    </div>
+   
 
     <div className="flex items-start gap-3">
 
@@ -1116,17 +1188,13 @@ const handleRenewPayment = async () => {
       </div>
 
       <div>
-        <p className="font-semibold text-green-700">3 Months</p>
-        <p className="text-xs line-through text-black/90">
-          ₹{prices["3"].original.toLocaleString()}
-        </p>
-        <p className="text-xs text-emerald-700 font-medium">
-          Save ₹{prices["3"].discount.toLocaleString()}
-        </p>
+        <p className="font-semibold text-black">3 Months</p>
+        
+       
       </div>
     </div>
 
-    <p className="font-bold text-green-700">
+    <p className="font-bold text-black">
       ₹{prices["3"].final.toLocaleString()}
     </p>
   </div>
