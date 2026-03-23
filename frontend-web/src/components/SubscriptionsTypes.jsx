@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 
-import BgImage from "../assets/optimized/subBG.png";
+import BgImage from "../assets/optimized/subBg.png";
 
 
 
