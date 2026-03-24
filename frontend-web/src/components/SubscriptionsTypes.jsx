@@ -19,6 +19,17 @@ const SubscriptionTypes = () => {
     GOLD: "#eab041",
     PLATINUM: "#b68413"
   };
+
+  const planStyles = {
+  SILVER:
+    "text-black bg-gradient-to-r from-[#C0C0C0] via-[#E8E8E8] to-[#C0C0C0]",
+    
+  GOLD:
+    "text-white bg-gradient-to-r from-[#b68413] via-[#ceac56] to-[#b68413]",
+    
+  PLATINUM:
+    "text-white bg-gradient-to-r from-[#2c2c2c] via-[#6e6e6e] to-[#2c2c2c]"
+};
   
   const planBackgrounds = {
     SILVER: "#ADA794",
@@ -248,18 +259,18 @@ ${isActive && duration==="3" ? "border-[#eab041]" : "border-white"}
 <button
   onClick={(e) => {
     e.stopPropagation();
-   navigate(`/subscription/${plan.toLowerCase()}`, {
-  state: {
-    plan,
-    duration,
-    price: prices[plan][duration].price,
-    monthlyPrice: prices[plan]["1"].price   // ✅ ADD THIS
-  }
-});
+    navigate(`/subscription/${plan.toLowerCase()}`, {
+      state: {
+        plan,
+        duration,
+        price: prices[plan][duration].price,
+        monthlyPrice: prices[plan]["1"].price
+      }
+    });
   }}
-  className="px-5 py-2 rounded-xl cursor-pointer font-semibold bg-white text-black shadow"
+  className={`shine-effect relative px-5 py-2 rounded-xl font-semibold shadow ${planStyles[plan]}`}
 >
-  Start Your Plan
+  <span>Start Your Plan</span>  {/* 👈 IMPORTANT */}
 </button>
 
 </div>

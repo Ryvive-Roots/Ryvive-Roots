@@ -163,3 +163,52 @@ select option:checked {
 }
 
 
+@keyframes shineMove {
+  0% {
+    transform: translateX(-200%) rotate(25deg);
+  }
+  100% {
+    transform: translateX(200%) rotate(25deg);
+  }
+}
+
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ✅ Shine ABOVE background */
+.shine-effect::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 30%;
+  height: 100%;
+
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.9),
+    transparent
+  );
+
+  transform: skewX(-25deg);
+  animation: shineMove 2s linear infinite;
+
+  z-index: 3; /* ABOVE background */
+}
+
+/* ✅ Keep text above shine */
+.shine-effect span {
+  position: relative;
+  z-index: 4;
+}
+
+/* hover */
+.shine-effect:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+}
