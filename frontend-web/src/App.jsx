@@ -43,11 +43,11 @@ function App() {
   // ✅ Check if current route is dashboard
   const isDashboard = location.pathname.startsWith("/dashboard");
   return (
-    <div className="min-h-[100svh] flex flex-col overflow-x-hidden ">
+    <div className="   overflow-x-hidden ">
      {!isDashboard && <Navbar />}
       <ScrollToTop />
       <WhatsAppButton />
-      <main className="flex-1 overflow-x-hidden">
+      <main className=" overflow-x-hidden">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/our-story" element={<OurStory />} />

@@ -3,11 +3,12 @@ import { FaPhoneAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { FaLocationDot } from "react-icons/fa6";
 import { motion } from "framer-motion";
-import Logo from "../assets/optimized/logo.webp";
+import Logo from "../assets/optimized/logoW.png";
 import useIsMobile from "./useIsMobile";
-import Insta from "../assets/optimized/ins.png"
-import Link from "../assets/optimized/link.png"
-import YuTU from "../assets/optimized/you.png"
+import Insta from "../assets/optimized/ins.png";
+import Link from "../assets/optimized/link.png";
+import YuTU from "../assets/optimized/you.png";
+import FootImg from "../assets/optimized/FooterImg.JPG"
 
 // ✅ GPU-safe animation variants
 const containerVariants = {
@@ -37,12 +38,34 @@ const Footer = () => {
 
   return (
     <motion.footer
-      className="bg-[#ffffff] shadow-2xl  text-black py-12"
+      className=" bg-black/10 shadow-2xl text-white py-12 relative overflow-hidden"
       variants={containerVariants}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
     >
+
+      {/* ✅ Parallax Background Image using <img> */}
+      {/* <div className="absolute inset-0 -z-10 overflow-hidden">
+        <img
+          src={FootImg} // 👉 replace with your image
+          alt="footer background"
+          className="w-full h-full object-cover"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+          }}
+        />
+      </div> */}
+
+      <div
+  className="absolute inset-0 bg-cover bg-center bg-fixed"
+  style={{ backgroundImage: `url(${FootImg})` }}
+>
+  <div className="absolute inset-0 bg-black/50"></div>
+</div>
+
       {/* TOP SECTION */}
       <div className="flex md:flex-row flex-col gap-10 md:justify-between px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]">
 
@@ -50,63 +73,48 @@ const Footer = () => {
         <motion.div variants={itemVariants} className="text-left">
           <img src={Logo} alt="Ryvive Roots Logo" className="w-50 mb-4" />
 
-          <p className="text-black/75 max-w-xs font-semibold">
+          <p className="text-white max-w-xs font-semibold">
             Experience a menu crafted with balance, freshness, and honest
             flavours. Wholesome food made to nourish your body and make you feel
             good every day.
           </p>
 
           {/* Social Icons */}
-        <div className="flex gap-3 mt-4">
+          <div className="flex gap-3 mt-4">
 
-  {/* Instagram */}
-  <a
-    href="https://www.instagram.com/ryvive_roots/"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center transition hover:scale-105"
-  >
-    <img
-      src={Insta}
-      alt="Instagram"
-      className="w-5 h-5"
-    />
-  </a>
+            <a
+              href="https://www.instagram.com/ryvive_roots/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center transition hover:scale-105"
+            >
+              <img src={Insta} alt="Instagram" className="w-5 h-5" />
+            </a>
 
-  {/* LinkedIn */}
-  <a
-    href="https://www.linkedin.com/in/ryvive-roots-750b533a7/"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center transition hover:scale-105"
-  >
-    <img
-      src={Link}
-      alt="LinkedIn"
-      className="w-5 h-5"
-    />
-  </a>
+            <a
+              href="https://www.linkedin.com/in/ryvive-roots-750b533a7/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center transition hover:scale-105"
+            >
+              <img src={Link} alt="LinkedIn" className="w-5 h-5" />
+            </a>
 
-  {/* YouTube */}
-  <a
-    href="https://www.youtube.com/channel/UCLmGUQhHC7kmN7lCaQ4PoDg"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center transition hover:scale-105"
-  >
-    <img
-      src={YuTU}
-      alt="YouTube"
-      className="w-5 h-5"
-    />
-  </a>
+            <a
+              href="https://www.youtube.com/channel/UCLmGUQhHC7kmN7lCaQ4PoDg"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-10 h-10 border border-gray-700 rounded-full flex items-center justify-center transition hover:scale-105"
+            >
+              <img src={YuTU} alt="YouTube" className="w-5 h-5" />
+            </a>
 
-</div>
+          </div>
         </motion.div>
 
         {/* Quick Links */}
         <motion.div variants={itemVariants} className="text-left">
-          <h3 className="uppercase font-semibold mb-6 text-lg tracking-wide text-black">
+          <h3 className="uppercase font-semibold mb-6 text-lg tracking-wide text-white">
             Links
           </h3>
 
@@ -123,7 +131,7 @@ const Footer = () => {
               <li key={index}>
                 <a
                   href={link.path}
-                  className="uppercase hover:text-[#895C40] font-semibold transition-colors duration-200 text-black/75"
+                  className="uppercase hover:text-[#895C40] font-semibold transition-colors duration-200 text-white"
                 >
                   {link.name}
                 </a>
@@ -134,7 +142,7 @@ const Footer = () => {
 
         {/* Help & Policies */}
         <motion.div variants={itemVariants} className="text-left">
-          <h3 className="uppercase font-semibold mb-6 text-lg tracking-wide text-black">
+          <h3 className="uppercase font-semibold mb-6 text-lg tracking-wide text-white">
             Help & Policies
           </h3>
 
@@ -148,7 +156,7 @@ const Footer = () => {
               <li key={index}>
                 <a
                   href={link.path}
-                  className="uppercase hover:text-[#895C40] font-semibold transition-colors duration-200 text-black/75"
+                  className="uppercase hover:text-[#895C40] font-semibold transition-colors duration-200 text-white"
                 >
                   {link.name}
                 </a>
@@ -159,36 +167,33 @@ const Footer = () => {
 
         {/* Contact */}
         <motion.div variants={itemVariants} className="text-left">
-          <h3 className="uppercase font-semibold mb-6 text-lg tracking-wide text-black">
+          <h3 className="uppercase font-semibold mb-6 text-lg tracking-wide text-white">
             Contact
           </h3>
 
-          <div className="text-sm font-montserrat space-y-4 text-black">
+          <div className="text-sm font-montserrat space-y-4 text-white">
 
-            {/* Phone */}
             <div className="flex items-center space-x-3">
               <FaPhoneAlt className="text-[#895C40] text-lg" />
-              <span className="text-black/75 font-semibold">
+              <span className="text-white font-semibold">
                 +91 9076000468 / 9765600701
               </span>
             </div>
 
             <hr className="border-gray-300" />
 
-            {/* Email */}
             <div className="flex items-center space-x-3">
               <MdEmail className="text-[#895C40] text-lg" />
-              <span className="text-black/75 font-semibold">
-               customersupport@ryviveroots.com, management@ryviveroots.com
+              <span className="text-white font-semibold">
+                customersupport@ryviveroots.com, management@ryviveroots.com
               </span>
             </div>
 
             <hr className="border-gray-300" />
 
-            {/* Address */}
             <div className="flex items-start space-x-3">
               <FaLocationDot className="text-[#895C40] text-lg mt-1" />
-              <div className="text-black/75 font-semibold">
+              <div className="text-white font-semibold">
                 <p>Shop No 01, Saraswati Bhuvan,</p>
                 <p>Near Roshan Automobile, Phadke Cross Road,</p>
                 <p>Opp. Hotel Nav Gomantak,</p>
@@ -205,7 +210,7 @@ const Footer = () => {
         className="flex md:flex-row flex-col mt-10 items-center justify-center border-t border-gray-300 px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]"
         variants={itemVariants}
       >
-        <div className="font-spectral-sc-regular pt-11 text-sm text-black/75 font-semibold">
+        <div className="font-spectral-sc-regular pt-11 text-sm text-white font-semibold">
           &copy; {new Date().getFullYear()} RYVIVE ROOTS All Rights Reserved.
         </div>
       </motion.div>

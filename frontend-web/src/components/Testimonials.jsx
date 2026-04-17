@@ -7,50 +7,75 @@ import { FaStar } from "react-icons/fa";
 import "swiper/css";
 import "swiper/css/navigation";
 
-import Coma from "../assets/quote.png";
+import Coma from "../assets/optimized/coma.png";
 
 export default function TestimonialsSection() {
   const testimonials = [
     {
-      name: "—Vishal Shah",
+      name: "Monika Korgaonkar",
       text:
-        "Revive Roots is a hidden gem for health enthusiasts! I tried the Clean Green juice ... Highly recommend it for anyone looking for delicious and pocket-friendly organic food options.",
+        "One of the best dining experiences I’ve had. The ingredients were fresh, the flavors were perfect, and the presentation was excellent. Highly recommended for food lovers.",
     },
     {
-      name: "—Teju More",
+      name: "Dileep Kumar",
       text:
-        "Loved the crispy texture and healthy, delicious taste.. quality and quantity were impressive!",
+        "Tried this place for the first time today and honestly didn’t expect healthy food to taste this good. Everything was fresh and nicely seasoned. Definitely coming back.",
     },
     {
-      name: "—Aditya Wadekar",
+      name: "Deepak World Vacation",
       text:
-        "Good Initiative. Food is tasty. Ambience is hygenic. Service is good.",
+        "Best healthy food option in Dombivli right now. Clean packaging, good portions, and consistent taste. Been ordering for 3 weeks straight.",
     },
     {
-      name: "—Madhuri Kale",
+      name: "Santosh Gupta",
       text:
-        "Today I visited the Revive roots... such a tasty sandwich i had ever...",
+        "I Tried the immunity booster and libido booster. I feel energetic and it tastes so good . Thank you Ryvive roots for giving me such a good experience and ambeience is so good.",
     },
     {
-      name: "—Shriram Thakur",
+      name: "Rajan jadhav",
       text:
-        "Very nice. Quality, Quantity and Hygiene. Loved the atmosphere.",
+        "Loved the detox juices here. Very refreshing and natural taste.",
+    },
+    {
+      name: "Afroza khan",
+      text:
+        "Loved the detox juices here. Very refreshing and natural taste.",
+    },
+    {
+      name: "Shashi Shetty",
+      text:
+        "Excellent ambience and soulful food.",
+    },
+    {
+      name: "Vishal Shetty",
+      text:
+        "This place is a hidden gem! If you guys are into concious and healthy eating, look no further.",
+    },
+     {
+      name: "Sonali Ovhal",
+      text:
+        "It's outstanding ossam and healthy plz try be fit stay healthy.",
+    },
+     {
+      name: "The Alok Tamhankar Show",
+      text:
+        "A super healthy Alternative to unwanted junk food... Bon appetite ... Must try",
     },
   ];
 
   return (
-    <div className="w-full bg-[#FEF7F0] overflow-hidden py-20 relative">
-      <h3 className=" md:text-4xl text-xl text-center font-cinzel uppercase font-semibold text-[#895C40] pb-10">
-        What Our Customers Are Saying
+    <div className="w-full bg-[#0d2009] overflow-hidden py-10 relative">
+      <h3 style={{ fontFamily: "MyFont" }} className=" md:text-4xl text-xl text-center uppercase font-semibold text-[#c9a666] pb-10">
+        Client Diaries
       </h3>
 
       {/* Custom Arrows */}
       <div className="absolute left-3 top-1/2 z-20 cursor-pointer swiper-prev">
-        <FiChevronLeft className="text-3xl md:text-4xl text-[#895C40]" />
+        <FiChevronLeft className="text-3xl md:text-4xl text-[#c9a666]" />
       </div>
 
       <div className="absolute right-3 top-1/2 z-20 cursor-pointer swiper-next">
-        <FiChevronRight className="text-3xl md:text-4xl text-[#895C40]" />
+        <FiChevronRight className="text-3xl md:text-4xl text-[#c9a666]" />
       </div>
 
       <Swiper
@@ -58,7 +83,7 @@ export default function TestimonialsSection() {
         spaceBetween={10}
         loop={true}
         autoplay={{
-          delay: 2500,
+          delay: 5000,
           disableOnInteraction: false,
         }}
         navigation={{
@@ -70,43 +95,31 @@ export default function TestimonialsSection() {
             slidesPerView: 1,
           },
           1024: {
-            slidesPerView: 2,
+            slidesPerView: 1,
           },
         }}
         className="px-6 md:px-20"
       >
         {testimonials.map((item, index) => (
-          <SwiperSlide key={index}>
-            <div className="py-10 px-2 flex justify-center">
-              <div className="relative max-w-[500px] w-full">
-                <img
-                  src="https://res.cloudinary.com/dvugjpjoj/image/upload/f_auto,q_auto/v1765349846/Testimonials_c7f8qf.png"
-                  alt="testimonial"
-                   loading="lazy"
-                  className="rounded-full shadow-md w-full aspect-[5/6] object-cover"
-                />
+         <SwiperSlide key={index}>
+  <div className="flex flex-col items-center justify-center text-center px-6 md:px-20 ">
+    
+    {/* Quote Icon */}
+    <img src={Coma} alt="quote" className="w-12 mb-6 opacity-70" />
 
-                {/* Center Content */}
-                <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-6 space-y-3">
-                  <img src={Coma} className="w-10 h-10" alt="quote"  loading="lazy" />
+    {/* Text */}
+    <p  className="text-white tracking-wider text-lg md:text-2xl font-playfair-display leading-relaxed max-w-4xl ">
+      {item.text}
+    </p>
 
-                  <p className="text-[#895C40] text-sm leading-relaxed font-merriweather max-h-[130px] overflow-y-auto">
-                    {item.text}
-                  </p>
+    {/* Author */}
+    <h3 className="mt-6 text-[#c9a666] text-lg md:text-xl font-semibold tracking-widest">
+      {item.name}
+    </h3>
 
-                  <div className="flex gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <FaStar key={i} className="text-yellow-400 text-lg" />
-                    ))}
-                  </div>
-
-                  <h3 className="text-[#895C40] font-semibold text-lg">
-                    {item.name}
-                  </h3>
-                </div>
-              </div>
-            </div>
-          </SwiperSlide>
+    
+  </div>
+</SwiperSlide>
         ))}
       </Swiper>
     </div>

@@ -9,7 +9,7 @@ const ScrollingText = () => {
   ];
 
   return (
-    <section className="relative overflow-hidden bg-[#8D5B3F] py-5 mb-16 premium-wave">
+    <section className="relative overflow-hidden bg-[#8D5B3F] py-5 premium-wave">
       {/* Background subtle premium gradient */}
       <div className="pointer-events-none absolute inset-0 opacity-30 mix-blend-soft-light bg-[radial-gradient(circle_at_0%_0%,#F8E3D0_0,transparent_55%),radial-gradient(circle_at_100%_100%,#D9B08C_0,transparent_55%)]" />
 

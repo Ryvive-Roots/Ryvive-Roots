@@ -19,6 +19,7 @@ const SubscriptionTypes = () => {
     GOLD: "#eab041",
     PLATINUM: "#b68413"
   };
+  
 
   const planStyles = {
   SILVER:
@@ -52,38 +53,60 @@ const SubscriptionTypes = () => {
   }
   };
   
+    // ✅ Dynamic Features (IMPORTANT CHANGE)
   const features = {
-  
-  PLATINUM: [
-  "Chef’s signature menu",
-  "3 pauses / month",
-  "Glow, metabolism & recovery juices",
-  "Guilt-Free Wraps & Zoodle Options",
-  "Elite combinations",
-  "Surprise upgrades"
-  ],
-  
-  GOLD: [
-  "6 High-protein meals / week",
-  "2 pauses / month",
-  "Gut & Skin-Friendly Meals",
-  "Advanced energy juices",
-  "Boost Energy Levels",
-  "Naturally Detoxifying Ingredients"
-  ],
-  
-  SILVER: [
-  "Clean Meals",
-  duration === "1"
-  ? "No pause available"
-  : "1 pause available / month",
-  "Easy Digestion",
-  "Weekly Variety",
-  "Functional Juices",
-  "No calorie stress"
-  ]
-  
+    PLATINUM: {
+      "1": [
+        "Chef’s signature menu",
+        "3 Pauses Available",
+        "Glow juices",
+        "Elite combinations"
+      ],
+      "3": [
+        "Premium nutrition combinations",
+        "3 pauses / month",
+        "Custom meal adjustments",
+        "Priority delivery",
+        "Exclusive chef curated dishes",
+        "Surprise upgrades"
+      ]
+    },
+
+    GOLD: {
+      "1": [
+        "4 High-protein meals / week",
+        "2 Pauses Available",
+        "Gut-friendly meals",
+        "Energy juices"
+      ],
+      "3": [
+        "More nutritional variety",
+        "2 pauses / month",
+        "Gut & Skin-Friendly Meals",
+        "Advanced energy juices",
+        "Boost Energy Levels",
+        "Naturally Detoxifying Ingredients"
+      ]
+    },
+
+    SILVER: {
+      "1": [
+        "Clean Meals",
+        "No pause available",
+        "Easy Digestion",
+        "Weekly Variety"
+      ],
+      "3": [
+        "Clean Meals",
+        "1 pause available / month",
+        "Easy Digestion",
+        "Weekly Variety",
+        "Functional Juices",
+        "No calorie stress"
+      ]
+    }
   };
+
 
   return (
     <>
@@ -279,7 +302,7 @@ ${isActive && duration==="3" ? "border-[#eab041]" : "border-white"}
 
 <div className="text-sm text-white space-y-2 mb-6">
 
-{features[plan].map((feature,i)=>(
+{features[plan][duration].map((feature, i) => (
 <div key={i} className="flex items-start  gap-2">
 
 <span >•</span>

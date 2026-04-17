@@ -40,7 +40,7 @@ const MenuCarousel = () => {
     bg-white shadow-lg w-10 h-10 rounded-full items-center justify-center
     hover:scale-110 transition z-10"
 >
-  <FaChevronLeft aria-hidden="true" />
+  <FaChevronLeft className="text-black" aria-hidden="true" />
 </button>
 
 <button
@@ -49,7 +49,7 @@ const MenuCarousel = () => {
     bg-white shadow-lg w-10 h-10 rounded-full items-center justify-center
     hover:scale-110 transition z-10"
 >
-  <FaChevronRight aria-hidden="true" />
+  <FaChevronRight className="text-black" aria-hidden="true" />
 </button>
 
 
@@ -62,7 +62,7 @@ const MenuCarousel = () => {
           flex items-center justify-center rounded-full
           shadow-xl hover:scale-110 transition z-20"
       >
-        <FaArrowRight size={18} />
+        <FaArrowRight  size={18} />
       </button>
 
       <Swiper

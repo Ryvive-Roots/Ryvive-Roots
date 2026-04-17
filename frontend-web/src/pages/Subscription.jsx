@@ -53,15 +53,15 @@ const Subscription = () => {
           }}
         >
           <SwiperSlide>
-            <img src={Sub1} className="w-full h-60 md:h-[90vh] object-contain" />
+            <img src={Sub1} className="w-full h-60 md:h-[90vh] object-cover" />
           </SwiperSlide>
 
           <SwiperSlide>
-            <img src={Sub2} className="w-full h-60 md:h-[90vh] object-contain" />
+            <img src={Sub2} className="w-full h-60 md:h-[90vh] object-cover" />
           </SwiperSlide>
 
           <SwiperSlide>
-            <img src={Sub3} className="w-full h-60 md:h-[90vh] object-contain" />
+            <img src={Sub3} className="w-full h-60 md:h-[90vh] object-cover" />
           </SwiperSlide>
         </Swiper>
 

@@ -449,6 +449,7 @@ const daysLeft = (order) => {
   }
 />
 
+ <label className="text-sm text-gray-600">Start Date</label>
 <input
   type="date"
   className="border p-2 w-full rounded"
@@ -528,6 +529,15 @@ const daysLeft = (order) => {
   <option value="CASH"> Cash</option>
  <option value="ONLINE">Online</option>
 </select>
+
+ <input
+              placeholder="Total Price (If price is different) "
+              className="border p-2 w-full rounded"
+              value={manualUser.firstName}
+              onChange={(e) =>
+                setManualUser({ ...manualUser, firstName: e.target.value })
+              }
+            />
 
 
             {/* 📍 ADDRESS */}
