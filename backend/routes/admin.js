@@ -34,37 +34,54 @@ router.get("/orders", async (req, res) => {
   try {
     const now = new Date();
 
-const pendingOrders = await Order.find({
-  "subscription.status": "UNDER_PROCESS",
-  "subscription.activationAt": { $lte: now },
-});
+    // ✅ ACTIVATE PENDING ORDERS
+    const pendingOrders = await Order.find({
+      "subscription.status": "UNDER_PROCESS",
+      "subscription.activationAt": { $lte: now },
+    });
 
-for (const order of pendingOrders) {
+    for (const order of pendingOrders) {
+      const start = new Date(order.subscription.activationAt);
 
-  const start = new Date(order.subscription.activationAt);
+      order.subscription.startDate = start;
 
-  order.subscription.startDate = start;
+      const months =
+        order.subscription.renewal?.pending
+          ? order.subscription.renewal.durationMonths
+          : order.subscription.durationMonths;
 
-  const months =
-    order.subscription.renewal?.pending
-      ? order.subscription.renewal.durationMonths
-      : order.subscription.durationMonths;
+      order.subscription.endDate = addMonthsSafe(start, months);
 
-  order.subscription.endDate = addMonthsSafe(start, months);
+      if (order.subscription.renewal?.pending) {
+        order.subscription.pause = { used: 0, history: [] };
+        order.subscription.renewal.pending = false;
+      }
 
-  if (order.subscription.renewal?.pending) {
-    order.subscription.pause = { used: 0, history: [] };
-    order.subscription.renewal.pending = false;
-  }
+      order.subscription.status = "ACTIVE";
 
-  order.subscription.status = "ACTIVE";
+      await order.save();
+    }
 
-  await order.save();
-}
-
+    // ✅ FETCH ALL ORDERS
     const orders = await Order.find().sort({ createdAt: 1 });
 
+    // 🔴 ADD THIS BLOCK (EXPIRED LOGIC)
+    for (const order of orders) {
+      if (
+        order.subscription?.status === "ACTIVE" &&
+        order.subscription?.endDate
+      ) {
+        const expiry = new Date(order.subscription.endDate);
+
+        if (expiry < now) {
+          order.subscription.status = "EXPIRED";
+          await order.save(); // persist in DB
+        }
+      }
+    }
+
     res.json({ success: true, orders });
+
   } catch (error) {
     console.error("Admin Orders Error:", error);
     res.status(500).json({

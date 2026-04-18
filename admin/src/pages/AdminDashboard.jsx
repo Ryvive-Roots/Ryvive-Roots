@@ -19,6 +19,7 @@ const AdminDashboard = () => {
   const [editingRow, setEditingRow] = useState(null);
   const [showRenew, setShowRenew] = useState(false);
 const [selectedOrder, setSelectedOrder] = useState(null);
+const [isTestMode, setIsTestMode] = useState(false);
 
 const [duration, setDuration] = useState(1);
 const [paymentMethod, setPaymentMethod] = useState("CASH");
@@ -187,6 +188,10 @@ const openRenewModal = (order) => {
   if (loading) return <p className="p-6">Loading orders...</p>;
 
  const getPauseStatusText = (order) => {
+
+  if (order.subscription?.status === "EXPIRED") {
+  return "🔴 EXPIRED";
+}
   // 🟡 UNDER PROCESS CHECK (ADD THIS)
   if (order.subscription?.status === "UNDER_PROCESS") {
     return "🟡 UNDER PROCESS";
@@ -1112,6 +1117,23 @@ const daysLeft = (order) => {
         <span className="font-bold text-black"> Payment Mode : </span>{" "}
         {order.paymentMethod || "CASH"}
       </div>
+
+      <div className="flex items-center justify-between mb-2">
+  <span className="text-sm font-medium">
+    Mode: {isTestMode ? "🧪 TEST" : "🟢 LIVE"}
+  </span>
+
+  <button
+    onClick={() => setIsTestMode(!isTestMode)}
+    className={`px-3 py-1 text-xs rounded ${
+      isTestMode
+        ? "bg-yellow-500 text-white"
+        : "bg-gray-200 text-gray-700"
+    }`}
+  >
+    {isTestMode ? "Switch to LIVE" : "Switch to TEST"}
+  </button>
+</div>
 
       {/* SAVE / CANCEL */}
       {editingRow === order._id && (
