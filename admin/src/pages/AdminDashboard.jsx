@@ -244,9 +244,11 @@ const handleSaveEdit = async (orderId) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user: {
+            firstName: editData.firstName, // ✅ ADD
+            lastName: editData.lastName, // ✅ ADD
             phone: editData.phone,
             email: editData.email,
-            dob: editData.dob, 
+            dob: editData.dob,
           },
           healthInfo: {
             allergies: editData.allergies,
@@ -254,7 +256,7 @@ const handleSaveEdit = async (orderId) => {
           },
           remarks: editData.remarks,
         }),
-      }
+      },
     );
 
     const data = await res.json();
