@@ -58,34 +58,35 @@ const openRenewModal = (order) => {
   const [search, setSearch] = useState("");
   const [filterPlan, setFilterPlan] = useState("ALL");
   const [manualUser, setManualUser] = useState({
-  firstName: "",
-  lastName: "",
-  phone: "",
-  email: "",
-   dob: "",  
-  plan: "",
-  slot: "",
-  paymentMethod: "CASH",
-  startDate: "",
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+    dob: "",
+    totalPrice: "",
+    plan: "",
+    slot: "",
+    paymentMethod: "CASH",
+    startDate: "",
 
-  healthInfo: {
-    allergies: "",
-    medicalConditions: "",
-  },
+    healthInfo: {
+      allergies: "",
+      medicalConditions: "",
+    },
 
-  remarks: "",
+    remarks: "",
 
-  address: {
-    pincode: "",
-    area: "",
-    house: "",
-    street: "",
-    landmark: "",
-    city: "Dombivli",
-    state: "Maharashtra",
-    country: "India",
-  },
-});
+    address: {
+      pincode: "",
+      area: "",
+      house: "",
+      street: "",
+      landmark: "",
+      city: "Dombivli",
+      state: "Maharashtra",
+      country: "India",
+    },
+  });
 
 
   // Fetch Orders
@@ -539,11 +540,11 @@ const daysLeft = (order) => {
             </select>
 
             <input
-              placeholder="Total Price (If price is different) "
+              placeholder="Total Price (If price is different)"
               className="border p-2 w-full rounded"
-              value={manualUser.firstName}
+              value={manualUser.totalPrice}
               onChange={(e) =>
-                setManualUser({ ...manualUser, firstName: e.target.value })
+                setManualUser({ ...manualUser, totalPrice: e.target.value })
               }
             />
 
