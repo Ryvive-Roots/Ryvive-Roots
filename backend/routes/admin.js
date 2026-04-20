@@ -295,11 +295,16 @@ try {
     if (order.user.email) {
 
 
-       await sendEmail({
-         to: order.user.email,
-         subject: "Thank You, You’re Now Part of the Ryvive Roots Family!",
-         html: `
- <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+     const rawPlan = order.subscription?.plan || "";
+const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
+
+
+   
+    await sendEmail({
+      to: order.user.email,
+      subject: "Thank You, You’re Now Part of the Ryvive Roots Family!",
+      html:  `
+<div style="font-family: Arial, sans-serif; line-height: 1.6;">
 
 <h2 style="font-family: Georgia, 'Times New Roman', serif;  font-size:16px; margin-bottom:2px;">
   Dear ${order.user.firstName},
@@ -449,15 +454,13 @@ Dombivli East, Maharashtra 421201, India
 
 </div>
 `,
-
-         attachments: [
-           {
-             filename: `invoice-${order.receiptNumber}.pdf`,
-             path: invoicePath,
-           },
-         ],
-         
-       });
+      attachments: [
+        {
+          filename: `invoice-${order.receiptNumber}.pdf`,
+          path: invoicePath,
+        },
+      ],
+    });
 
        order.subscription.thankYouEmailSentAt = new Date();
 order.subscription.welcomeEmailSent = false;
@@ -538,29 +541,24 @@ router.put("/order/:id/health", async (req, res) => {
       req.params.id,
       {
         $set: {
-          ...(user?.firstName && { "user.firstName": user.firstName }),
-          ...(user?.lastName && { "user.lastName": user.lastName }),
-          ...(user?.phone && { "user.phone": user.phone }),
-          ...(user?.email && { "user.email": user.email }),
-          ...(user?.dob && { "user.dob": user.dob }),
-          ...(healthInfo !== undefined && { healthInfo }),
-          ...(remarks !== undefined && { remarks }),
+          "user.phone": user?.phone,
+          "user.email": user?.email,
+          healthInfo,
+          remarks,
         },
       },
-      { new: true },
+      { new: true }
     );
 
     // 3️⃣ Sync User collection
-    if (user?.firstName || user?.lastName || user?.phone || user?.email)  {
-    await User.findOneAndUpdate(
-      { membershipId: order.membershipId },
-      {
-        ...(user?.firstName && { firstName: user.firstName }),
-        ...(user?.lastName && { lastName: user.lastName }),
-        ...(user?.phone && { phone: user.phone }),
-        ...(user?.email && { email: user.email }),
-      },
-    );
+    if (user?.phone || user?.email) {
+      await User.findOneAndUpdate(
+        { membershipId: order.membershipId },
+        {
+          ...(user?.phone && { phone: user.phone }),
+          ...(user?.email && { email: user.email }),
+        }
+      );
     }
 
     // 4️⃣ Detect changes
@@ -569,27 +567,13 @@ router.put("/order/:id/health", async (req, res) => {
 
     const emailChanged =
       user?.email && user.email !== oldOrder.user.email;
-    const nameChanged =
-      (user?.firstName && user.firstName !== oldOrder.user.firstName) ||
-      (user?.lastName && user.lastName !== oldOrder.user.lastName);
 
       const healthChanged =
   JSON.stringify(healthInfo || {}) !==
   JSON.stringify(oldOrder.healthInfo || {});
 
 const remarksChanged =
-      (remarks || "") !== (oldOrder.remarks || "");
-    if (nameChanged) {
-      const receiptNumber = await generateReceiptNumber(Order);
-
-      order.receiptNumber = receiptNumber;
-
-      const invoicePath = await generateInvoice(order);
-
-      order.invoiceUrl = invoicePath;
-
-      await order.save();
-    }
+  (remarks || "") !== (oldOrder.remarks || "");
 
     // 📩 SEND CUSTOMER EMAIL (only if email exists & changed)
    // 📩 SEND CUSTOMER EMAIL (only if email changed)
@@ -652,17 +636,11 @@ if (emailChanged && order.user.email) {
 
 
     // 📩 SEND COMPANY EMAIL
-   if (
-     phoneChanged ||
-     emailChanged ||
-     healthChanged ||
-     remarksChanged ||
-     nameChanged
-   ) {
-     await sendEmail({
-       to: process.env.COMPANY_EMAIL,
-       subject: `✏️ Member Details Updated - ${order.membershipId}`,
-       html: `
+    if (phoneChanged || emailChanged || healthChanged || remarksChanged) {
+  await sendEmail({
+    to: process.env.COMPANY_EMAIL,
+    subject: `✏️ Member Details Updated - ${order.membershipId}`,
+    html: `
       <h3>Member Profile Updated</h3>
 
       <p><b>Name:</b> ${order.user.firstName} ${order.user.lastName}</p>
@@ -670,11 +648,6 @@ if (emailChanged && order.user.email) {
 
       <p><b>Changes:</b></p>
       <ul>
-      ${
-        nameChanged
-          ? `<li>👤 Name: ${oldOrder.user.firstName} ${oldOrder.user.lastName} → ${order.user.firstName} ${order.user.lastName}</li>`
-          : ""
-      }
         ${
           phoneChanged
             ? `<li>📞 Phone: ${oldOrder.user.phone} → ${order.user.phone}</li>`
@@ -705,21 +678,9 @@ if (emailChanged && order.user.email) {
       </ul>
 
       <p>🕒 Updated on: ${new Date().toLocaleString("en-IN")}</p>
-
-      
     `,
-       attachments: [
-         ...(nameChanged
-           ? [
-               {
-                 filename: `invoice-${order.receiptNumber}.pdf`,
-                 path: order.invoiceUrl,
-               },
-             ]
-           : []),
-       ],
-     });
-   }
+  });
+}
 
 
     // 5️⃣ Rebuild Excel
