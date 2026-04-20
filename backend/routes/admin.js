@@ -77,7 +77,7 @@ router.get("/orders", async (req, res) => {
       order.subscription.status = "EXPIRED"; // ✅ only update in response
     }
   }
-}
+} 
 
     res.json({ success: true, orders });
 
@@ -297,63 +297,157 @@ try {
 
        await sendEmail({
          to: order.user.email,
-         subject: "Thank You! Your Payment Has Been Received — Ryvive Roots",
+         subject: "Thank You, You’re Now Part of the Ryvive Roots Family!",
          html: `
-  <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-    <h2>Hi ${order.user.firstName},</h2>
+ <div style="font-family: Arial, sans-serif; line-height: 1.6;">
 
-    <p>
-      Thank you for making the payment and joining the
-      <b>Ryvive Roots Subscription Program</b> 🌿
-      We’re excited to have you with us on this healthy journey.
-    </p>
+<h2 style="font-family: Georgia, 'Times New Roman', serif;  font-size:16px; margin-bottom:2px;">
+  Dear ${order.user.firstName},
+</h2>
 
-    <p>Here are your subscription details for your reference:</p>
+  <p font-family: Arial, 'Times New Roman', serif; font-weight: bold; font-size:22px; margin-bottom:10px;>
+    We just wanted to say thank you so much! We’re genuinely thrilled to have you as part of the 
+    <b>Ryvive Roots family</b>, and we can’t wait to walk alongside you on this wonderful wellness journey.
+  </p>
 
-    <table style="border-collapse: collapse;">
-     <tr>
-  <td><b>Invoice Number</b></td>
-  <td>: ${order.receiptNumber}</td>
+  <p>
+    Your payment has gone through successfully and everything is all set on our end. 
+    Here’s a quick summary for your records:
+  </p>
+
+<table style="font-family: Arial, 'Times New Roman', serif;  font-size:15px; margin-bottom:10px;">
+  <tr>
+    <td><b>Receipt Number</b></td>
+    <td>: <b>${order.receiptNumber}</b></td>
+  </tr>
+  <tr>
+    <td><b>Your Plan</b></td>
+    <td>: <b>${formattedPlan}</b></td>
+  </tr>
+  <tr>
+    <td><b>Amount Paid</b></td>
+    <td>: <b>₹${order.subscription.amount}</b></td>
+  </tr>
+  <tr>
+    <td><b>Payment Date</b></td>
+    <td>: <b>${order.createdAt.toLocaleDateString("en-IN")}</b></td>
+  </tr>
+</table>
+
+  <br/>
+
+  <p>
+    Keep an eye on your inbox. You’ll be hearing from us shortly with your 
+    <b>membership number</b> and all the details to get you started. 
+    The good stuff is just around the corner 😊
+  </p>
+
+  <p>
+  And hey, if you ever have a question, a concern, or just want to say hello, we’re always here for you. Reach out anytime at customersupport@ryviveroots.com and we’ll get back to you with a smile.
+  </p>
+
+  <p>
+    Here’s to a healthier, happier you. We’re so glad you’re here!
+  </p>
+
+  <p>
+    Warmly,<br/>
+    <b>Team Ryvive Roots</b>
+  </p>
+
+<style>
+@media only screen and (max-width:600px) {
+  .footer-table td {
+    display:block !important;
+    width:100% !important;
+    text-align:center !important;
+    margin-bottom:15px;
+  }
+
+  .footer-icons img{
+    margin:0 6px !important;
+  }
+}
+</style>
+
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; border-spacing:0;">
+
+<tr>
+<td align="center">
+
+<table style="text-align:center; border-spacing:0;">
+
+<tr>
+<td style="padding:6px 0;">
+<img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots Logo" style="border:none;">
+</td>
 </tr>
 
-      <tr>
-        <td><b>Plan Chosen</b></td>
-        <td>: ${order.subscription.plan}</td>
-      </tr>
-      <tr>
-        <td><b>Amount Paid</b></td>
-        <td>: ₹${order.subscription.amount}</td>
-      </tr>
-      <tr>
-        <td><b>Payment Date</b></td>
-      <td>: ${order.createdAt.toLocaleDateString("en-IN")}</td>
-      </tr>
-    </table>
+<tr>
+<td style="padding:6px 0; font-size:13px; color:#333; line-height:1.5; text-align:center;">
+You're receiving this email because you recently activated a Ryvive Roots membership.<br>
+If you have any concerns, please contact us at 
+<a href="mailto:customersupport@ryviveroots.com" style="text-decoration:none;">
+customersupport@ryviveroots.com
+</a>.
+</td>
+</tr>
 
-    <br />
+<tr>
+<td style="padding:8px 0; text-align:center;">
+<a href="https://www.instagram.com/ryvive_roots/" style="margin-right:12px; text-decoration:none;">
+<img src="https://cdn-icons-png.flaticon.com/512/1400/1400829.png" width="22" alt="Instagram" style="vertical-align:middle; border:none;">
+</a>
 
-    <p>
-     Your payment is confirmed 🎉 and your subscription is recorded.
-    </p>
+<a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="text-decoration:none;">
+<img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" width="22" alt="LinkedIn" style="vertical-align:middle; border:none;">
+</a>
+</td>
+</tr>
 
-    <p>
-      You’ll receive another email shortly with your membership number and activation details.
-    </p>
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
++91 9076000468 / 97656 00701
+</td>
+</tr>
 
-    <br />
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
+<a href="https://www.ryviveroots.com" style="text-decoration:none;">
+www.ryviveroots.com
+</a>
+</td>
+</tr>
 
-    <p>
-     If you ever need help, we’re always here — reach us at:<br />
-      <b>customersupport@ryviveroots.com</b>
-    </p>
+<tr>
+<td style="padding:6px 0; text-align:center;">
+<a href="https://ryviveroots.com/privacy-policy" style="text-decoration:none;">
+Privacy Policy
+</a>
+</td>
+</tr>
 
-    <br />
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
+Dombivli East, Maharashtra 421201, India
+</td>
+</tr>
 
-    <p>
-      Stay healthy, stay vibrant 💚<br />
-      <b>Team Ryvive Roots</b>
-    </p>
-  </div>
+<tr>
+<td style="padding-top:10px; font-size:13px; color:#333; text-align:center;">
+© 2026 RYVIVE ROOTS All Rights Reserved.
+</td>
+</tr>
+
+</table>
+
+</td>
+</tr>
+
+</table>
+
+
+</div>
 `,
 
          attachments: [
