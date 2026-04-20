@@ -302,7 +302,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
    
     await sendEmail({
       to: order.user.email,
-      subject: "Thank You, You’re Now Part of the Ryvive Roots Family!",
+      subject: "Payment successful for RYVIVE ROOTS LLP",
       html:  `
 <div style="font-family: Arial, sans-serif; line-height: 1.6;">
 
@@ -344,7 +344,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
   <p>
     Keep an eye on your inbox. You’ll be hearing from us shortly with your 
     <b>membership number</b> and all the details to get you started. 
-    The good stuff is just around the corner 😊
+    The good stuff is just around the corner.
   </p>
 
   <p>

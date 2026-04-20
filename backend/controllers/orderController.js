@@ -540,7 +540,7 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
     // 7️⃣ SEND CUSTOMER EMAIL (AS-IT-IS)
     await sendEmail({
       to: order.user.email,
-      subject: "Thank You, You’re Now Part of the Ryvive Roots Family!",
+      subject: "Payment successful for RYVIVE ROOTS LLP",
       html:  `
 <div style="font-family: Arial, sans-serif; line-height: 1.6;">
 
