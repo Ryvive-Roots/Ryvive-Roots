@@ -96,7 +96,7 @@ router.get("/orders", async (req, res) => {
 =========================== */
 router.post("/manual-order", async (req, res) => {
   try {
-   const { user, address, plan, slot, paymentMethod, healthInfo, remarks } = req.body;
+   const { user, address, plan, slot, paymentMethod, healthInfo, remarks, totalPrice  } = req.body;
 
 
     if (!user?.firstName || !user?.phone) {
@@ -245,7 +245,7 @@ remarks: remarks || "",
 
       subscription: {
   plan,
-  amount: selectedPlan.price,
+ amount: totalPrice || selectedPlan.price,
   durationMonths: months,
   activationAt,
   startDate,

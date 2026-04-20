@@ -32,6 +32,7 @@ import DashboardPage from "./components/DashboardPage"
 import PaymentSuccess from "./pages/PaymentSuccess"
 import MealPlanLayout from "./components/SubscriptionPlans"
 import SubscriptionPlans from "./components/SubscriptionPlansF"
+import RyviveDashboard from "./components/ryvive-dashboard"
 
 
 
@@ -67,7 +68,7 @@ function App() {
           <Route path="/subscription-silver" element={<SilversubForm />} />
           <Route path="/subscription-gold" element={<GoldsubForm />} />
           <Route path="/subscription-platinum" element={<PlatinumsubForm />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<RyviveDashboard />} />
            <Route path="/shipping-delivery" element={<Shipping/>} />
             <Route path="/cancellation-refund" element={<Cancellation />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />

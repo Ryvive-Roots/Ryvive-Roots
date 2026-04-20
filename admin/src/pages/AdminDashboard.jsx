@@ -133,6 +133,7 @@ const openRenewModal = (order) => {
   slot: manualUser.slot,
   paymentMethod: manualUser.paymentMethod,
    startDate: manualUser.startDate,
+    totalPrice: manualUser.totalPrice,
 };
 
 
