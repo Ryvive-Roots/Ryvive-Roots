@@ -23,6 +23,8 @@ const [isTestMode, setIsTestMode] = useState(false);
 
 const [duration, setDuration] = useState(1);
 const [paymentMethod, setPaymentMethod] = useState("CASH");
+const [renewStartDate, setRenewStartDate] = useState("");
+const [renewPrice, setRenewPrice] = useState("");
 
   const [editData, setEditData] = useState({
     firstName: "", // ✅ add this
@@ -39,6 +41,8 @@ const openRenewModal = (order) => {
   setSelectedOrder(order);
   setDuration(1);
   setPaymentMethod("CASH");
+  setRenewStartDate("");
+  setRenewPrice("");
   setShowRenew(true);
 };
 
@@ -279,9 +283,11 @@ const handleRenew = async () => {
     const response = await axios.post(
       "https://api.ryviveroots.com/api/admin/renew",
       {
-        membershipId: selectedOrder.membershipId,
-        durationMonths: duration,
-        paymentMethod,
+      membershipId: selectedOrder.membershipId,
+durationMonths: duration,
+paymentMethod,
+startDate: renewStartDate,
+totalPrice: renewPrice,
       }
     );
 
@@ -303,7 +309,6 @@ const handleRenew = async () => {
  
 const canShowRenew = (order) => {
   if (!order?.subscription?.endDate) return false;
-  if (order.subscription.status !== "ACTIVE") return false;
 
   const today = new Date();
   const expiry = new Date(order.subscription.endDate);
@@ -312,7 +317,7 @@ const canShowRenew = (order) => {
     (expiry - today) / (1000 * 60 * 60 * 24)
   );
 
-  return diffDays <= 10;
+  return diffDays <= 10 || order.subscription.status === "EXPIRED";
 };
 
 const daysLeft = (order) => {
@@ -1244,6 +1249,25 @@ const daysLeft = (order) => {
               <option value="CASH">Cash</option>
               <option value="ONLINE">Online</option>
             </select>
+
+            {/* Start Date */}
+<label className="block mb-2 text-sm">Start Date</label>
+<input
+  type="date"
+  value={renewStartDate}
+  onChange={(e) => setRenewStartDate(e.target.value)}
+  className="w-full border rounded p-2 mb-4"
+/>
+
+{/* Total Price */}
+<label className="block mb-2 text-sm">Total Price</label>
+<input
+  type="number"
+  placeholder="Enter total price"
+  value={renewPrice}
+  onChange={(e) => setRenewPrice(e.target.value)}
+  className="w-full border rounded p-2 mb-6"
+/>
 
             <div className="flex justify-end gap-2">
               <button

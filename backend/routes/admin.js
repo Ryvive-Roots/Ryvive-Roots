@@ -180,19 +180,19 @@ if (req.body.startDate) {
   startDate = new Date(req.body.startDate);
   startDate.setHours(0,0,0,0);
 
-  if (startDate < today) {
-    // past start → active immediately
-    activationAt = new Date(startDate);
-    status = "ACTIVE";
+  activationAt = new Date(startDate); // ✅ SAME DATE
+
+  if (startDate <= today) {
+    status = "ACTIVE"; // ✅ today or past
   } else {
-    // future or today → activate after 48 hours
-    activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+    status = "UNDER_PROCESS"; // future
   }
 
 } else {
 
   activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
   startDate = new Date(activationAt);
+  status = "UNDER_PROCESS";
 
 }
 
@@ -730,7 +730,7 @@ router.get("/excel", (req, res) => {
 ===================================== */
 router.post("/renew", async (req, res) => {
   try {
-   const { membershipId, durationMonths, paymentMethod } = req.body;
+  const { membershipId, durationMonths, paymentMethod, startDate, totalPrice } = req.body;
 
     if (!membershipId || !durationMonths) {
       return res.status(400).json({ success: false, message: "Missing data" });
@@ -778,12 +778,23 @@ if (!selectedPlan) {
 existingOrder.subscription.plan = planKey;
 
     // ⭐ amount based on duration (same logic you use frontend pricing)
- const amount = selectedPlan.price;
+const amount = totalPrice ? Number(totalPrice) : selectedPlan.price;
 
     /* ======================
        RENEWAL MARK PENDING
     ====================== */
-    const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+  let activationAt;
+
+if (startDate) {
+  const selected = new Date(startDate);
+
+  // ✅ Force correct local date (no timezone issue)
+  selected.setHours(0, 0, 0, 0);
+
+  activationAt = selected;
+} else {
+  activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+}
 
     existingOrder.subscription.renewal = {
       pending: true,
@@ -791,8 +802,23 @@ existingOrder.subscription.plan = planKey;
     };
 
     existingOrder.subscription.durationMonths = durationMonths;
-    existingOrder.subscription.activationAt = activationAt;
-    existingOrder.subscription.status = "UNDER_PROCESS";
+   // set activation
+existingOrder.subscription.activationAt = activationAt;
+existingOrder.subscription.startDate = activationAt;
+
+// compare dates (ignore time)
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const selectedDate = activationAt;
+selectedDate.setHours(0, 0, 0, 0);
+
+// ✅ status based on start date
+if (selectedDate <= today) {
+  existingOrder.subscription.status = "ACTIVE";
+} else {
+  existingOrder.subscription.status = "UNDER_PROCESS";
+}
 
     existingOrder.paymentMethod = paymentMethod || "CASH";
   
@@ -836,6 +862,9 @@ existingOrder.subscription.renewalHistory.push({
       amount,
     };
 
+    const activationText = startDate
+  ? new Date(startDate).toLocaleDateString("en-IN")
+  : "within 48 hours";
     /* ======================
        CUSTOMER EMAIL (SAME TEMPLATE)
     ====================== */
@@ -886,7 +915,7 @@ existingOrder.subscription.renewalHistory.push({
   <br/>
 
   <p>
-    Your subscription will be active within <b>48 hours</b>.
+   Your subscription will be active <b>${activationText}</b>.
   </p>
 
 </div>
