@@ -32,40 +32,35 @@ function addMonthsSafe(date, months) {
 =========================== */
 router.get("/orders", async (req, res) => {
   try {
-   const now = new Date();
-now.setHours(0, 0, 0, 0); // ✅ normalize
+    const now = new Date();
 
     // ✅ ACTIVATE PENDING ORDERS
     const pendingOrders = await Order.find({
-  "subscription.status": "UNDER_PROCESS",
-});
+      "subscription.status": "UNDER_PROCESS",
+      "subscription.activationAt": { $lte: now },
+    });
 
-for (const order of pendingOrders) {
-  const activation = new Date(order.subscription.activationAt);
-  activation.setHours(0, 0, 0, 0);
+    for (const order of pendingOrders) {
+      const start = new Date(order.subscription.activationAt);
 
-  if (activation <= now) {
-    const start = activation;
+      order.subscription.startDate = start;
 
-    order.subscription.startDate = start;
+      const months =
+        order.subscription.renewal?.pending
+          ? order.subscription.renewal.durationMonths
+          : order.subscription.durationMonths;
 
-    const months =
-      order.subscription.renewal?.pending
-        ? order.subscription.renewal.durationMonths
-        : order.subscription.durationMonths;
+      order.subscription.endDate = addMonthsSafe(start, months);
 
-    order.subscription.endDate = addMonthsSafe(start, months);
+      if (order.subscription.renewal?.pending) {
+        order.subscription.pause = { used: 0, history: [] };
+        order.subscription.renewal.pending = false;
+      }
 
-    if (order.subscription.renewal?.pending) {
-      order.subscription.pause = { used: 0, history: [] };
-      order.subscription.renewal.pending = false;
+      order.subscription.status = "ACTIVE";
+
+      await order.save();
     }
-
-    order.subscription.status = "ACTIVE";
-
-    await order.save();
-  }
-}
 
     // ✅ FETCH ALL ORDERS
     const orders = await Order.find().sort({ createdAt: 1 });
