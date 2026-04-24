@@ -5,7 +5,7 @@ import HeroSection from '../components/Hero';
 const Home = () => {
   return (
     <>
-    <div className='mt-26 overflow-y-hidden'>
+    <div className='overflow-y-hidden'>
        <HeroSection />
        </div>
     </>

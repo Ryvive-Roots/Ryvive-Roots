@@ -6,48 +6,47 @@ const Login = () => {
   const [membershipId, setMembershipId] = useState("");
   const [identifier, setIdentifier] = useState(""); // email or phone
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   
 
-  const handleLogin = async () => {
-    if (!membershipId || !identifier) {
-      alert("Please enter Membership ID and Email or Phone");
-      return;
+const handleLogin = async () => {
+  if (!membershipId || !identifier) {
+    alert("Please enter Membership ID and Email or Phone");
+    return;
+  }
+
+  try {
+    setLoading(true);
+    setError(""); // clear old error
+
+    const res = await fetch("https://api.ryviveroots.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        membershipId,
+        identifier,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      localStorage.setItem("token", "loggedin");
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("membershipId", data.membershipId);
+
+      window.location.href = "/dashboard";
+    } else {
+      setError("invalid"); // 👈 trigger error
     }
-
-    try {
-      setLoading(true);
-
-      const res = await fetch("https://api.ryviveroots.com/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          membershipId,
-          identifier,
-        }),
-      });
-
-      const data = await res.json();
-
-      console.log("✅ LOGIN RESPONSE:", data); // 👈 ADD THIS
-
-     if (data.success) {
-  localStorage.setItem("token", "loggedin"); // ⭐ ADD THIS
-  localStorage.setItem("user", JSON.stringify(data.user));
-  localStorage.setItem("membershipId", data.membershipId);
-
-  console.log("➡️ Redirecting to /dashboard...");
-  window.location.href = "/dashboard";
-} else {
-        alert(data.message || "Invalid login details");
-      }
-    } catch (error) {
-      console.error("❌ Login error:", error);
-      alert("Server error. Try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (error) {
+    console.error("❌ Login error:", error);
+    alert("Server error. Try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     const savedMembershipId = localStorage.getItem("membershipId");
@@ -63,14 +62,11 @@ const Login = () => {
       {/* 🔹 BLURRED BACKGROUND */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url(${Bg})`,
-          filter: "blur(6px)",
-        }}
+       
       ></div>
 
       {/* 🔹 DARK OVERLAY */}
-      <div className="absolute inset-0 bg-black/40"></div>
+      <div className="absolute inset-0 bg-white text-black"></div>
 
       {/* 🔹 LOGIN CARD */}
       <div
@@ -84,16 +80,16 @@ const Login = () => {
           shadow-2xl
         "
       >
-        <h2 className="text-2xl sm:text-3xl font-bold text-white text-center">
+        <h2 className="text-2xl sm:text-3xl font-bold text-black text-center">
           Welcome Back!
         </h2>
 
-        <p className="text-white text-center mt-4">
+        <p className="text-black text-center mt-4">
           Login using Membership ID and Email / Phone
         </p>
 
         {/* LOGIN FORM */}
-        <div className="mt-6 space-y-5 text-white">
+        <div className="mt-6 space-y-5 text-black">
           {/* Membership ID */}
          <input
   placeholder="Membership ID"
@@ -102,9 +98,9 @@ const Login = () => {
   className="
     w-full px-4 py-3 
     bg-transparent
-    border border-white 
+    border border-black 
     rounded-full 
-    text-white
+    text-black
     placeholder-white
     focus:ring-2 focus:ring-[#895C40] outline-none
   "
@@ -112,23 +108,27 @@ const Login = () => {
 
 
           {/* Email or Phone */}
-          <input
-            placeholder="Email or Phone"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            className="
+         <input
+  placeholder="Email or Phone"
+  value={identifier}
+  onChange={(e) => {
+    setIdentifier(e.target.value);
+    setError(""); // 👈 clears error while typing
+  }}
+  className="
     w-full px-4 py-3 
     bg-transparent 
-    border border-white 
+    border border-black 
     rounded-full 
-    placeholder-white
+    placeholder-black
     focus:ring-2 focus:ring-[#895C40] outline-none
   "
-          />
-
-          <p className="text-xs text-white/80 mt-1 text-center">
-            ⚠️ Please enter your <b>registered Email ID or Phone Number</b>.
-          </p>
+/>
+        {error === "invalid" && (
+  <p className="text-xs text-red-500 mt-1 text-center">
+    ⚠️ Please enter your <b>registered Email ID or Phone Number</b>.
+  </p>
+)}
 
           {/* Login Button */}
           <button
@@ -136,16 +136,15 @@ const Login = () => {
             onClick={handleLogin}
             className="
               w-full py-3 
-              bg-[#895C40] 
-              hover:bg-white hover:text-[#895C40] 
-              rounded-full 
-              font-semibold 
-              text-white
+             bg-[#0d2009]
+              rounded-full
+              font-semibold
+              text-[#C9A666]
               transition
               disabled:opacity-60
             "
           >
-            {loading ? "Logging in..." : "LOGIN"}
+            {loading ? "Logging in..." : "Send OTP"}
           </button>
         </div>
       </div>

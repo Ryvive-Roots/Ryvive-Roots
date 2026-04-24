@@ -233,122 +233,114 @@ useEffect(() => {
   return () => clearInterval(interval);
 }, []);
 
-
+ 
   return (
     <>
-   <section className="relative overflow-hidden -mt-[80px]">
 
-  <div className="relative w-full h-screen flex items-center justify-center overflow-hidden">
+    <div >
+<div className="relative overflow-hidden h-screen w-full">
 
-
-      {/* 🌄 Responsive Background Image */}
-   <picture className="fixed inset-0 -z-10">
-        <source media="(max-width: 768px)" srcSet={BgMobile} />
-        <source media="(min-width: 769px)" srcSet={BgDesktop} />
-     <img
-  src={BgDesktop}
-  alt="Hero Background"
-  loading={isMobile ? "eager" : "lazy"}
-  fetchPriority={isMobile ? "high" : "auto"}
-  decoding="async"
-  width="1200"
-  height="1600"
-  className="w-full h-full object-cover"
-/>
-
-
-      </picture>  
-
-  {/* 📝 Text */}
- <div className="relative z-10 px-6 md:px-20 text-center">
-
-        {/* Heading */}
-         <motion.p
-      initial={
-    isMobile
-      ? { opacity: 0 }
-      : { opacity: 0, transform: "translateY(30px)" }
-  }
-  animate={{ opacity: 1, transform: "translateY(0px)" }}
-  transition={{ duration: isMobile ? 0.3 : 0.7, ease: "easeOut", delay: 0.5 }}
-          className="text-white uppercase tracking-widest max-w-xl text-sm md:text-sm font-merriweather mb-5"
-        >
-      Crafted for balance, freshness, and flavour.
-        </motion.p>
-        <motion.h1
-        initial={
-    isMobile
-      ? { opacity: 0 }
-      : { opacity: 0, transform: "translateY(30px)" }
-  }
-  animate={{ opacity: 1, transform: "translateY(0px)" }}
-  transition={{ duration: isMobile ? 0.3 : 0.7, ease: "easeOut", delay: 0.2 }}
-          className="text-4xl  md:text-3xl lg:text-6xl xl:text-5xl    text-white leading-tight mb-6"
-        >
-        <p className=" text-xl font-merriweather"> Welcome  to <br /> </p>
-          <span className="text-white  font-myfont"  style={{ fontFamily: "Angeletta W04 Regular" }}>Ryvive Roots</span>
-        </motion.h1>
-
-        {/* Paragraph */}
-        <motion.p
-      initial={
-    isMobile
-      ? { opacity: 0 }
-      : { opacity: 0, transform: "translateY(30px)" }
-  }
-  animate={{ opacity: 1, transform: "translateY(0px)" }}
-  transition={{ duration: isMobile ? 0.3 : 0.7, ease: "easeOut", delay: 0.5 }}
-          className="text-white tracking-widest max-w-xl text-sm md:text-lg font-merriweather mb-8"
-        >
-        Live better, relive your natural energy, and believe in the power of authentic food.
-        </motion.p>
-
-      
-     <motion.button
-  whileHover={{
-    scale: 1.07,
-    y: -3,
-    boxShadow: "0px 10px 22px rgba(0,0,0,0.2)",
-  }}
-  whileTap={{ scale: 0.96 }}
-  transition={{ duration: 0.23, ease: "easeOut" }}
-  onClick={() => navigate("/subscription")}
-  className=" bg-transparent tracking-[0.20em] rounded-3xl shadow-2xl border border-white cursor-pointer text-white px-8 py-3  font-semibold"
->
-  Subscription
-</motion.button>
-
-      </div>
-    </div>
-
-
-
-        {/* RIGHT SLIDER WITH ANIMATION */}
-        {/* <motion.div
-          initial={{ x: 150, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className="relative w-full lg:w-[40%] h-[50vh] lg:h-[90vh]"
-        >
-         
-          <Slider ref={sliderRef} {...settings}>
-           {images.map((img, i) => (
-  <div key={i} className="w-full h-[50vh] lg:h-[90vh]">
+  {/* 🌄 Background Image */}
+  <div className="absolute inset-0 z-0">
+  <picture className="w-full h-full">
+    <source media="(max-width: 768px)" srcSet={BgMobile} />
+    <source media="(min-width: 769px)" srcSet={BgDesktop} />
     <img
-      src={img}
-      alt={imageAlts[i]}
-      loading={i === 0 ? "eager" : "lazy"}
-      fetchPriority={i === 0 ? "high" : "auto"}
+      src={BgDesktop}
+      alt="Background"
       className="w-full h-full object-cover object-top"
     />
-  </div>
-))}
+  </picture>
 
-          </Slider>
-         
-         
-        </motion.div> */}
-      </section>
+  {/* 🔥 DARK OVERLAY */}
+  <div className="absolute inset-0 bg-black/30"></div>
+</div>
+
+  {/* 📝 Centered Content */}
+  <div className="absolute inset-0 z-10 flex items-center justify-center px-6 md:px-20 text-center">
+
+    <div>
+      {/* Tagline */}
+      <motion.p
+        initial={
+          isMobile
+            ? { opacity: 0 }
+            : { opacity: 0, y: 30 }
+        }
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: isMobile ? 0.3 : 0.7,
+          ease: "easeOut",
+          delay: 0.5,
+        }}
+      className="text-white uppercase tracking-widest max-w-xl text-sm md:text-sm font-merriweather mb-5 drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
+      >
+        Crafted for balance, freshness, and flavour.
+      </motion.p>
+
+      {/* Heading */}
+      <motion.h1
+        initial={
+          isMobile
+            ? { opacity: 0 }
+            : { opacity: 0, y: 30 }
+        }
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: isMobile ? 0.3 : 0.7,
+          ease: "easeOut",
+          delay: 0.2,
+        }}
+       className="text-4xl md:text-3xl lg:text-6xl xl:text-5xl text-white leading-tight mb-6 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
+      >
+      <p className="text-xl font-merriweather drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]">
+          Welcome to <br />
+        </p>
+
+       <span
+  className="text-white font-myfont drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)]"
+  style={{ fontFamily: "Angeletta W04 Regular" }}
+>
+          Ryvive Roots
+        </span>
+      </motion.h1>
+
+      {/* Description */}
+      <motion.p
+        initial={
+          isMobile
+            ? { opacity: 0 }
+            : { opacity: 0, y: 30 }
+        }
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: isMobile ? 0.3 : 0.7,
+          ease: "easeOut",
+          delay: 0.5,
+        }}
+      className="text-white tracking-widest max-w-xl text-sm md:text-lg font-merriweather mb-8 drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]" 
+      >
+        Live better, relive your natural energy, and believe in the power of authentic food.
+      </motion.p>
+
+      {/* Button */}
+      <motion.button
+        whileHover={{
+          scale: 1.07,
+          y: -3,
+          boxShadow: "0px 10px 22px rgba(0,0,0,0.2)",
+        }}
+        whileTap={{ scale: 0.96 }}
+        transition={{ duration: 0.23, ease: "easeOut" }}
+        onClick={() => navigate("/subscription")}
+        className="bg-transparent tracking-[0.20em] rounded-3xl shadow-2xl border border-white cursor-pointer text-white px-8 py-3 font-semibold"
+      >
+        Subscription
+      </motion.button>
+    </div>
+
+  </div>
+</div>
 
       <div className=" md:relative w-full  h-screen">
  {/* ✅ Background Images */}
@@ -563,7 +555,7 @@ useEffect(() => {
      <Suspense fallback={<div className="h-[300px]" />}>
   <TestimonialsSection />
 </Suspense>
-
+</div>
     </>
   );
 };

@@ -48,13 +48,14 @@ function App() {
      {!isDashboard && <Navbar />}
       <ScrollToTop />
       <WhatsAppButton />
+      
       <main className=" overflow-x-hidden">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/our-story" element={<OurStory />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/subscription" element={<Subscription />} />
-            <Route path="/subscriptionPlans" element={<SubscriptionPlans />} />
+          <Route path="/subscriptionPlans" element={<SubscriptionPlans />} />
           <Route path="/franchise" element={<Franchise />} />
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/career" element={<Career />} />
@@ -69,9 +70,9 @@ function App() {
           <Route path="/subscription-gold" element={<GoldsubForm />} />
           <Route path="/subscription-platinum" element={<PlatinumsubForm />} />
           <Route path="/dashboard" element={<RyviveDashboard />} />
-           <Route path="/shipping-delivery" element={<Shipping/>} />
-            <Route path="/cancellation-refund" element={<Cancellation />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/shipping-delivery" element={<Shipping/>} />
+          <Route path="/cancellation-refund" element={<Cancellation />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
                  
         </Routes>
       </main>

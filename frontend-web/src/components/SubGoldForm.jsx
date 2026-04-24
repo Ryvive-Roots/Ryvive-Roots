@@ -126,8 +126,8 @@ useEffect(() => {
       );
     }
     if (step === 1) return true;
- if (step === 2)
-   return typeof formData.slot === "string" && formData.slot.length > 0;
+if (step === 2)
+  return deliverySlot.type && deliverySlot.time;
 
 
     if (step === 3) {
@@ -351,97 +351,71 @@ useEffect(() => {
                   </div>
                 )}
 
-                {/* STEP 3 */}
-                {step === 2 && (
-                  <div className="grid md:grid-cols-2 font-roboto gap-4">
-                    {/* 🌅 Morning Slot */}
-                    <div className="relative group">
-                      <select
-                        className={`${inputStyle} appearance-none pr-10 ${
-                          deliverySlot.type === "evening"
-                            ? "bg-gray-100 cursor-not-allowed"
-                            : ""
-                        }`}
-                        disabled={deliverySlot.type === "evening"}
-                        value={
-                          deliverySlot.type === "morning"
-                            ? deliverySlot.time
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const slotValue = e.target.value;
-                          setDeliverySlot({ type: "morning", time: slotValue });
+               {step === 2 && (
+  <div className="grid md:grid-cols-2 font-roboto gap-4">
+    
+    {/* 🌅 Morning Slot */}
+    <div className="relative group">
+      <select
+        className={`${inputStyle} appearance-none pr-10`}
+        value={
+          deliverySlot.type === "morning"
+            ? deliverySlot.time
+            : ""
+        }
+        onChange={(e) => {
+          const slotValue = e.target.value;
 
-                          setFormData({
-                            ...formData,
-                            slot: `Morning - ${slotValue}`,
-                          });
-                        }}
-                      >
-                        <option value="">Morning Slot</option>
-                        <option value="08:00 – 09:00 AM">
-                          08:00 – 09:00 AM
-                        </option>
-                        <option value="09:00 – 10:00 AM">
-                          09:00 – 10:00 AM
-                        </option>
-                        <option value="10:00 – 11:00 AM">
-                          10:00 – 11:00 AM
-                        </option>
-                      </select>
+          setDeliverySlot({
+            type: "morning",
+            time: slotValue,
+          });
+        }}
+      >
+        <option value="">Morning Slot</option>
+        <option value="08:00 – 09:00 AM">08:00 – 09:00 AM</option>
+        <option value="09:00 – 10:00 AM">09:00 – 10:00 AM</option>
+        <option value="10:00 – 11:00 AM">10:00 – 11:00 AM</option>
+      </select>
 
-                      <ChevronDown
-                        size={18}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                      />
-                    </div>
+      <ChevronDown
+        size={18}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+      />
+    </div>
 
-                    {/* 🌙 Evening Slot */}
-                    <div className="relative group">
-                      <select
-                        className={`${inputStyle} appearance-none pr-10 ${
-                          deliverySlot.type === "morning"
-                            ? "bg-gray-100 cursor-not-allowed"
-                            : ""
-                        }`}
-                        disabled={deliverySlot.type === "morning"}
-                        value={
-                          deliverySlot.type === "evening"
-                            ? deliverySlot.time
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const slotValue = e.target.value;
-                          setDeliverySlot({ type: "evening", time: slotValue });
+    {/* 🌙 Evening Slot */}
+    <div className="relative group">
+      <select
+        className={`${inputStyle} appearance-none pr-10`}
+        value={
+          deliverySlot.type === "evening"
+            ? deliverySlot.time
+            : ""
+        }
+        onChange={(e) => {
+          const slotValue = e.target.value;
 
-                          setFormData({
-                            ...formData,
-                            slot: `Evening - ${slotValue}`,
-                          });
-                        }}
-                      >
-                        <option value="">Evening Slot</option>
-                        <option value="05:00 – 06:00 PM">
-                          05:00 – 06:00 PM
-                        </option>
-                        <option value="06:00 – 07:00 PM">
-                          06:00 – 07:00 PM
-                        </option>
-                        <option value="07:00 – 08:00 PM">
-                          07:00 – 08:00 PM
-                        </option>
-                        <option value="08:00 – 09:00 PM">
-                          08:00 – 09:00 PM
-                        </option>
-                      </select>
+          setDeliverySlot({
+            type: "evening",
+            time: slotValue,
+          });
+        }}
+      >
+        <option value="">Evening Slot</option>
+        <option value="05:00 – 06:00 PM">05:00 – 06:00 PM</option>
+        <option value="06:00 – 07:00 PM">06:00 – 07:00 PM</option>
+        <option value="07:00 – 08:00 PM">07:00 – 08:00 PM</option>
+        <option value="08:00 – 09:00 PM">08:00 – 09:00 PM</option>
+      </select>
 
-                      <ChevronDown
-                        size={18}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                      />
-                    </div>
-                  </div>
-                )}
+      <ChevronDown
+        size={18}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+      />
+    </div>
+  </div>
+)}
 
                 {/* STEP 4 */}
                 {step === 3 && (
@@ -635,7 +609,18 @@ useEffect(() => {
                   {step < 4 && (
                     <button
                       disabled={!isStepValid()}
-                      onClick={() => isStepValid() && setStep(step + 1)}
+                    onClick={() => {
+  if (deliverySlot.type && deliverySlot.time) {
+    setFormData({
+      ...formData,
+      slot: `${
+        deliverySlot.type === "morning" ? "Morning" : "Evening"
+      } - ${deliverySlot.time}`,
+    });
+  }
+
+  setStep(step + 1);
+}}
                       className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-medium
       ${
         isStepValid()

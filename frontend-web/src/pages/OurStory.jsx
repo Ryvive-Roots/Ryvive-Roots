@@ -26,7 +26,7 @@ const OurStory = () => {
 
   const visibleParagraphs = showMore ? paragraphs : paragraphs.slice(0, 3);
   return (
-    <section className="mt-24">
+    <section className="">
       {/* Banner Section */}
     <div
   className="

@@ -49,12 +49,15 @@ useEffect(() => {
 
   return (
     <>
-   <div className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-  scrolled
-    ? "bg-[#0d2009] backdrop-blur-md shadow-md"
-    : "  backdrop-blur-sm"
-}`}>
-       <div className="h-[80px] flex items-center justify-between px-6">
+<div
+  className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+    scrolled
+      ? "bg-[#0d2009]/90 backdrop-blur-md shadow-md"
+      : "bg-transparent"
+  }`}
+>
+
+       <div className="h-[80px]  flex items-center justify-between px-6">
           {/* LEFT SIDE: Logo + Nav Links */}
           <div className="flex items-center gap-12">
             {/* Logo */}
