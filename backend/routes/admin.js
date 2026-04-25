@@ -32,57 +32,47 @@ function addMonthsSafe(date, months) {
 =========================== */
 router.get("/orders", async (req, res) => {
   try {
-   const now = new Date();
-now.setHours(0, 0, 0, 0); // ignore time
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     // ✅ ACTIVATE PENDING ORDERS
     const pendingOrders = await Order.find({
       "subscription.status": "UNDER_PROCESS",
-     
     });
-for (const order of pendingOrders) {
-  const activation = new Date(order.subscription.activationAt);
-  activation.setHours(0, 0, 0, 0);
 
-  if (activation <= now) {
-    const start = activation;
+    for (const order of pendingOrders) {
+      const activation = new Date(order.subscription.activationAt);
+      activation.setHours(0, 0, 0, 0);
 
-    order.subscription.startDate = start;
+      if (activation <= today) {
+        order.subscription.status = "ACTIVE";
 
-    const months =
-      order.subscription.renewal?.pending
-        ? order.subscription.renewal.durationMonths
-        : order.subscription.durationMonths;
+        if (order.subscription.renewal?.pending) {
+          order.subscription.pause = { used: 0, history: [] };
+          order.subscription.renewal.pending = false;
+        }
 
-    order.subscription.endDate = addMonthsSafe(start, months);
-
-    if (order.subscription.renewal?.pending) {
-      order.subscription.pause = { used: 0, history: [] };
-      order.subscription.renewal.pending = false;
+        await order.save();
+      }
     }
-
-    order.subscription.status = "ACTIVE";
-
-    await order.save();
-  }
-}
 
     // ✅ FETCH ALL ORDERS
     const orders = await Order.find().sort({ createdAt: 1 });
 
-    // 🔴 ADD THIS BLOCK (EXPIRED LOGIC)
-   for (const order of orders) {
-  if (
-    order.subscription?.status === "ACTIVE" &&
-    order.subscription?.endDate
-  ) {
-    const expiry = new Date(order.subscription.endDate);
+    // 🔴 EXPIRED LOGIC (fixed)
+    for (const order of orders) {
+      if (
+        order.subscription?.status === "ACTIVE" &&
+        order.subscription?.endDate
+      ) {
+        const expiry = new Date(order.subscription.endDate);
+        expiry.setHours(0, 0, 0, 0);
 
-    if (expiry < now) {
-      order.subscription.status = "EXPIRED"; // ✅ only update in response
+        if (expiry < today) {
+          order.subscription.status = "EXPIRED"; // only for response
+        }
+      }
     }
-  }
-} 
 
     res.json({ success: true, orders });
 
