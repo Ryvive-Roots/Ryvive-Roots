@@ -796,10 +796,10 @@ if (startDate) {
   activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 }
 
-    existingOrder.subscription.renewal = {
-      pending: true,
-      durationMonths,
-    };
+   existingOrder.subscription.renewal = {
+  pending: selectedDate > today, // only future dates
+  durationMonths,
+};
 
     existingOrder.subscription.durationMonths = durationMonths;
    // set activation
@@ -810,7 +810,7 @@ existingOrder.subscription.startDate = activationAt;
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 
-const selectedDate = activationAt;
+const selectedDate = new Date(activationAt);
 selectedDate.setHours(0, 0, 0, 0);
 
 // ✅ status based on start date
@@ -850,6 +850,8 @@ existingOrder.subscription.renewalHistory.push({
   durationMonths,
   amount,
   paymentMethod: paymentMethod || "CASH",
+    startDate: startDate ? new Date(startDate) : null,   // 👈 user input
+  activationAt: activationAt  
 });
 
     await existingOrder.save();
