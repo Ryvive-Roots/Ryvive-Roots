@@ -13,17 +13,38 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
+const [showHeader, setShowHeader] = useState(true);
 
 useEffect(() => {
   const token = localStorage.getItem("token");
   setIsLoggedIn(!!token);
 }, [location]);
 
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+ useEffect(() => {
+  let lastScrollY = window.scrollY;
+
+  const handleScroll = () => {
+    const currentScrollY = window.scrollY;
+
+    // Detect scroll direction
+    if (currentScrollY > lastScrollY && currentScrollY > 50) {
+      // ⬇️ scrolling down → hide
+      setShowHeader(false);
+    } else {
+      // ⬆️ scrolling up → show
+      setShowHeader(true);
+    }
+
+    // Optional: keep your background logic
+    setScrolled(currentScrollY > 50);
+
+    lastScrollY = currentScrollY;
+  };
+
+  window.addEventListener("scroll", handleScroll);
+
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
 
   const navItems = [
     { label: "Home", href: "/" },
@@ -51,6 +72,8 @@ useEffect(() => {
     <>
 <div
   className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+    showHeader ? "translate-y-0" : "-translate-y-full"
+  } ${
     scrolled
       ? "bg-[#0d2009]/90 backdrop-blur-md shadow-md"
       : "bg-transparent"

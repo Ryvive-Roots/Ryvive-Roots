@@ -34,3 +34,20 @@ export const getUserOrders = async (req, res) => {
     });
   }
 };
+
+export const getReceipt = async (req, res) => {
+  try {
+    const { membershipId, receiptNumber } = req.query;
+    const order = await Order.findOne({
+      membershipId,
+      receiptNumber,
+    });
+    if (!order || !order.invoiceUrl) {
+      return res.json({ success: false, message: "Receipt not found" });
+    }
+    return res.json({ success: true, invoiceUrl: order.invoiceUrl });
+  } catch (err) {
+    console.error(err);
+    return res.json({ success: false });
+  }
+};
