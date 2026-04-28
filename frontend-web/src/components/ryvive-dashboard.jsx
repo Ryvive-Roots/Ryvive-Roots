@@ -154,17 +154,42 @@ export default function RyviveDashboard() {
 const basePlan        = subscription.plan.split("_")[0].toUpperCase();
 const durationMonths  = subscription.durationMonths || 1;
 
-// ── Fix totalDays based on duration ──────────────────────────────────────────
-const totalDays = durationMonths === 3 ? 72 : 24;
+// ── Calculate total meal days (Mon–Sat) between start and end date ────────────
+const getTotalMealDays = (startDate, endDate) => {
+  if (!startDate || !endDate) return 0;
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  let count = 0;
+  const cursor = new Date(start);
 
-// Calculate daysCompleted from activationAt if backend sends 0
-const daysCompletedFromDate = subscription.activationAt
-  ? Math.min(
-      Math.max(Math.floor((Date.now() - new Date(subscription.activationAt).getTime()) / (1000 * 60 * 60 * 24)), 0),
-      totalDays
-    )
-  : 0;
-const daysCompleted = daysCompletedFromDate || subscription.daysCompleted || 0;
+  while (cursor <= end) {
+    const day = cursor.getDay(); // 0=Sun
+    if (day !== 0) count++;     // skip Sunday
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return count;
+};
+
+// ── Calculate completed meal days (Mon–Sat) from start to today ───────────────
+const getCompletedMealDays = (startDate, endDate) => {
+  if (!startDate) return 0;
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const now = new Date();
+  const limit = now < end ? now : end; // don't exceed end date
+  let count = 0;
+  const cursor = new Date(start);
+
+  while (cursor <= limit) {
+    const day = cursor.getDay();
+    if (day !== 0) count++;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return count;
+};
+
+const totalDays     = getTotalMealDays(subscription.activationAt, subscription.endDate);
+const daysCompleted = getCompletedMealDays(subscription.activationAt, subscription.endDate);
 
 const weekNumber = getCurrentWeekNumber(subscription.activationAt, durationMonths);
   const weeklyMenu      = WEEKLY_MENU[weekNumber] || {};
@@ -452,11 +477,12 @@ const pct = Math.round((daysCompleted / totalDays) * 100) || 0;
           <nav>
             {[
               { id: "info",          icon: User,           label: "My Information" },
-              { id: "schedule",      icon: Calendar,       label: "My Daily Schedule" },
-              { id: "subscription",  icon: Package,        label: "My Subscription" },
+                 { id: "subscription",  icon: Package,        label: "My Subscription" },
             
+              { id: "schedule",      icon: Calendar,       label: "My Daily Schedule" },
+             { id: "history",       icon: Receipt,        label: "Purchase History" },
               { id: "upgrade",       icon: TrendingUp,     label: "Upgrade Plan" },
-              { id: "history",       icon: Receipt,        label: "Purchase History" },
+            
               { id: "support",       icon: MessageCircle,  label: "Support & Tickets" },
               { id: "notifications", icon: Bell,           label: "Notifications" },
             ].map((item) => (
@@ -672,8 +698,8 @@ const pct = Math.round((daysCompleted / totalDays) * 100) || 0;
                  
                     ["Start Date",      formatDate(subscription.activationAt)],
                     ["End Date",        formatDate(subscription.endDate)],
-                   ["Days Completed",  `${daysCompleted} Days`],
-                   ["Days Remaining",  `${totalDays - daysCompleted} Days`],
+                 ["Meals Completed",  `${daysCompleted} / ${totalDays}`],
+["Meals Remaining",  `${totalDays - daysCompleted} meals left`],
                     ["Pause Allowance", `${maxPauseCount} total`],
                   ].map(([label, val]) => (
                     <div key={label} style={{ padding: ".85rem", background: "#f8fdf5", borderRadius: 9, border: "1px solid rgba(45,80,22,.08)" }}>

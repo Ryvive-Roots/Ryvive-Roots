@@ -346,7 +346,7 @@ Across your plan, you will experience a <strong>24-day rotating menu</strong>, e
 <p><strong>Your Platinum membership also includes flexible delivery management:</strong></p>
 
 <ul>
-<li>Unlimited delivery pauses during your plan</li>
+
 <li>Seamless automatic resumption after each pause period</li>
 <li>Dedicated support from our customer care team</li>
 </ul>
