@@ -277,7 +277,9 @@ try {
     );
 
     // 📄 Generate Invoice PDF
-    const invoicePath = await generateInvoice(order);
+   const invoicePath = await generateInvoice(order);
+order.invoiceUrl = invoicePath;  
+await order.save();                
           const excelPath = path.join(
   __dirname,
   "..",

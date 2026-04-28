@@ -38,14 +38,22 @@ export const getUserOrders = async (req, res) => {
 export const getReceipt = async (req, res) => {
   try {
     const { membershipId, receiptNumber } = req.query;
-    const order = await Order.findOne({
-      membershipId,
-      receiptNumber,
-    });
+
+    console.log("📥 membershipId:", membershipId);
+    console.log("📥 receiptNumber:", receiptNumber);
+
+    const order = await Order.findOne({ membershipId, receiptNumber });
+
+    console.log("📦 Order found:", order?._id ?? "NOT FOUND");
+    console.log("🧾 invoiceUrl:", order?.invoiceUrl ?? "NO URL");
+
     if (!order || !order.invoiceUrl) {
       return res.json({ success: false, message: "Receipt not found" });
     }
+
+    // Temporarily just return the URL to confirm flow works
     return res.json({ success: true, invoiceUrl: order.invoiceUrl });
+
   } catch (err) {
     console.error(err);
     return res.json({ success: false });

@@ -397,7 +397,7 @@ const pct = Math.round((daysCompleted / totalDays) * 100) || 0;
           <div style={S.logoMark}>R</div>
           <div>
             <h1 style={{ margin: 0, color: "white", fontSize: "1.4rem", fontWeight: 700 }}>Ryvive Roots</h1>
-            <p style={{ margin: 0, color: "#d4af37", fontSize: ".82rem", fontWeight: 500 }}>Wellness Dashboard</p>
+          
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
@@ -416,9 +416,10 @@ const pct = Math.round((daysCompleted / totalDays) * 100) || 0;
         <aside style={S.sidebar}>
           <nav>
             {[
+              { id: "info",          icon: User,           label: "My Information" },
               { id: "schedule",      icon: Calendar,       label: "My Daily Schedule" },
               { id: "subscription",  icon: Package,        label: "My Subscription" },
-              { id: "info",          icon: User,           label: "My Information" },
+            
               { id: "upgrade",       icon: TrendingUp,     label: "Upgrade Plan" },
               { id: "history",       icon: Receipt,        label: "Purchase History" },
               { id: "support",       icon: MessageCircle,  label: "Support & Tickets" },
