@@ -315,13 +315,26 @@ const weekNumber = getCurrentWeekNumber(subscription.activationAt, durationMonth
 const handleDownloadReceipt = async (receiptNumber) => {
   const membershipId = localStorage.getItem("membershipId");
   try {
-    const res = await fetch(`https://api.ryviveroots.com/api/user/receipt?membershipId=${membershipId}&receiptNumber=${receiptNumber}`);
-    const data = await res.json();
-    if (data.success && data.invoiceUrl) {
-      window.open(data.invoiceUrl, "_blank");
-    } else {
+    const response = await fetch(
+      `https://api.ryviveroots.com/api/user/receipt?membershipId=${membershipId}&receiptNumber=${receiptNumber}`
+    );
+
+    if (!response.ok) {
       alert("Receipt not available.");
+      return;
     }
+
+    // Convert response to blob and trigger download
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `invoice-${receiptNumber}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
   } catch (err) {
     console.error(err);
     alert("Something went wrong.");

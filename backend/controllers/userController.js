@@ -1,4 +1,6 @@
 import Order from "../models/order.js";
+import generateInvoice from "../utils/generateInvoice.js";
+import fs from "fs";
 
 export const getUserOrders = async (req, res) => {
   try {
@@ -20,7 +22,6 @@ export const getUserOrders = async (req, res) => {
       ) {
         order.subscription.status = "ACTIVE";
         await order.save();
-
         console.log("✅ Activated:", order.membershipId);
       }
     }
@@ -39,23 +40,38 @@ export const getReceipt = async (req, res) => {
   try {
     const { membershipId, receiptNumber } = req.query;
 
-    console.log("📥 membershipId:", membershipId);
-    console.log("📥 receiptNumber:", receiptNumber);
-
     const order = await Order.findOne({ membershipId, receiptNumber });
 
-    console.log("📦 Order found:", order?._id ?? "NOT FOUND");
-    console.log("🧾 invoiceUrl:", order?.invoiceUrl ?? "NO URL");
-
-    if (!order || !order.invoiceUrl) {
-      return res.json({ success: false, message: "Receipt not found" });
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
 
-    // Temporarily just return the URL to confirm flow works
-    return res.json({ success: true, invoiceUrl: order.invoiceUrl });
+    // Always regenerate fresh PDF — no dependency on invoiceUrl
+    const invoicePath = await generateInvoice(order);
+
+    if (!fs.existsSync(invoicePath)) {
+      return res.status(404).json({ success: false, message: "Could not generate invoice" });
+    }
+
+    // Stream PDF directly to browser as download
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="invoice-${receiptNumber}.pdf"`
+    );
+
+    const stream = fs.createReadStream(invoicePath);
+    stream.pipe(res);
+
+    // Clean up file after sending
+    stream.on("end", () => {
+      fs.unlink(invoicePath, (err) => {
+        if (err) console.error("Cleanup error:", err);
+      });
+    });
 
   } catch (err) {
-    console.error(err);
-    return res.json({ success: false });
+    console.error("Receipt error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
