@@ -305,12 +305,34 @@ const weekNumber = getCurrentWeekNumber(subscription.activationAt, durationMonth
   };
 
   // ── Save profile ────────────────────────────────────────────────────────────
-  const saveProfile = async () => {
-    // Wire to your profile update API here
-    console.log("Save profile:", formData);
-    setEditMode(false);
-    alert("Profile updated successfully!");
-  };
+const saveProfile = async () => {
+  const membershipId = localStorage.getItem("membershipId");
+  try {
+    const res = await fetch("https://api.ryviveroots.com/api/user/update-profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        membershipId,
+        email: formData.email,
+        phone: formData.phone,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setEditMode(false);
+      alert("Profile updated successfully!");
+      // Refresh order data to reflect changes
+      window.location.reload();
+    } else {
+      alert(data.message || "Update failed.");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong.");
+  }
+};
 
 const handleDownloadReceipt = async (receiptNumber) => {
   const membershipId = localStorage.getItem("membershipId");
