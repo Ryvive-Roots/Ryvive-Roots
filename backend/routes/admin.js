@@ -973,7 +973,61 @@ if (process.env.COMPANY_EMAIL) {
   }
 });
 
+// adminRoutes.js - one-time fix route
+router.post("/fix-invoice/:membershipId", async (req, res) => {
+  try {
+    const order = await Order.findOne({ 
+      membershipId: req.params.membershipId 
+    });
 
+    if (!order) {
+      return res.json({ success: false, message: "Order not found" });
+    }
+
+    // Regenerate invoice
+    const invoicePath = await generateInvoice(order);
+    
+    order.invoiceUrl = invoicePath;
+    await order.save();
+
+    console.log("✅ Invoice fixed for:", order.membershipId, invoicePath);
+    return res.json({ success: true, invoiceUrl: invoicePath });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false });
+  }
+});
+
+router.post("/fix-all-invoices", async (req, res) => {
+  try {
+    const orders = await Order.find({ 
+      $or: [
+        { invoiceUrl: { $exists: false } },
+        { invoiceUrl: null },
+        { invoiceUrl: "" }
+      ]
+    });
+
+    console.log(`🔧 Fixing ${orders.length} orders...`);
+
+    for (const order of orders) {
+      try {
+        const invoicePath = await generateInvoice(order);
+        order.invoiceUrl = invoicePath;
+        await order.save();
+        console.log("✅ Fixed:", order.membershipId);
+      } catch (err) {
+        console.error("❌ Failed for:", order.membershipId, err.message);
+      }
+    }
+
+    return res.json({ success: true, fixed: orders.length });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false });
+  }
+});
 
 
 export default router;
