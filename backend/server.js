@@ -21,7 +21,18 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 // Middlewares
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "https://admin.ryviveroots.com",
+      "https://ryviveroots.com",
+      "http://localhost:5173",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
