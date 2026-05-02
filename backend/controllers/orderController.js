@@ -146,8 +146,8 @@ if (!selectedPlan) {
   throw new Error("Plan not found in planConfig: " + normalizedPlan);
 }
 
-// =====================================================
-// 🔁 RENEWAL LOGIC (FULL)
+    // =====================================================
+// 🔁 RENEWAL LOGIC (ADDED ONLY)
 // =====================================================
 if (tempPayment.isRenewal) {
 
@@ -159,73 +159,252 @@ if (tempPayment.isRenewal) {
     return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
   }
 
-  const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+ // DO NOT extend endDate immediately
 
-  existingOrder.subscription.renewal = {
-    pending: true,
-    durationMonths: tempPayment.durationMonths,
-  };
+const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
-  existingOrder.subscription.durationMonths = tempPayment.durationMonths;
-  existingOrder.subscription.activationAt = activationAt;
-  existingOrder.subscription.status = "UNDER_PROCESS";
+existingOrder.subscription.renewal = {
+  pending: true,
+  durationMonths: tempPayment.durationMonths,
+};
 
-  await existingOrder.save();
+// ⭐ IMPORTANT — dashboard depends on this
+existingOrder.subscription.durationMonths = tempPayment.durationMonths;
 
-  // mark temp payment
+existingOrder.subscription.activationAt = activationAt;
+existingOrder.subscription.status = "UNDER_PROCESS";
+
+await existingOrder.save();
+
+  // Update temp payment
   tempPayment.status = "SUCCESS";
   tempPayment.membershipId = existingOrder.membershipId;
   await tempPayment.save();
 
+  // ✅ Generate new receipt for renewal
+const receiptNumber = await generateReceiptNumber(
+  Order,
+  tempPayment.amount
+);
+
+// Keep original plan exactly as stored
+existingOrder.subscription.plan = String(
+  existingOrder.subscription.plan
+).trim().toUpperCase();
+
+// ✅ Generate renewal invoice
+const invoicePath = await generateInvoice({
+  ...existingOrder.toObject(),
+  receiptNumber,
+  subscription: {
+    ...existingOrder.subscription,
+    amount: tempPayment.amount,
+  },
+});
+
+existingOrder.invoiceUrl = invoicePath;
+await existingOrder.save(); 
+
+const renewalPlan =
+  "RYVIVE " + String(existingOrder.subscription.plan).split("_")[0];
+  
+// ✅ Send Renewal Email WITH Invoice
+await sendEmail({
+  to: existingOrder.user.email,
+  subject: "You’re Back, And We’re Glad 🌿",
+  html: `
+<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+
+  <h2>Hi ${existingOrder.user.firstName},</h2>
+
+  <p><b>Welcome back. We're glad you stayed.</b></p>
+
+  <p>
+    Your renewal is a reminder of the commitment we made when we started
+    <b>Ryvive Roots</b> — to support your health with sincerity and consistency.
+  </p>
+
+  <p>
+    Thank you for continuing your wellness journey with us.
+    Here’s your renewal summary for your records:
+  </p>
+
+  <table style="border-collapse: collapse; margin-top: 10px;">
+    <tr>
+      <td style="padding: 6px 10px;"><b>Receipt Number</b></td>
+      <td style="padding: 6px 10px;">: ${receiptNumber}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Plan Renewed</b></td>
+    <td style="padding: 6px 10px;">: ${renewalPlan}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Renewal Duration</b></td>
+      <td style="padding: 6px 10px;">: ${tempPayment.durationMonths} Month${tempPayment.durationMonths > 1 ? "s" : ""}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Amount Paid</b></td>
+      <td style="padding: 6px 10px;">: ₹${tempPayment.amount}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Payment Date</b></td>
+      <td style="padding: 6px 10px;">: ${new Date().toLocaleDateString("en-IN")}</td>
+    </tr>
+  </table>
+
+  <br/>
+
+  <p>
+    Your subscription will be active within <b>48 hours</b>,
+    and your first parcel will be on its way to you within the same timeframe.
+    Keep an eye out for it!
+  </p>
+
+  <p>
+    If you ever have questions or need support, our team is always happy to help —
+    reach us at <b>customersupport@ryviveroots.com</b>.
+  </p>
+
+  <br/>
+
+  <p>
+    Stay Healthy, Stay Vibrant,<br/>
+    <b>The Ryvive Roots Team</b>
+  </p>
+
+
+<style>
+@media only screen and (max-width:600px) {
+  .footer-table td {
+    display:block !important;
+    width:100% !important;
+    text-align:center !important;
+    margin-bottom:15px;
+  }
+
+  .footer-icons img{
+    margin:0 6px !important;
+  }
+}
+</style>
+
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; border-spacing:0;">
+
+<tr>
+<td align="center">
+
+<table style="text-align:center; border-spacing:0;">
+
+<tr>
+<td style="padding:6px 0;">
+<img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots Logo" style="border:none;">
+</td>
+</tr>
+
+<tr>
+<td style="padding:6px 0; font-size:13px; color:#333; line-height:1.5; text-align:center;">
+You're receiving this email because you recently activated a Ryvive Roots membership.<br>
+If you have any concerns, please contact us at 
+<a href="mailto:customersupport@ryviveroots.com" style="text-decoration:none;">
+customersupport@ryviveroots.com
+</a>.
+</td>
+</tr>
+
+<tr>
+<td style="padding:8px 0; text-align:center;">
+<a href="https://www.instagram.com/ryvive_roots/" style="margin-right:12px; text-decoration:none;">
+<img src="https://cdn-icons-png.flaticon.com/512/1400/1400829.png" width="22" alt="Instagram" style="vertical-align:middle; border:none;">
+</a>
+
+<a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="text-decoration:none;">
+<img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" width="22" alt="LinkedIn" style="vertical-align:middle; border:none;">
+</a>
+</td>
+</tr>
+
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
++91 9076000468 / 97656 00701
+</td>
+</tr>
+
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
+<a href="https://www.ryviveroots.com" style="text-decoration:none;">
+www.ryviveroots.com
+</a>
+</td>
+</tr>
+
+<tr>
+<td style="padding:6px 0; text-align:center;">
+<a href="https://ryviveroots.com/privacy-policy" style="text-decoration:none;">
+Privacy Policy
+</a>
+</td>
+</tr>
+
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
+Dombivli East, Maharashtra 421201, India
+</td>
+</tr>
+
+<tr>
+<td style="padding-top:10px; font-size:13px; color:#333; text-align:center;">
+© 2026 RYVIVE ROOTS All Rights Reserved.
+</td>
+</tr>
+
+</table>
+
+
+</div>
+`,
+  attachments: [
+    {
+      filename: `invoice-${receiptNumber}.pdf`,
+      path: invoicePath,
+    },
+  ],
+});
+
+const previewEnd = addMonthsSafe(
+  existingOrder.subscription.endDate,
+  tempPayment.durationMonths
+);
+
+  // ✅ Renewal Email to Company
+await sendEmail({
+  to: process.env.COMPANY_EMAIL,
+  subject: `🔁 Subscription Renewed - ${existingOrder.membershipId}`,
+  html: `
+<h2>Subscription Renewal Received</h2>
+
+<ul>
+  <li><b>Name:</b> ${existingOrder.user.firstName} ${existingOrder.user.lastName}</li>
+  <li><b>Phone:</b> ${existingOrder.user.phone}</li>
+  <li><b>Email:</b> ${existingOrder.user.email}</li>
+ <li><b>Plan:</b> ${renewalPlan}</li>
+  <li><b>Amount:</b> ₹${tempPayment.amount}</li>
+  <li><b>New Expiry:</b> ${previewEnd.toLocaleDateString("en-IN")}</li>
+  <li><b>Membership ID:</b> ${existingOrder.membershipId}</li>
+  <li><b>Receipt No:</b> ${receiptNumber}</li>
+</ul>
+
+`,
+  attachments: [
+    {
+      filename: `invoice-${receiptNumber}.pdf`,
+      path: invoicePath,
+    },
+  ],
+});
+
   return res.redirect(
     `${process.env.FRONTEND_URL}/dashboard?renewal=success`
   );
-}
-
-// =====================================================
-// 🔥 MEMBERSHIP DECISION (NEW + RENEWAL + UPGRADE)
-// =====================================================
-
-const baseMembershipId = tempPayment.membershipId.includes("-")
-  ? tempPayment.membershipId.split("-")[0]
-  : tempPayment.membershipId;
-
-let finalMembershipId = baseMembershipId;
-
-const baseMembershipId = tempPayment.membershipId.includes("-")
-  ? tempPayment.membershipId.split("-")[0]
-  : tempPayment.membershipId;
-
-// ✅ RENEWAL
-if (tempPayment.isRenewal) {
-  finalMembershipId = baseMembershipId;
-}
-
-// 🔥 UPGRADE / NEW PLAN
-else {
-  const activeOrder = await Order.findOne({
-    membershipId: baseMembershipId,
-    "subscription.status": { $in: ["ACTIVE", "UNDER_PROCESS"] },
-  });
-
-  if (activeOrder) {
-    const existingOrders = await Order.find({
-      membershipId: { $regex: `^${baseMembershipId}` },
-    }).sort({ membershipId: -1 });
-
-    let next = 1;
-
-    if (existingOrders.length > 0) {
-      const lastId = existingOrders[0].membershipId;
-      const match = lastId.match(/-(\d+)$/);
-
-      if (match) {
-        next = parseInt(match[1], 10) + 1;
-      }
-    }
-
-    finalMembershipId = `${baseMembershipId}-${next}`;
-  }
 }
 
 
@@ -236,28 +415,30 @@ let user = await User.findOne({
   $or: [{ phone: formData.phone }, { email: formData.email }],
 });
 
-let membershipId = finalMembershipId;
+let membershipId;
 
 if (user) {
-  // ✅ keep suffix / renewal result
-  membershipId = finalMembershipId;
+  // ✅ User already exists → reuse membershipId
+  membershipId = user.membershipId;
 } else {
-  membershipId = await generateMembershipId(User);
+  // ❌ Create new user
+membershipId = await generateMembershipId(User); 
 
-  let exists = await User.findOne({ membershipId });
+// ensure unique membershipId
+let exists = await User.findOne({ membershipId });
 
-  while (exists) {
-    membershipId = await generateMembershipId(User);
-    exists = await User.findOne({ membershipId });
-  }
+while (exists) {
+ membershipId = await generateMembershipId(User); 
+  exists = await User.findOne({ membershipId });
+}
 
-  user = await User.create({
-    firstName: formData.firstName,
-    lastName: formData.lastName,
-    email: formData.email,
-    phone: formData.phone,
-    membershipId,
-  });
+user = await User.create({
+  firstName: formData.firstName,
+  lastName: formData.lastName,
+  email: formData.email,
+  phone: formData.phone,
+  membershipId,
+});
 }
 
 // 4️⃣ Prevent Duplicate Order (VERY IMPORTANT)
@@ -288,24 +469,16 @@ while (!orderSaved) {
   try {
     receiptNumber = await generateReceiptNumber(Order, tempPayment.amount);
 
- const baseMembershipId = membershipId.includes("-")
-  ? membershipId.split("-")[0]
-  : membershipId;
- 
-order = new Order({
-  membershipId,
-
-  // ✅ ADD HERE (just below membershipId)
-  parentMembershipId: baseMembershipId,
-
-  receiptNumber,
-  user: {
-    firstName: formData.firstName,
-    lastName: formData.lastName,
-    phone: formData.phone,
-    email: formData.email,
-    dob: new Date(formData.dob),
-  },
+    order = new Order({
+      membershipId,
+      receiptNumber,
+      user: {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        email: formData.email,
+        dob: new Date(formData.dob),
+      },
       address: {
         pincode: formData.pincode,
         house: formData.house,
