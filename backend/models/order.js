@@ -19,6 +19,14 @@ const OrderSchema = new mongoose.Schema(
   index: true,   // ✅ fast search, NOT unique
 },
 
+
+// ✅ ADD THIS
+parentMembershipId: {
+  type: String,
+  required: true,
+  index: true, // 🔥 important for fast grouping
+},
+
     receiptNumber: {
       type: String,
       unique: true,

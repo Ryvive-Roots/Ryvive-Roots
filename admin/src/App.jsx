@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import RyviveAdminDashboard from "./pages/ryvive-admin-dashboard";
 
 function App() {
   const token = localStorage.getItem("adminToken");
@@ -17,7 +18,7 @@ function App() {
         {/* 🛡 Protected Dashboard */}
         <Route
           path="/admin-dashboard"
-          element={token ? <AdminDashboard /> : <Navigate to="/" />}
+          element={token ? <RyviveAdminDashboard /> : <Navigate to="/" />}
         />
       </Routes>
     </BrowserRouter>

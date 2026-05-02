@@ -34,8 +34,22 @@ const WEEKLY_MENU = {
 
 function getCurrentWeekNumber(activationDate, durationMonths = 1) {
   if (!activationDate) return 1;
-  const start = new Date(activationDate);
-  const diff = Date.now() - start.getTime();
+
+  const activation = new Date(activationDate);
+  activation.setHours(0, 0, 0, 0);
+
+  // Find Monday of the week containing activation date
+  const dow = activation.getDay(); // 0=Sun,1=Mon...6=Sat
+  const daysFromMon = dow === 0 ? 6 : dow - 1;
+  const week1Monday = new Date(activation);
+  week1Monday.setDate(activation.getDate() - daysFromMon);
+
+  // Today's date at midnight
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // How many days from week1Monday to today
+  const diff = today.getTime() - week1Monday.getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const maxWeeks = durationMonths === 3 ? 12 : 4;
   return Math.min(Math.floor(days / 7) + 1, maxWeeks);
@@ -48,15 +62,38 @@ function formatDate(date) {
 
 function getDayDate(activationDate, weekNumber, dayName) {
   if (!activationDate) return "";
-  const days = ["Mon","Tue","Wed","Thu","Fri","Sat"];
-  const dayIndex = days.indexOf(dayName);
-  if (dayIndex === -1) return "";
-  const start = new Date(activationDate);
-  const weekStart = new Date(start);
-  weekStart.setDate(start.getDate() + (weekNumber - 1) * 7);
-  const date = new Date(weekStart);
-  date.setDate(weekStart.getDate() + dayIndex);
+  const DAY_OFFSETS = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5 };
+  if (!(dayName in DAY_OFFSETS)) return "";
+  const activation = new Date(activationDate);
+  activation.setHours(0, 0, 0, 0);
+  // Find the Monday of week 1 (the Monday on or before activation date)
+  const activationDow = activation.getDay(); // 0=Sun,1=Mon...6=Sat
+  const daysFromMonday = activationDow === 0 ? 6 : activationDow - 1;
+  const week1Monday = new Date(activation);
+  week1Monday.setDate(activation.getDate() - daysFromMonday);
+  // Monday of selected week
+  const weekMonday = new Date(week1Monday);
+  weekMonday.setDate(week1Monday.getDate() + (weekNumber - 1) * 7);
+  const date = new Date(weekMonday);
+  date.setDate(weekMonday.getDate() + DAY_OFFSETS[dayName]);
   return date.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+}
+
+function isToday(activationDate, weekNumber, dayName, currentWeekNumber) {
+  if (weekNumber !== currentWeekNumber) return false;
+  if (!activationDate) return false;
+  const DAY_OFFSETS = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5 };
+  if (!(dayName in DAY_OFFSETS)) return false;
+  const activation = new Date(activationDate);
+  activation.setHours(0, 0, 0, 0);
+  const weekMonday = new Date(activation);
+  weekMonday.setDate(activation.getDate() + (weekNumber - 1) * 7);
+  const cardDate = new Date(weekMonday);
+  cardDate.setDate(weekMonday.getDate() + DAY_OFFSETS[dayName]);
+  cardDate.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return cardDate.getTime() === today.getTime();
 }
 
 function getRemainingDays(endDate) {
@@ -70,7 +107,149 @@ function getDynamicPauseFeature(plan, duration) {
   if (plan === "SILVER" && String(duration) === "1") return "No pause available";
   return `${perMonth} pause${perMonth > 1 ? "s" : ""} / month`;
 }
+function UpgradePlanCard({ plan, S, user, membershipId, onUpgrade }) {
+  const [upgradeDur, setUpgradeDur] = React.useState("3");
 
+  const initiatePayment = async ({
+  user,
+  plan,
+  duration,
+  membershipId,
+  isRenewal = false,
+  isUpgrade = false,
+}) => {
+  try {
+    const baseMembershipId = membershipId.includes("-")
+      ? membershipId.split("-")[0]
+      : membershipId;
+
+    const planString = `${plan}_${duration}MONTH`;
+
+    const res = await fetch(
+      "https://api.ryviveroots.com/api/payment/easebuzz/initiate",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstname: user.firstName,
+          email: user.email,
+          phone: user.phone,
+          plan: planString,
+          isRenewal,
+          isUpgrade,
+          membershipId: baseMembershipId,
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!data.success || !data.access_key) {
+      alert(data.message || "Payment failed");
+      return;
+    }
+
+    window.location.href = `https://pay.easebuzz.in/pay/${data.access_key}`;
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong");
+  }
+};
+
+const handleUpgradePayment = () => {
+  initiatePayment({
+    user,
+   plan: plan.label,
+    duration: upgradeDur,
+    membershipId,
+    isRenewal: false,
+    isUpgrade: true,
+  });
+};
+
+  return (
+    <div style={{
+      ...S.card,
+      border: plan.highlight ? "2px solid #d4af37" : "1.5px solid rgba(45,80,22,.15)",
+      position: "relative",
+      overflow: "hidden"
+    }}>
+      {plan.badge && (
+        <div style={{
+          position: "absolute", top: 0, right: 0,
+          background: "linear-gradient(135deg,#d4af37,#f4d03f)",
+          color: "#2d5016", padding: ".3rem .9rem",
+          fontSize: ".72rem", fontWeight: 700, borderBottomLeftRadius: 10
+        }}>
+          {plan.badge}
+        </div>
+      )}
+
+      <h3 style={{ color: "#2d5016", fontSize: "1.2rem", fontWeight: 700, marginBottom: "1rem", marginTop: plan.badge ? ".5rem" : 0 }}>
+        {plan.label}
+      </h3>
+
+      {/* Duration Selector */}
+      <div style={{ display: "flex", gap: ".5rem", marginBottom: "1rem" }}>
+        {["1", "3"].map((dur) => (
+          <button
+            key={dur}
+            onClick={() => setUpgradeDur(dur)}
+            style={{
+              flex: 1, padding: ".6rem", borderRadius: 8, cursor: "pointer",
+              border: `${upgradeDur === dur ? "2" : "1"}px solid ${upgradeDur === dur ? "#d4af37" : "rgba(45,80,22,.2)"}`,
+              background: upgradeDur === dur ? "#fffdf0" : "white",
+              color: "#2d5016",
+              fontWeight: upgradeDur === dur ? 700 : 500,
+              fontSize: ".85rem",
+              fontFamily: "'Outfit',sans-serif"
+            }}
+          >
+            {dur === "1" ? "1 Month" : "3 Months"}
+          </button>
+        ))}
+      </div>
+
+      {/* Price */}
+      <div style={{ fontSize: "2rem", fontWeight: 800, color: "#3d6b1f", marginBottom: "1.25rem" }}>
+        ₹{plan.prices[upgradeDur].toLocaleString()}
+        <span style={{ fontSize: ".85rem", fontWeight: 500, color: "#888", marginLeft: ".4rem" }}>
+          / {upgradeDur === "1" ? "month" : "3 months"}
+        </span>
+      </div>
+
+      {/* Features */}
+      <ul style={{ listStyle: "none", margin: "0 0 1.5rem 0", padding: 0 }}>
+        {plan.features.map((f) => (
+          <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: ".5rem", marginBottom: ".55rem", fontSize: ".88rem", color: "#555" }}>
+            <CheckCircle size={15} color="#3d6b1f" style={{ marginTop: "2px", flexShrink: 0 }} /> {f}
+          </li>
+        ))}
+      </ul>
+
+      {/* Summary before pay */}
+      <div style={{ background: "#f0f7ec", borderRadius: 9, padding: ".85rem", border: "1px solid rgba(45,80,22,.1)", marginBottom: "1rem", fontSize: ".85rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: ".35rem" }}>
+          <span style={{ color: "#666" }}>Plan</span>
+          <span style={{ fontWeight: 600, color: "#2d5016" }}>RYVIVE {plan.name} · {upgradeDur}M</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid rgba(45,80,22,.1)", paddingTop: ".35rem", marginTop: ".35rem" }}>
+          <span style={{ fontWeight: 600, color: "#2d5016" }}>Total</span>
+          <span style={{ fontWeight: 700, color: "#3d6b1f" }}>₹{plan.prices[upgradeDur].toLocaleString()}</span>
+        </div>
+      </div>
+
+      <button
+        style={{ ...S.btnGreen, width: "100%" }}
+        onClick={handleUpgradePayment}
+      >
+        Upgrade to {plan.label} · ₹{plan.prices[upgradeDur].toLocaleString()}
+      </button>
+    </div>
+  );
+}
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function RyviveDashboard() {
@@ -121,7 +300,7 @@ export default function RyviveDashboard() {
   }, []);
 
   // ── Sync formData when order loads ─────────────────────────────────────────
-  useEffect(() => {
+useEffect(() => {
     if (!order) return;
     setFormData({
       email:        order.user?.email       || "",
@@ -130,6 +309,11 @@ export default function RyviveDashboard() {
     });
     const plan = order.subscription?.plan?.split("_")[0]?.toUpperCase();
     if (["SILVER", "GOLD", "PLATINUM"].includes(plan)) setSelectedPlan(plan);
+
+    // ✅ Auto-jump to current week on load
+    const dur = order.subscription?.durationMonths || 1;
+    const wk  = getCurrentWeekNumber(order.subscription?.activationAt, dur);
+    setSelectedWeek(wk);
   }, [order]);
 
   // ── Lock body scroll when modals open ──────────────────────────────────────
@@ -548,12 +732,7 @@ const pct = Math.round((daysCompleted / totalDays) * 100) || 0;
               transition: "all .2s",
             }}
           >
-            <span style={{
-              width: 22, height: 22, borderRadius: 6,
-              background: isActive ? "rgba(255,255,255,.2)" : "linear-gradient(135deg,#d4af37,#f4d03f)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: ".75rem", fontWeight: 800, color: isActive ? "white" : "#2d5016",
-            }}>{wk}</span>
+          
             Week {wk}
             {isCurrent && (
               <span style={{
@@ -570,26 +749,48 @@ const pct = Math.round((daysCompleted / totalDays) * 100) || 0;
 
     {/* Week Header */}
     <div style={{ display: "flex", alignItems: "center", gap: ".6rem", marginBottom: ".85rem" }}>
-      <div style={{ width: 28, height: 28, background: "linear-gradient(135deg,#d4af37,#f4d03f)", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".8rem", fontWeight: 700, color: "#2d5016" }}>{selectedWeek}</div>
+
       <span style={{ fontSize: "1.05rem", fontWeight: 600, color: "#3d6b1f" }}>Week {selectedWeek}</span>
       {selectedWeek === weekNumber && <span style={{ background: "#e8f5e9", color: "#2e7d32", fontSize: ".72rem", fontWeight: 700, padding: ".15rem .6rem", borderRadius: 6 }}>Current</span>}
     </div>
 
     {/* Day Cards */}
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: ".85rem" }}>
-     {Object.entries(WEEKLY_MENU[((selectedWeek - 1) % 4) + 1] || {}).map(([day, meal]) => {
-        const isToday = selectedWeek === weekNumber && ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date().getDay()] === day;
-        return (
-          <div key={day} style={{ background: isToday ? "linear-gradient(135deg,#2d5016,#3d6b1f)" : "white", padding: "1rem", borderRadius: 10, border: isToday ? "none" : "1px solid rgba(45,80,22,.1)", boxShadow: isToday ? "0 6px 20px rgba(45,80,22,.22)" : "0 2px 6px rgba(0,0,0,.04)", position: "relative" }}>
-            {isToday && <div style={{ position: "absolute", top: 7, right: 7, background: "#d4af37", color: "#2d5016", fontSize: ".62rem", fontWeight: 700, padding: "3px 7px", borderRadius: 5 }}>TODAY</div>}
-            <div style={{ fontWeight: 700, fontSize: ".85rem", color: isToday ? "#d4af37" : "#2d5016", marginBottom: ".2rem" }}>{day}</div>
-<div style={{ fontSize: ".82rem", color: isToday ? "rgba(255,255,255,.75)" : "#999", marginBottom: ".55rem" }}>
-  {getDayDate(subscription.activationAt, selectedWeek, day)}
-</div>
-            <div style={{ fontSize: ".82rem", color: isToday ? "white" : "#3d6b1f", lineHeight: 1.4, fontWeight: 500 }}>{meal}</div>
-          </div>
-        );
-      })}
+ {Object.entries(WEEKLY_MENU[((selectedWeek - 1) % 4) + 1] || {}).map(([day, meal]) => {
+  const DAY_OFFSETS = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5 };
+
+  // Get actual calendar date for this card
+  const activation = new Date(subscription.activationAt);
+  activation.setHours(0, 0, 0, 0);
+  const dow = activation.getDay(); // 0=Sun,1=Mon...6=Sat
+  const daysFromMon = dow === 0 ? 6 : dow - 1;
+  const week1Mon = new Date(activation);
+  week1Mon.setDate(activation.getDate() - daysFromMon);
+  const thisWeekMon = new Date(week1Mon);
+  thisWeekMon.setDate(week1Mon.getDate() + (selectedWeek - 1) * 7);
+  const cardDate = new Date(thisWeekMon);
+  cardDate.setDate(thisWeekMon.getDate() + DAY_OFFSETS[day]);
+  cardDate.setHours(0, 0, 0, 0);
+
+  // Hide days before activation date
+  if (cardDate < activation) return null;
+
+  // Check if today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const isToday = cardDate.getTime() === today.getTime();
+
+  return (
+    <div key={day} style={{ background: isToday ? "linear-gradient(135deg,#2d5016,#3d6b1f)" : "white", padding: "1rem", borderRadius: 10, border: isToday ? "none" : "1px solid rgba(45,80,22,.1)", boxShadow: isToday ? "0 6px 20px rgba(45,80,22,.22)" : "0 2px 6px rgba(0,0,0,.04)", position: "relative" }}>
+      {isToday && <div style={{ position: "absolute", top: 7, right: 7, background: "#d4af37", color: "#2d5016", fontSize: ".62rem", fontWeight: 700, padding: "3px 7px", borderRadius: 5 }}>TODAY</div>}
+      <div style={{ fontWeight: 700, fontSize: ".85rem", color: isToday ? "#d4af37" : "#2d5016", marginBottom: ".2rem" }}>{day}</div>
+      <div style={{ fontSize: ".82rem", color: isToday ? "rgba(255,255,255,.75)" : "#999", marginBottom: ".55rem" }}>
+        {cardDate.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+      </div>
+      <div style={{ fontSize: ".82rem", color: isToday ? "white" : "#3d6b1f", lineHeight: 1.4, fontWeight: 500 }}>{meal}</div>
+    </div>
+  );
+})}
     </div>
   </div>
 )}
@@ -780,33 +981,59 @@ const pct = Math.round((daysCompleted / totalDays) * 100) || 0;
           )}
 
           {/* ── Upgrade Plan ── */}
-          {activeTab === "upgrade" && (
-            <div>
-              <h2 style={{ margin: "0 0 .25rem 0", fontSize: "1.8rem", fontWeight: 700, color: "#2d5016" }}>Upgrade Your Plan</h2>
-              <p style={{ margin: "0 0 1.75rem 0", color: "#666" }}>Take your wellness journey to the next level</p>
-              <div style={{ background: "#f0f7ec", padding: "1.25rem", borderRadius: 10, border: "1px solid rgba(45,80,22,.1)", marginBottom: "1.75rem" }}>
-                <p style={{ margin: "0 0 .2rem 0", color: "#666", fontSize: ".82rem" }}>Current Plan</p>
-                <p style={{ margin: 0, color: "#2d5016", fontSize: "1.3rem", fontWeight: 700 }}>RYVIVE {basePlan} · {durationMonths}-Month</p>
-              </div>
-              <div style={S.grid2}>
-                {upgradePlans.map((plan) => (
-                  <div key={plan.name} style={{ ...S.card, border: "1.5px solid rgba(212,175,55,.2)", position: "relative", overflow: "hidden" }}>
-                    <div style={{ position: "absolute", top: 0, right: 0, background: "linear-gradient(135deg,#d4af37,#f4d03f)", color: "#2d5016", padding: ".3rem .9rem", fontSize: ".72rem", fontWeight: 700, borderBottomLeftRadius: 10 }}>{plan.savings}</div>
-                    <h3 style={{ color: "#2d5016", fontSize: "1.2rem", fontWeight: 700, marginBottom: ".75rem" }}>{plan.name}</h3>
-                    <div style={{ fontSize: "2rem", fontWeight: 800, color: "#3d6b1f", marginBottom: "1.25rem" }}>{plan.price}</div>
-                    <ul style={{ listStyle: "none", marginBottom: "1.5rem" }}>
-                      {plan.features.map((f) => (
-                        <li key={f} style={{ display: "flex", alignItems: "center", gap: ".5rem", marginBottom: ".6rem", fontSize: ".9rem", color: "#555" }}>
-                          <CheckCircle size={16} color="#3d6b1f" /> {f}
-                        </li>
-                      ))}
-                    </ul>
-                    <button style={{ ...S.btnGreen, width: "100%" }}>Upgrade Now</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+      {activeTab === "upgrade" && (() => {
+  const upgradePlansList = [
+    {
+      name: "PLATINUM",
+      label: "Ryvive Platinum",
+      badge: "⭐ Most Popular",
+      prices: { "1": 6999, "3": 20997 },
+      features: ["Chef's signature menu", "3 pauses / month", "Glow, metabolism & recovery juices", "Guilt-Free Wraps & Zoodle Options", "Elite combinations", "Surprise upgrades"],
+      highlight: true,
+    },
+    {
+      name: "GOLD",
+      label: "Ryvive Gold",
+      prices: { "1": 5999, "3": 17997 },
+      features: ["6 High-protein meals / week", "2 pauses / month", "Gut & Skin-Friendly Meals", "Advanced energy juices", "Boost Energy Levels", "Naturally Detoxifying Ingredients"],
+    },
+    {
+      name: "SILVER",
+      label: "Ryvive Silver",
+      prices: { "1": 4999, "3": 14997 },
+      features: ["Clean Meals", "1 pause available / month", "Easy Digestion", "Weekly Variety", "Functional Juices", "No calorie stress"],
+    },
+  ].filter((p) => p.name !== basePlan);
+
+  return (
+    <div>
+      <h2 style={{ margin: "0 0 .25rem 0", fontSize: "1.8rem", fontWeight: 700, color: "#2d5016" }}>Upgrade Your Plan</h2>
+      <p style={{ margin: "0 0 1.75rem 0", color: "#666" }}>Take your wellness journey to the next level</p>
+
+      <div style={{ background: "#f0f7ec", padding: "1.25rem", borderRadius: 10, border: "1px solid rgba(45,80,22,.1)", marginBottom: "1.75rem" }}>
+        <p style={{ margin: "0 0 .2rem 0", color: "#666", fontSize: ".82rem" }}>Current Plan</p>
+        <p style={{ margin: 0, color: "#2d5016", fontSize: "1.3rem", fontWeight: 700 }}>RYVIVE {basePlan} · {durationMonths}-Month</p>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1.25rem" }}>
+        {upgradePlansList.map((plan) => (
+          <UpgradePlanCard
+  key={plan.name}
+  plan={plan}
+  S={S}
+  user={user}
+  membershipId={membershipId}
+  onUpgrade={(planName, dur) => {
+    setSelectedPlan(planName);
+    setRenewDuration(dur);
+    setShowSummary(true);
+  }}
+/>
+        ))}
+      </div>
+    </div>
+  );
+})()}
 
           {/* ── Purchase History ── */}
           {activeTab === "history" && (

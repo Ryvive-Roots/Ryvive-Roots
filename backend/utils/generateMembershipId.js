@@ -1,4 +1,4 @@
-const generateMembershipId = async (Order, amount) => {
+const generateMembershipId = async (Model, amount) => {
   const now = new Date();
 
   const year = now.getFullYear();
@@ -8,33 +8,36 @@ const generateMembershipId = async (Order, amount) => {
   const isTest = Number(amount) === 1;
   const prefix = isTest ? "TEST" : "RR";
 
-  // ✅ Keep your createdAt filter
   const startOfMonth = new Date(year, now.getMonth(), 1);
   const endOfMonth = new Date(year, now.getMonth() + 1, 1);
 
-  // 🔥 Get LAST order instead of count
-  const lastOrder = await Order.findOne({
+  // ✅ Get ALL IDs of this month
+  const orders = await Model.find({
     membershipId: { $regex: `^${prefix}${year}${month}` },
     createdAt: {
       $gte: startOfMonth,
       $lt: endOfMonth,
     },
-  }).sort({ membershipId: -1 });
+  }).select("membershipId");
 
-  let nextNumber = 1;
+  let maxNumber = 0;
 
-  if (lastOrder) {
-    const lastId = lastOrder.membershipId;
+  for (const order of orders) {
+    const id = order.membershipId;
 
-    // extract last 2 digits (same as your format)
-    const lastNumber = parseInt(lastId.slice(-2), 10);
+    // extract last 2 digits safely
+    const match = id.match(/(\d{2})$/);
 
-    if (!isNaN(lastNumber)) {
-      nextNumber = lastNumber + 1;
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (num > maxNumber) {
+        maxNumber = num;
+      }
     }
   }
 
-  // ✅ keep your 2-digit format
+  const nextNumber = maxNumber + 1;
+
   const customerNumber = String(nextNumber).padStart(2, "0");
 
   return `${prefix}${year}${month}${customerNumber}`;
