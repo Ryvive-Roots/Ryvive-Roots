@@ -40,21 +40,30 @@ router.get("/orders", async (req, res) => {
       "subscription.status": "UNDER_PROCESS",
     });
 
-    for (const order of pendingOrders) {
-      const activation = new Date(order.subscription.activationAt);
-      activation.setHours(0, 0, 0, 0);
+   for (const order of pendingOrders) {
+  try {
+    if (!order.subscription || !order.subscription.activationAt) continue;
 
-      if (activation <= today) {
-        order.subscription.status = "ACTIVE";
+    const activation = new Date(order.subscription.activationAt);
 
-        if (order.subscription.renewal?.pending) {
-          order.subscription.pause = { used: 0, history: [] };
-          order.subscription.renewal.pending = false;
-        }
+    if (isNaN(activation)) continue;
 
-        await order.save();
+    activation.setHours(0, 0, 0, 0);
+
+    if (activation <= today) {
+      order.subscription.status = "ACTIVE";
+
+      if (order.subscription.renewal?.pending) {
+        order.subscription.pause = { used: 0, history: [] };
+        order.subscription.renewal.pending = false;
       }
+
+      await order.save();
     }
+  } catch (err) {
+    console.error("❌ Order processing failed:", order._id, err.message);
+  }
+}
 
     // ✅ FETCH ALL ORDERS
     const orders = await Order.find().sort({ createdAt: 1 });
