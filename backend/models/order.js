@@ -20,12 +20,12 @@ const OrderSchema = new mongoose.Schema(
 },
 
 
-// ✅ ADD THIS
-parentMembershipId: {
-  type: String,
-  required: true,
-  index: true, // 🔥 important for fast grouping
-},
+// // ✅ ADD THIS
+// parentMembershipId: {
+//   type: String,
+//   required: true,
+//   index: true, // 🔥 important for fast grouping
+// },
 
     receiptNumber: {
       type: String,

@@ -18,7 +18,7 @@ function App() {
         {/* 🛡 Protected Dashboard */}
         <Route
           path="/admin-dashboard"
-          element={token ? <RyviveAdminDashboard /> : <Navigate to="/" />}
+          element={token ? <AdminDashboard /> : <Navigate to="/" />}
         />
       </Routes>
     </BrowserRouter>
