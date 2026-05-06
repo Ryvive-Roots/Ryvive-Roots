@@ -99,15 +99,15 @@ function isToday(activationDate, weekNumber, dayName, currentWeekNumber) {
 function getRemainingDays(endDate) {
   if (!endDate) return 0;
   const diff = new Date(endDate).getTime() - Date.now();
-  return Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0);
-}
+  return Math.max(Math.floor(diff / (1000 * 60 * 60 * 24)), 0); 
+}  
 
 function getDynamicPauseFeature(plan, duration) {
   const perMonth = { SILVER: 1, GOLD: 2, PLATINUM: 3 }[plan] || 0;
   if (plan === "SILVER" && String(duration) === "1") return "No pause available";
   return `${perMonth} pause${perMonth > 1 ? "s" : ""} / month`;
 }
-function UpgradePlanCard({ plan, S, user, membershipId, onUpgrade }) {
+function UpgradePlanCard({ plan, S, user, membershipId, formData }) {
   const [upgradeDur, setUpgradeDur] = React.useState("3");
 
   const initiatePayment = async ({
@@ -133,9 +133,9 @@ function UpgradePlanCard({ plan, S, user, membershipId, onUpgrade }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          firstname: user.firstName,
-          email: user.email,
-          phone: user.phone,
+         firstname: user?.firstName || "",
+email: formData?.email || user?.email || "",
+phone: formData?.phone || user?.phone || "",
           plan: planString,
           isRenewal,
           isUpgrade,
@@ -161,7 +161,7 @@ function UpgradePlanCard({ plan, S, user, membershipId, onUpgrade }) {
 const handleUpgradePayment = () => {
   initiatePayment({
     user,
-   plan: plan.label,
+   plan: plan.name,
     duration: upgradeDur,
     membershipId,
     isRenewal: false,
@@ -245,7 +245,7 @@ const handleUpgradePayment = () => {
         style={{ ...S.btnGreen, width: "100%" }}
         onClick={handleUpgradePayment}
       >
-        Upgrade to {plan.label} · ₹{plan.prices[upgradeDur].toLocaleString()}
+      Continue
       </button>
     </div>
   );
@@ -486,32 +486,56 @@ const weekNumber = getCurrentWeekNumber(subscription.activationAt, durationMonth
     : null;
 
   // ── Renew payment ───────────────────────────────────────────────────────────
-  const handleRenewPayment = async () => {
-    if (!selectedPlan) { alert("Please select a plan"); return; }
-    const planPrices = RENEWAL_PRICING[selectedPlan]?.[renewDuration];
-    if (!planPrices)  { return; }
+ const handleRenewPayment = async () => {
+  try {
+   const membershipId = order.membershipId;
 
-    try {
-      const res  = await fetch("https://api.ryviveroots.com/api/payment/easebuzz/initiate", {
+    if (!selectedPlan) {
+      alert("Please select a plan");
+      return;
+    }
+
+    const planPrices =
+      RENEWAL_PRICING[selectedPlan]?.[renewDuration];
+
+    if (!planPrices) return;
+
+   
+
+    const res = await fetch(
+      "https://api.ryviveroots.com/api/payment/easebuzz/initiate",
+      {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstname:    user.firstName,
-          email:        user.email,
-          phone:        user.phone,
-          plan:         `${selectedPlan}_${renewDuration}M`,
-          isRenewal:    true,
-          membershipId: order.membershipId,
-        }),
-      });
-      const data = await res.json();
-      if (!data.success || !data.access_key) { alert("Payment initiation failed"); return; }
-      window.location.href = `https://pay.easebuzz.in/pay/${data.access_key}`;
-    } catch (err) {
-      console.error(err);
-      alert("Something went wrong");
+       body: JSON.stringify({
+  firstname: user.firstName,
+  
+  email: user.email,
+  phone: user.phone,
+  plan: `${selectedPlan}_${renewDuration}MONTH`,   // just GOLD / SILVER / PLATINUM
+  isRenewal: true,
+  membershipId: order.membershipId,  
+}),
+
+      }
+    );
+
+    const data = await res.json();
+
+    if (!data.success || !data.access_key) {
+      alert("Payment initiation failed");
+      return;
     }
-  };
+
+    // ✅ Correct redirect
+    window.location.href =
+      `https://pay.easebuzz.in/pay/${data.access_key}`;
+
+  } catch (error) {
+    console.error("Renew payment error:", error);
+    alert("Something went wrong");
+  }
+};
 
   // ── Save profile ────────────────────────────────────────────────────────────
 const saveProfile = async () => {
@@ -665,7 +689,7 @@ const pct = Math.round((daysCompleted / totalDays) * 100) || 0;
             
               { id: "schedule",      icon: Calendar,       label: "My Daily Schedule" },
              { id: "history",       icon: Receipt,        label: "Purchase History" },
-              { id: "upgrade",       icon: TrendingUp,     label: "Upgrade Plan" },
+              { id: "upgrade",       icon: TrendingUp,     label: "Explore More Plans" },
             
               { id: "support",       icon: MessageCircle,  label: "Support & Tickets" },
               { id: "notifications", icon: Bell,           label: "Notifications" },
@@ -692,8 +716,8 @@ const pct = Math.round((daysCompleted / totalDays) * 100) || 0;
         {/* ── Main ── */}
         <main style={S.main}>
 
-          {/* Renewal warning banner */}
-          {remainingDays <= 25 && finalStatus !== "PAUSED" && finalStatus !== "UNDER_PROCESS" && (
+         
+         {remainingDays <= 82 && finalStatus !== "PAUSED" && finalStatus !== "UNDER_PROCESS" && (
             <div style={{ background: "white", borderRadius: 12, padding: "1rem 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid rgba(45,80,22,.12)", boxShadow: "0 3px 12px rgba(0,0,0,.06)", marginBottom: "1.5rem", gap: "1rem", flexWrap: "wrap" }}>
               <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
                 <div style={{ background: "#e8f5e9", padding: ".6rem", borderRadius: 9, fontSize: 16 }}>🔄</div>
@@ -800,7 +824,8 @@ const pct = Math.round((daysCompleted / totalDays) * 100) || 0;
             <div>
               <h2 style={{ margin: "0 0 .25rem 0", fontSize: "1.8rem", fontWeight: 700, color: "#2d5016" }}>My Subscription</h2>
               <p style={{ margin: "0 0 1.75rem 0", color: "#666" }}>Manage your package, pauses, and delivery preferences</p>
-
+               
+               
               {/* Package overview */}
               <div style={S.greenCard}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.25rem", flexWrap: "wrap", gap: ".75rem" }}>
@@ -982,55 +1007,135 @@ const pct = Math.round((daysCompleted / totalDays) * 100) || 0;
 
           {/* ── Upgrade Plan ── */}
       {activeTab === "upgrade" && (() => {
-  const upgradePlansList = [
-    {
-      name: "PLATINUM",
-      label: "Ryvive Platinum",
-      badge: "⭐ Most Popular",
-      prices: { "1": 6999, "3": 20997 },
-      features: ["Chef's signature menu", "3 pauses / month", "Glow, metabolism & recovery juices", "Guilt-Free Wraps & Zoodle Options", "Elite combinations", "Surprise upgrades"],
-      highlight: true,
-    },
-    {
-      name: "GOLD",
-      label: "Ryvive Gold",
-      prices: { "1": 5999, "3": 17997 },
-      features: ["6 High-protein meals / week", "2 pauses / month", "Gut & Skin-Friendly Meals", "Advanced energy juices", "Boost Energy Levels", "Naturally Detoxifying Ingredients"],
-    },
-    {
-      name: "SILVER",
-      label: "Ryvive Silver",
-      prices: { "1": 4999, "3": 14997 },
-      features: ["Clean Meals", "1 pause available / month", "Easy Digestion", "Weekly Variety", "Functional Juices", "No calorie stress"],
-    },
-  ].filter((p) => p.name !== basePlan);
+const PLAN_RANK = { SILVER: 1, GOLD: 2, PLATINUM: 3 };
+const currentRank = PLAN_RANK[basePlan];
+
+const allPlans = [
+  { name: "PLATINUM", label: "Ryvive Platinum", prices: { "1": 6999, "3": 20997 },
+    features: ["Chef's signature menu", "3 pauses / month", "Glow & recovery juices", "Elite combinations", "Surprise upgrades"] },
+  { name: "GOLD", label: "Ryvive Gold", prices: { "1": 5999, "3": 17997 },
+    features: ["6 High-protein meals / week", "2 pauses / month", "Gut & Skin-Friendly Meals", "Advanced energy juices", "Boost Energy Levels"] },
+  { name: "SILVER", label: "Ryvive Silver", prices: { "1": 4999, "3": 14997 },
+    features: ["Clean Meals", "1 pause / month", "Easy Digestion", "Weekly Variety", "Functional Juices"] },
+];
 
   return (
     <div>
-      <h2 style={{ margin: "0 0 .25rem 0", fontSize: "1.8rem", fontWeight: 700, color: "#2d5016" }}>Upgrade Your Plan</h2>
-      <p style={{ margin: "0 0 1.75rem 0", color: "#666" }}>Take your wellness journey to the next level</p>
+    <h2 style={{ margin: "0 0 .25rem 0", fontSize: "1.8rem", fontWeight: 700, color: "#2d5016" }}>
+  Explore More Plans
+</h2>
+<p style={{ margin: "0 0 1.75rem 0", color: "#666" }}>
+  Upgrade, downgrade or renew — choose what works best for you
+</p>
 
       <div style={{ background: "#f0f7ec", padding: "1.25rem", borderRadius: 10, border: "1px solid rgba(45,80,22,.1)", marginBottom: "1.75rem" }}>
         <p style={{ margin: "0 0 .2rem 0", color: "#666", fontSize: ".82rem" }}>Current Plan</p>
         <p style={{ margin: 0, color: "#2d5016", fontSize: "1.3rem", fontWeight: 700 }}>RYVIVE {basePlan} · {durationMonths}-Month</p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1.25rem" }}>
-        {upgradePlansList.map((plan) => (
-          <UpgradePlanCard
+    <div style={{
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+  gap: "1.25rem"
+}}>
+  {allPlans
+    // 🔥 Move current plan to FIRST position
+    .sort((a) => (a.name === basePlan ? -1 : 1))
+    .map((plan) => {
+
+      const rank = PLAN_RANK[plan.name];
+      const isCurrent  = plan.name === basePlan;
+      const isUpgrade  = rank > currentRank;
+      const isDowngrade = rank < currentRank;
+
+      return (
+      <div
   key={plan.name}
-  plan={plan}
-  S={S}
-  user={user}
-  membershipId={membershipId}
-  onUpgrade={(planName, dur) => {
-    setSelectedPlan(planName);
-    setRenewDuration(dur);
-    setShowSummary(true);
+  style={{
+    border: isCurrent
+      ? "2px solid #3d6b1f"
+      : isUpgrade
+      ? "2px solid #d4af37"
+      : "1.5px solid rgba(45,80,22,.15)",
+    borderRadius: 14,
+    position: "relative",
+    overflow: "hidden",   // ✅ IMPORTANT (merges layers)
+    background: "#fff"    // single surface
   }}
-/>
-        ))}
-      </div>
+>
+          {/* ✅ Current Plan Badge */}
+       {isCurrent && (
+  <div style={{
+    position: "absolute",
+    top: 0,
+    right: 0,
+    background: "#3d6b1f",   // green
+    color: "#fff",
+    padding: ".25rem .85rem",
+    fontSize: ".7rem",
+    fontWeight: 700,
+    borderBottomLeftRadius: 9,
+    zIndex: 10
+  }}>
+    ✓ Current Plan
+  </div>
+)}
+
+          {/* Upgrade / Downgrade badges */}
+          {!isCurrent && isUpgrade && (
+          <div style={{
+  position: "absolute",
+  top: 0,
+  right: 0,
+  background: "#fff8e5",
+  color: "#c8860f",
+  padding: ".25rem .85rem",
+  fontSize: ".7rem",
+  fontWeight: 700,
+  borderBottomLeftRadius: 9,
+  zIndex: 10   // ✅ ADD THIS
+}}>
+  ↑ Upgrade
+</div>
+          )}
+
+          {!isCurrent && isDowngrade && (
+            <div style={{
+  position: "absolute",
+  top: 0,
+  right: 0,
+  background: "#f0f0f0",
+  color: "#888",
+  padding: ".25rem .85rem",
+  fontSize: ".7rem",
+  fontWeight: 700,
+  borderBottomLeftRadius: 9,
+  zIndex: 10   // ✅ ADD THIS
+}}>
+  ↓ Downgrade
+</div>
+          )}
+
+          {/* Card Content */}
+          <UpgradePlanCard
+            plan={{ ...plan, highlight: isUpgrade }}
+            S={S}
+            user={user}
+            membershipId={membershipId}
+            formData={formData} 
+            onUpgrade={() => {}}
+            buttonLabel={
+              isCurrent
+                ? `Renew ${plan.label}`
+                : isUpgrade
+                ? `Upgrade to ${plan.label}`
+                : `Switch to ${plan.label}`
+            }
+          />
+        </div>
+      );
+    })}
+</div>
     </div>
   );
 })()}
@@ -1170,18 +1275,37 @@ const pct = Math.round((daysCompleted / totalDays) * 100) || 0;
       {/* ── Renew Modal ── */}
       {showRenewModal && (
         <div style={S.overlay} onClick={() => setShowRenewModal(false)}>
-          <div style={{ ...S.modal, maxWidth: 880 }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ 
+  ...S.modal, 
+  maxWidth: basePlan === "PLATINUM" ? 460 : basePlan === "GOLD" ? 620 : 880 
+}} onClick={(e) => e.stopPropagation()}>
             <button style={{ position: "absolute", top: "1rem", right: "1rem", background: "none", border: "none", fontSize: "1.1rem", cursor: "pointer", color: "#999" }} onClick={() => setShowRenewModal(false)}>✕</button>
             <h3 style={{ color: "#2d5016", fontSize: "1.2rem", fontWeight: 700, marginBottom: ".25rem" }}>Renew Your Subscription</h3>
             <p style={{ color: "#666", fontSize: ".85rem", marginBottom: "1.5rem" }}>Current Plan: <strong style={{ color: "#2d5016" }}>RYVIVE {basePlan} · {durationMonths}M</strong></p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: "1.25rem" }}>
-              {PLAN_ORDER.map((plan) => {
+            <div style={{ 
+  display: "grid", 
+  gridTemplateColumns: `repeat(${PLAN_ORDER.filter((plan) => {
+    if (basePlan === "PLATINUM") return plan === "PLATINUM";
+    if (basePlan === "GOLD") return plan === "GOLD" || plan === "PLATINUM";
+    return true;
+  }).length}, minmax(220px, 1fr))`, 
+  gap: "1.25rem",
+  maxWidth: basePlan === "PLATINUM" ? "380px" : "100%",
+  margin: basePlan === "PLATINUM" ? "0 auto" : "0"
+}}>
+            {PLAN_ORDER
+  .filter((plan) => {
+    if (basePlan === "PLATINUM") return plan === "PLATINUM";
+    if (basePlan === "GOLD") return plan === "GOLD" || plan === "PLATINUM";
+    if (basePlan === "SILVER") return true; // show all 3
+  })
+  .map((plan) => {
                 const prices  = RENEWAL_PRICING[plan];
                 const isSel   = selectedPlan === plan;
                 const isFeat  = plan === "PLATINUM";
                 return (
                   <div key={plan} onClick={() => setSelectedPlan(plan)} style={{ border: `${isSel ? "2" : "1"}px solid ${isSel ? "#d4af37" : isFeat ? "#d4af37" : "rgba(45,80,22,.15)"}`, borderRadius: 12, padding: "1.25rem", cursor: "pointer", background: isSel ? "#fffdf0" : "white", position: "relative", marginTop: isFeat ? "1rem" : 0 }}>
-                    {isFeat && <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "#d4af37", color: "#2d5016", fontSize: ".7rem", fontWeight: 700, padding: ".2rem .75rem", borderRadius: 20, whiteSpace: "nowrap" }}>⭐ Most Popular</div>}
+                    {isFeat && plan !== basePlan && <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "#d4af37", color: "#2d5016", fontSize: ".7rem", fontWeight: 700, padding: ".2rem .75rem", borderRadius: 20, whiteSpace: "nowrap" }}>⭐ Most Popular</div>}
                     <h4 style={{ color: "#2d5016", marginBottom: ".75rem", fontSize: "1rem" }}>
                       Ryvive {plan} {plan === basePlan && <span style={{ fontSize: ".72rem", color: "#3d6b1f" }}>(Current)</span>}
                     </h4>
@@ -1199,7 +1323,7 @@ const pct = Math.round((daysCompleted / totalDays) * 100) || 0;
                     ))}
                     <button style={{ ...S.btnGreen, width: "100%", marginTop: ".85rem", fontSize: ".85rem", padding: ".65rem" }}
                       onClick={(e) => { e.stopPropagation(); setSelectedPlan(plan); setShowSummary(true); }}>
-                      Select & Continue
+                      Continue
                     </button>
                     <ul style={{ listStyle: "none", marginTop: ".85rem" }}>
                       {PLAN_FEATURES[plan].slice(0, 3).map((f) => (

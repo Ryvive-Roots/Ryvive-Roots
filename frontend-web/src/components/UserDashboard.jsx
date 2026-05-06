@@ -473,24 +473,15 @@ const handleRenewPayment = async () => {
   }
 };
  
-
-
-
-
-
   return (
   
  <div className="min-h-screen flex bg-[#f6f7f3] px-3 sm:px-6 md:px-20 ">
 
-    
-
-     
-
       {/* CONTENT */}
      <div
-  className="relative z-10 w-full max-w-3xl
+  className="relative z-10 w-full max-w-3xl 
   px-4 sm:px-6 md:px-10
-  py-6 
+  py-6
   space-y-5
   mx-auto"
 >
