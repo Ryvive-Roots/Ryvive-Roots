@@ -41,15 +41,15 @@ const SubscriptionTypes = () => {
   const prices = {
   SILVER: {
   "1": { price: 4999, original: 4999 },
-  "3": { price: 14997, original: 14997 }
+  "3": { price: 17999, original: 17999 }
   },
   GOLD: {
   "1": { price: 5999, original: 5999 },
-  "3": { price: 17997, original: 17997 }
+  "3": { price: 20997, original: 20997 }
   },
   PLATINUM: {
   "1": { price: 6999, original: 6999 },
-  "3": { price: 20997, original: 20997 }
+  "3": { price: 23997, original: 23997 }
   }
   };
   
