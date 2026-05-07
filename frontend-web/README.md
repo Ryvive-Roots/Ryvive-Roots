@@ -1,16 +1,54 @@
-# React + Vite
+# 🌿 Ryvive Roots Website
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Welcome to the official Ryvive Roots frontend website built using **React.js** and **Vite**.
 
-Currently, two official plugins are available:
+Ryvive Roots is a modern wellness and healthy food platform focused on subscriptions, nutritious meals, and customer engagement through a responsive and elegant user experience.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+# 🚀 Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Frontend
+- React.js
+- Vite
+- Tailwind CSS
+- React Router DOM
+- React Icons
+- Framer Motion
+- Swiper.js
+- Slick Carousel
 
-## Expanding the ESLint configuration
+## Additional Libraries
+- Axios
+- React Toastify
+- Lucide React
+- EmailJS
+- React PDF Viewer
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+# 📂 Project Structure
+
+```bash
+frontend-web/
+│
+├── dist/
+├── node_modules/
+├── public/
+│
+├── src/
+│   ├── assets/          # Images & static files
+│   ├── components/      # Reusable components
+│   ├── data/            # Static data files
+│   ├── pages/           # Website pages
+│   │
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── index.css
+│
+├── optimize-images.js
+├── vite.config.js
+├── vercel.json
+├── eslint.config.js
+├── package.json
+└── README.md
