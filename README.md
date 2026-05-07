@@ -8,6 +8,7 @@
 8. sudo systemctl reload nginx
 
 
+
 1. cd admin
 2. npm run build
 3. sudo rm -rf /var/www/ryviveroots-admin/*
@@ -23,3 +24,10 @@
 6. npm run build
 7. sudo cp -r dist/* /var/www/ryviveroots-frontend/
 sudo systemctl reload nginx
+
+
+
+
+1. git branch backup-new-code
+2. git push origin backup-new-code
+3. git push origin main --force
