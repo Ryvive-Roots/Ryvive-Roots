@@ -30,4 +30,4 @@ sudo systemctl reload nginx
 
 1. git branch backup-new-code
 2. git push origin backup-new-code
-3. git push origin main --force
+3. git push origin backup-new-code --force
