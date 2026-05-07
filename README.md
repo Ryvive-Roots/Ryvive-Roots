@@ -18,3 +18,8 @@
 2. git pull origin main
 3. cd backend
 4. pm2 restart project-backend
+
+5. March version: git reset --hard 1e58cf0
+6. npm run build
+7. sudo cp -r dist/* /var/www/ryviveroots-frontend/
+sudo systemctl reload nginx
