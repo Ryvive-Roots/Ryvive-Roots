@@ -110,16 +110,17 @@ function getDynamicPauseFeature(plan, duration) {
 function UpgradePlanCard({ plan, S, user, membershipId, formData }) {
   const [upgradeDur, setUpgradeDur] = React.useState("3");
 
-  const initiatePayment = async ({
+const initiatePayment = async ({
   user,
   plan,
   duration,
   membershipId,
   isRenewal = false,
   isUpgrade = false,
+  isExistingCustomerPurchase = false,
 }) => {
   try {
-    const baseMembershipId = membershipId.includes("-")
+   const baseMembershipId = membershipId?.includes("-")
       ? membershipId.split("-")[0]
       : membershipId;
 
@@ -132,15 +133,16 @@ function UpgradePlanCard({ plan, S, user, membershipId, formData }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-         firstname: user?.firstName || "",
-email: formData?.email || user?.email || "",
-phone: formData?.phone || user?.phone || "",
-          plan: planString,
-          isRenewal,
-          isUpgrade,
-          membershipId: baseMembershipId,
-        }),
+      body: JSON.stringify({
+  firstname: user?.firstName || "",
+  email: formData?.email || user?.email || "",
+  phone: formData?.phone || user?.phone || "",
+  plan: planString,
+  isRenewal,
+  isUpgrade,
+  isExistingCustomerPurchase,
+  membershipId: baseMembershipId,
+}),
       }
     );
 
@@ -159,14 +161,15 @@ phone: formData?.phone || user?.phone || "",
 };
 
 const handleUpgradePayment = () => {
-  initiatePayment({
-    user,
-   plan: plan.name,
-    duration: upgradeDur,
-    membershipId,
-    isRenewal: false,
-    isUpgrade: true,
-  });
+ initiatePayment({
+  user,
+  plan: plan.name,
+  duration: upgradeDur,
+  membershipId,
+  isRenewal: false,
+  isUpgrade: true,
+  isExistingCustomerPurchase: true,
+});
 };
 
   return (

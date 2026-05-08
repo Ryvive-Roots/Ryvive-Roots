@@ -408,6 +408,151 @@ await sendEmail({
 }
 
 
+if (tempPayment.isExistingCustomerPurchase) {
+
+  const existingUser = await User.findOne({
+    membershipId: tempPayment.membershipId,
+  });
+
+  if (!existingUser) {
+    return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+  }
+
+  const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+
+  const startDate = new Date(activationAt);
+
+  const endDate = addMonthsSafe(
+    startDate,
+    selectedPlan.durationMonths
+  );
+
+  const receiptNumber = await generateReceiptNumber(
+    Order,
+    tempPayment.amount
+  );
+
+  const order = await Order.create({
+    membershipId: existingUser.membershipId,
+
+    receiptNumber,
+
+    user: {
+      firstName: existingUser.firstName,
+      lastName: existingUser.lastName,
+      email: existingUser.email,
+      phone: existingUser.phone,
+    },
+
+    subscription: {
+      plan: exactPlan,
+      amount: tempPayment.amount,
+      durationMonths: selectedPlan.durationMonths,
+      activationAt,
+      startDate,
+      endDate,
+      pause: { used: 0, history: [] },
+      status: "UNDER_PROCESS",
+    },
+
+    paymentStatus: "PAID",
+
+    paymentMethod: "ONLINE",
+
+    paymentDetails: {
+      gateway: "EASEBUZZ",
+      txnid,
+      easepayid,
+    },
+  });
+
+  // ✅ Generate Invoice
+const invoicePath = await generateInvoice(order);
+
+order.invoiceUrl = invoicePath;
+
+await order.save();
+
+const formattedPlan =
+  `RYVIVE ${exactPlan.split("_")[0]}`;
+
+
+// ✅ CUSTOMER EMAIL
+await sendEmail({
+  to: existingUser.email,
+
+  subject: "Payment successful for RYVIVE ROOTS LLP",
+
+  html: `
+    <h2>Dear ${existingUser.firstName},</h2>
+
+    <p>
+      Your new subscription purchase was successful.
+    </p>
+
+    <ul>
+      <li><b>Plan:</b> ${formattedPlan}</li>
+      <li><b>Amount:</b> ₹${tempPayment.amount}</li>
+      <li><b>Receipt Number:</b> ${receiptNumber}</li>
+    </ul>
+
+    <p>
+      Thank you for choosing Ryvive Roots.
+    </p>
+  `,
+
+  attachments: [
+    {
+      filename: `invoice-${receiptNumber}.pdf`,
+      path: invoicePath,
+    },
+  ],
+});
+
+
+// ✅ COMPANY EMAIL
+await sendEmail({
+  to: process.env.COMPANY_EMAIL,
+
+  subject: `🧾 Existing Customer Purchased New Plan - ${existingUser.membershipId}`,
+
+  html: `
+    <h2>Existing Customer Purchased New Subscription</h2>
+
+    <ul>
+      <li><b>Name:</b> ${existingUser.firstName} ${existingUser.lastName}</li>
+
+      <li><b>Email:</b> ${existingUser.email}</li>
+
+      <li><b>Phone:</b> ${existingUser.phone}</li>
+
+      <li><b>Plan:</b> ${formattedPlan}</li>
+
+      <li><b>Amount:</b> ₹${tempPayment.amount}</li>
+
+      <li><b>Receipt No:</b> ${receiptNumber}</li>
+
+      <li><b>Membership ID:</b> ${existingUser.membershipId}</li>
+    </ul>
+  `,
+
+  attachments: [
+    {
+      filename: `invoice-${receiptNumber}.pdf`,
+      path: invoicePath,
+    },
+  ],
+});
+
+  tempPayment.status = "SUCCESS";
+  await tempPayment.save();
+
+  return res.redirect(
+    `${process.env.FRONTEND_URL}/payment-success?membershipId=${existingUser.membershipId}`
+  );
+}
+
+
   // 3️⃣ USER + MEMBERSHIP (SAFE VERSION)
 
 // 🔹 Find existing user first
