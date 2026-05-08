@@ -10,9 +10,9 @@ const PLAN_PAUSES = {
 };
 
 const RENEWAL_PRICING = {
-  SILVER:   { "1": { original: 4999,  final: 4999  }, "3": { original: 14997, final: 14997 } },
-  GOLD:     { "1": { original: 5999,  final: 5999  }, "3": { original: 17997, final: 17997 } },
-  PLATINUM: { "1": { original: 6999,  final: 6999  }, "3": { original: 20997, final: 20997 } },
+  SILVER:   { "1": { original: 4999,  final: 4999  }, "3": { original: 17999, final: 14997 } },
+  GOLD:     { "1": { original: 5999,  final: 5999  }, "3": { original: 20997, final: 17997 } },
+  PLATINUM: { "1": { original: 6999,  final: 6999  }, "3": { original: 23997, final: 20997 } },
 };
 
 const PLAN_FEATURES = {
@@ -1014,11 +1014,11 @@ const PLAN_RANK = { SILVER: 1, GOLD: 2, PLATINUM: 3 };
 const currentRank = PLAN_RANK[basePlan];
 
 const allPlans = [
-  { name: "PLATINUM", label: "Ryvive Platinum", prices: { "1": 6999, "3": 20997 },
+  { name: "PLATINUM", label: "Ryvive Platinum", prices: { "1": 6999, "3": 23997 },
     features: ["Chef's signature menu", "3 pauses / month", "Glow & recovery juices", "Elite combinations", "Surprise upgrades"] },
-  { name: "GOLD", label: "Ryvive Gold", prices: { "1": 5999, "3": 17997 },
+  { name: "GOLD", label: "Ryvive Gold", prices: { "1": 5999, "3": 20997 },
     features: ["6 High-protein meals / week", "2 pauses / month", "Gut & Skin-Friendly Meals", "Advanced energy juices", "Boost Energy Levels"] },
-  { name: "SILVER", label: "Ryvive Silver", prices: { "1": 4999, "3": 14997 },
+  { name: "SILVER", label: "Ryvive Silver", prices: { "1": 4999, "3": 17999 },
     features: ["Clean Meals", "1 pause / month", "Easy Digestion", "Weekly Variety", "Functional Juices"] },
 ];
 
