@@ -17,6 +17,7 @@ export const initiateEasebuzzPayment = async (req, res) => {
       formData,
       isRenewal,
       membershipId,
+      isExistingCustomerPurchase,
     } = req.body;
 
     isRenewal = isRenewal === true || isRenewal === "true";
@@ -30,7 +31,11 @@ export const initiateEasebuzzPayment = async (req, res) => {
     }
 
     // ✅ Require formData ONLY for new subscription
-    if (!isRenewal && !formData) {
+    if (
+  !isRenewal &&
+  !isExistingCustomerPurchase &&
+  !formData
+) {
       return res.status(400).json({
         success: false,
         message: "Form data required for new subscription",
@@ -86,6 +91,8 @@ if (dbAmount === undefined)
       durationMonths,
     formData: isRenewal ? undefined : formData,
       isRenewal: isRenewal || false,
+      isExistingCustomerPurchase:
+  isExistingCustomerPurchase || false,
       membershipId: membershipId || null,
       status: "PENDING",
     });
