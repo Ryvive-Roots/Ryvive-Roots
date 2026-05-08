@@ -11,9 +11,12 @@ const TempPaymentSchema = new mongoose.Schema(
     // ⭐ required only for NEW subscription
     formData: {
       type: Object,
-      required: function () {
-        return !this.isRenewal;
-      },
+    required: function () {
+  return (
+    !this.isRenewal &&
+    !this.isExistingCustomerPurchase
+  );
+},
     },
 
     // ⭐ add these (you already use them in controller)
@@ -21,6 +24,11 @@ const TempPaymentSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    isExistingCustomerPurchase: {
+  type: Boolean,
+  default: false,
+},
 
     membershipId: {
       type: String,
