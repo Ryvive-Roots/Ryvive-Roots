@@ -21,15 +21,15 @@ export const PLANS = {
   // 3 MONTH PLANS (ROUND FIGURES)
   // ======================
   SILVER_3MONTH: {
-    price: 1,
+    price: 17999,
     durationMonths: 3,
   },
   GOLD_3MONTH: {
-    price: 2,
+    price: 20997,
     durationMonths: 3,
   },
   PLATINUM_3MONTH: {
-    price: 3,
+    price: 23997,
     durationMonths: 3,
   },
 };
