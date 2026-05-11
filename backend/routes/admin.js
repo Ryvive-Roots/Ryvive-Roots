@@ -530,7 +530,7 @@ await order.save();
 
 router.put("/order/:id/health", async (req, res) => {
   try {
-    const { user, healthInfo, remarks } = req.body;
+    const { user, healthInfo, remarks, address } = req.body;
 
     // 1️⃣ Get old order (before update)
     const oldOrder = await Order.findById(req.params.id);
@@ -546,12 +546,22 @@ router.put("/order/:id/health", async (req, res) => {
     const order = await Order.findByIdAndUpdate(
       req.params.id,
       {
-        $set: {
-          "user.phone": user?.phone,
-          "user.email": user?.email,
-          healthInfo,
-          remarks,
-        },
+       $set: {
+  "user.firstName": user?.firstName,
+  "user.lastName": user?.lastName,
+  "user.phone": user?.phone,
+  "user.email": user?.email,
+  "user.dob": user?.dob,
+
+  healthInfo,
+  remarks,
+
+  // ✅ ADDRESS UPDATE
+  "address.house": address?.house,
+  "address.street": address?.street,
+  "address.landmark": address?.landmark,
+  "address.city": address?.city,
+},
       },
       { new: true }
     );

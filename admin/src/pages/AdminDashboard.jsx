@@ -262,6 +262,12 @@ const handleSaveEdit = async (orderId) => {
             medicalConditions: editData.medicalConditions,
           },
           remarks: editData.remarks,
+          address: {
+  house: editData.house,
+  street: editData.street,
+  landmark: editData.landmark,
+  city: editData.city,
+},
         }),
       },
     );
@@ -635,12 +641,17 @@ const daysLeft = (order) => {
               />
 
               {/* CITY */}
-              <input
-                value="Dombivli"
-                readOnly
-                className="border p-2 w-full rounded bg-gray-100"
-              />
+          <select
+  className="border p-2 w-full rounded bg-gray-100 outline-none text-gray-700"
+  defaultValue=""
+>
+  <option value="" disabled>
+    Select City
+  </option>
 
+  <option value="Dombivli">Dombivli</option>
+  <option value="Kalyan">Kalyan</option>
+</select>
               {/* STATE */}
               <input
                 value="Maharashtra"
@@ -845,6 +856,59 @@ const daysLeft = (order) => {
                               })
                             }
                           />
+                          <input
+  type="text"
+  className="border p-1 rounded w-full"
+  placeholder="House / Flat"
+  value={editData.house || ""}
+  onChange={(e) =>
+    setEditData({
+      ...editData,
+      house: e.target.value,
+    })
+  }
+/>
+
+<input
+  type="text"
+  className="border p-1 rounded w-full"
+  placeholder="Street / Area"
+  value={editData.street || ""}
+  onChange={(e) =>
+    setEditData({
+      ...editData,
+      street: e.target.value,
+    })
+  }
+/>
+
+<input
+  type="text"
+  className="border p-1 rounded w-full"
+  placeholder="Landmark"
+  value={editData.landmark || ""}
+  onChange={(e) =>
+    setEditData({
+      ...editData,
+      landmark: e.target.value,
+    })
+  }
+/>
+
+<select
+  className="border p-1 rounded w-full"
+  value={editData.city || ""}
+  onChange={(e) =>
+    setEditData({
+      ...editData,
+      city: e.target.value,
+    })
+  }
+>
+  <option value="">Select City</option>
+  <option value="Dombivli">Dombivli</option>
+  <option value="Kalyan">Kalyan</option>
+</select>
 
                           <div className="flex gap-2">
                             <button
@@ -881,15 +945,25 @@ const daysLeft = (order) => {
                             onClick={() => {
                               setEditingRow(order._id);
                               setEditData({
-                                firstName: order.user?.firstName || "", // ✅ add
-                                lastName: order.user?.lastName || "", // ✅ add
-                                phone: order.user?.phone || "",
-                                email: order.user?.email || "",
-                                allergies: order.healthInfo?.allergies || "",
-                                medicalConditions:
-                                  order.healthInfo?.medicalConditions || "",
-                                remarks: order.remarks || "",
-                              });
+  firstName: order.user?.firstName || "",
+  lastName: order.user?.lastName || "",
+  phone: order.user?.phone || "",
+  email: order.user?.email || "",
+  dob: order.user?.dob
+    ? order.user.dob.split("T")[0]
+    : "",
+
+  allergies: order.healthInfo?.allergies || "",
+  medicalConditions:
+    order.healthInfo?.medicalConditions || "",
+  remarks: order.remarks || "",
+
+  // ✅ ADDRESS
+  house: order.address?.house || "",
+  street: order.address?.street || "",
+  landmark: order.address?.landmark || "",
+  city: order.address?.city || "",
+});
                             }}
                             className="text-blue-600 text-xs hover:underline"
                           >
