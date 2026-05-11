@@ -116,7 +116,6 @@ const initiatePayment = async ({
   duration,
   membershipId,
   isRenewal = false,
-  isUpgrade = false,
   isExistingCustomerPurchase = false,
 }) => {
   try {
@@ -139,7 +138,7 @@ const initiatePayment = async ({
   phone: formData?.phone || user?.phone || "",
   plan: planString,
   isRenewal,
-  isUpgrade,
+
   isExistingCustomerPurchase,
   membershipId: baseMembershipId,
 }),
@@ -167,7 +166,7 @@ const handleUpgradePayment = () => {
   duration: upgradeDur,
   membershipId,
   isRenewal: false,
-  isUpgrade: true,
+
   isExistingCustomerPurchase: true,
 });
 };

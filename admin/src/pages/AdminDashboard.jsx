@@ -9,6 +9,7 @@ const allowedPincodes = [
   },
   { code: "421203", area: "Dombivli East" },
   { code: "421204", area: "Khoni" },
+   { code: "421301", area: "Kalyan" },
 ];
 
 const AdminDashboard = () => {
