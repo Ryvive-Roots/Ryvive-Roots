@@ -22,12 +22,120 @@ const PLAN_FEATURES = {
 };
 
 const PLAN_ORDER = ["PLATINUM", "GOLD", "SILVER"];
-
 const WEEKLY_MENU = {
-  1: { Mon: "Quinoa Bowl + Detox Juice", Tue: "Grilled Chicken Salad + Green Tea", Wed: "Buddha Bowl + Immunity Shot", Thu: "Protein Smoothie Bowl + Nuts", Fri: "Mediterranean Wrap + Fresh Juice", Sat: "Power Breakfast + Herbal Tea" },
-  2: { Mon: "Avocado Toast + Protein Shake", Tue: "Veggie Wrap + Green Smoothie", Wed: "Greek Salad + Fresh Juice", Thu: "Energy Bowl + Immunity Booster", Fri: "Grilled Fish + Detox Water", Sat: "Weekend Brunch + Herbal Infusion" },
-  3: { Mon: "Superfood Bowl + Matcha Latte", Tue: "Protein Wrap + Fresh Juice", Wed: "Buddha Bowl + Green Tea", Thu: "Wellness Salad + Immunity Shot", Fri: "Power Lunch + Detox Drink", Sat: "Weekend Special + Smoothie" },
-  4: { Mon: "Energy Bowl + Power Smoothie", Tue: "Mediterranean Plate + Fresh Juice", Wed: "Protein Bowl + Wellness Shot", Thu: "Transformation Special + Green Tea", Fri: "Celebration Meal + Fresh Juice", Sat: "Weekend Treat + Smoothie Bowl" },
+  PLATINUM: {
+    1: {
+      Mon: "High Protein Paneer Salad",
+      Tue: "Dragon Delight + Beetroot Cheese Wrap",
+      Wed: "The Pesto Zoodle Hour + Pomegranate Delight",
+      Thu: "Mexican Avocado Salad",
+      Fri: "Orange Pine Twist + Sweet Potato & PEA",
+      Sat: "Green Garden Bowl",
+    },
+
+    2: {
+      Mon: "Broccoli Cashew Cream",
+      Tue: "O-Juice + Paneer Crunch Wrap",
+      Wed: "The Zoodle Flame + Libido Booster",
+      Thu: "Chickpea Paneer Fusion",
+      Fri: "Dragon Pine + Corn N’ Cheese",
+      Sat: "Thai Mushroom Salad",
+    },
+
+    3: {
+      Mon: "Chilli Lime Soya Salad",
+      Tue: "Dragon Delight + Beetroot Cheese Wrap",
+      Wed: "The Pesto Zoodle Hour + Pomegranate Delight",
+      Thu: "Signature Twin Plus",
+      Fri: "Orange Pine Twist + Sweet Potato & PEA",
+      Sat: "Sweet Potato Bliss",
+    },
+
+    4: {
+      Mon: "Creamy Double Chickpea",
+      Tue: "Avocado Smoothie + Paneer Crunch Wrap",
+      Wed: "The Zoodle Flame + Libido Booster",
+      Thu: "Rajma Paneer Power Lean",
+      Fri: "Bright Eyes + Corn N’ Cheese",
+      Sat: "Chilli Crunch Salad",
+    },
+  },
+
+  GOLD: {
+    1: {
+      Mon: "Classic Veggie Bowl",
+      Tue: "Immuni Boost Plus + High-Protein Soya Cheese Wrap",
+      Wed: "Dragon Pine",
+      Thu: "Roasted Zucchini Bowl",
+      Fri: "Stamina Boost + Corn N’ Cheese Chaat",
+      Sat: "Avocado Paneer Royal Grill",
+    },
+
+    2: {
+      Mon: "Creamy Double Chickpea",
+      Tue: "Calm Cucumber + Paneer Crunch Cheese Wrap",
+      Wed: "Libido Booster",
+      Thu: "Rajma Paneer Power Lean",
+      Fri: "For Skin Sake + Sweet N’ Fresh Corn",
+      Sat: "The Pesto Zoodle Hour",
+    },
+
+    3: {
+      Mon: "Mexican Avocado Salad",
+      Tue: "Red Ryvive + Chickpea Avocado Cheese Wrap",
+      Wed: "Pomegranate Delight",
+      Thu: "Broccoli Cashew Cream",
+      Fri: "Happy Gut + Sweet Potato & Pea",
+      Sat: "Garlic Mushroom & Veggie Melt",
+    },
+
+    4: {
+      Mon: "High Protein Black Chana",
+      Tue: "Orange Pine Twist + High Protein Soya Cheese Wrap",
+      Wed: "Dragon Delight",
+      Thu: "Green Garden Bowl",
+      Fri: "Ryvive Carrot + Sweet N’ Fresh Corn",
+      Sat: "The Zoodle Flame",
+    },
+  },
+
+  SILVER: {
+    1: {
+      Mon: "Healthy Heart",
+      Tue: "Chilli Crunch Salad",
+      Wed: "Paneer Crunch Wrap + Orange Pine Twist",
+      Thu: "Chickpea Paneer Fusion",
+      Fri: "Corn N Cheese Chaat",
+      Sat: "Veg Protein Supreme Wrap + Golden Pine",
+    },
+
+    2: {
+      Mon: "Stamina Booster",
+      Tue: "Creamy Double Chickpea",
+      Wed: "Beetroot Cheese Wrap + Calm Cucumber",
+      Thu: "Rajma Paneer Power Lean",
+      Fri: "Soya Protein Wrap + Ryvive Carrot",
+      Sat: "Immuni Boost Plus",
+    },
+
+    3: {
+      Mon: "Red Ryvive",
+      Tue: "Corn Paneer Balance Bowl",
+      Wed: "Sprout Energy Wrap + Dr. Carrot",
+      Thu: "Roasted Zucchini Bowl",
+      Fri: "Sprout Supreme Chaat",
+      Sat: "Spinach Corn Cheese Wrap + Beet Blend",
+    },
+
+    4: {
+      Mon: "APB Shake",
+      Tue: "High Protein Paneer Salad",
+      Wed: "Spinach Corn Cheese Wrap + Beet Blend",
+      Thu: "Chilli Lime Soya Salad",
+      Fri: "Soya Protein Wrap + Ryvive Carrot",
+      Sat: "Sweet Potato & Pea Chaat",
+    },
+  },
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -260,6 +368,30 @@ export default function RyviveDashboard() {
   const [order, setOrder]         = useState(null);
   const [orders, setOrders]       = useState([]);
   const [loading, setLoading]     = useState(true);
+  /* ── Notifications State ── */
+const [notifications, setNotifications] = useState([]);
+
+
+/* ── Fetch Notifications ── */
+const fetchNotifications = async () => {
+  try {
+    const membershipId = localStorage.getItem("membershipId");
+
+    const res = await fetch(
+      `https://api.ryviveroots.com/api/user/notifications?membershipId=${membershipId}`
+    );
+
+    const data = await res.json();
+
+    if (data.success) {
+      setNotifications(data.notifications || []);
+    }
+
+  } catch (err) {
+    console.log("Notification fetch error:", err);
+  }
+};
+  
 
   // Edit state
   const [editMode, setEditMode] = useState(false);
@@ -275,6 +407,9 @@ export default function RyviveDashboard() {
   const [showSummary, setShowSummary]       = useState(false);
   const [renewDuration, setRenewDuration]   = useState("3");
   const [selectedPlan, setSelectedPlan]     = useState(null);
+const [calendarDate, setCalendarDate] = useState(new Date());
+
+
 
   // ── Fetch dashboard data ────────────────────────────────────────────────────
   useEffect(() => {
@@ -297,6 +432,7 @@ export default function RyviveDashboard() {
     };
 
     fetchDashboard();
+    fetchNotifications();
     const interval = setInterval(fetchDashboard, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -323,6 +459,7 @@ useEffect(() => {
     document.body.style.overflow = (showPauseModal || showRenewModal || showSummary) ? "hidden" : "auto";
     return () => { document.body.style.overflow = "auto"; };
   }, [showPauseModal, showRenewModal, showSummary]);
+  
 
   // ── Loading / empty guard ───────────────────────────────────────────────────
   if (loading) {
@@ -337,6 +474,7 @@ useEffect(() => {
 
   // ── Destructure order ───────────────────────────────────────────────────────
   const { user, subscription, membershipId } = order;
+ 
 const basePlan        = subscription.plan.split("_")[0].toUpperCase();
 const durationMonths  = subscription.durationMonths || 1;
 
@@ -733,93 +871,421 @@ const pct = Math.round((daysCompleted / totalDays) * 100) || 0;
           )}
 
           {/* ── My Daily Schedule ── */}
-       {activeTab === "schedule" && (
-  <div>
-    <h2 style={{ margin: "0 0 .25rem 0", fontSize: "1.8rem", fontWeight: 700, color: "#2d5016" }}>My Daily Schedule</h2>
-    <p style={{ margin: "0 0 1.25rem 0", color: "#666" }}>Week {weekNumber} of your transformation journey</p>
 
-    {/* Week Tab Buttons */}
-    <div style={{ display: "flex", gap: ".65rem", marginBottom: "1.75rem", flexWrap: "wrap" }}>
-     {Array.from({ length: durationMonths === 3 ? 12 : 4 }, (_, i) => i + 1).map((wk) => {
-        const isActive  = selectedWeek === wk;
-        const isCurrent = wk === weekNumber;
-        return (
-          <button
-            key={wk}
-            onClick={() => setSelectedWeek(wk)}
-            style={{
-              display: "flex", alignItems: "center", gap: ".45rem",
-              padding: ".55rem 1.1rem", borderRadius: 9, cursor: "pointer",
-              fontFamily: "'Outfit',sans-serif", fontSize: ".9rem", fontWeight: 600,
-              border: isActive ? "2px solid #d4af37" : "1.5px solid rgba(45,80,22,.2)",
-              background: isActive ? "linear-gradient(135deg,#2d5016,#3d6b1f)" : "white",
-              color: isActive ? "white" : "#3d6b1f",
-              boxShadow: isActive ? "0 4px 14px rgba(45,80,22,.22)" : "0 1px 4px rgba(0,0,0,.05)",
-              transition: "all .2s",
-            }}
-          >
-          
-            Week {wk}
-            {isCurrent && (
-              <span style={{
-                background: isActive ? "rgba(212,175,55,.8)" : "#e8f5e9",
-                color: isActive ? "#2d5016" : "#2e7d32",
-                fontSize: ".65rem", fontWeight: 700,
-                padding: ".1rem .45rem", borderRadius: 5,
-              }}>Current</span>
-            )}
-          </button>
-        );
-      })}
-    </div>
 
-    {/* Week Header */}
-    <div style={{ display: "flex", alignItems: "center", gap: ".6rem", marginBottom: ".85rem" }}>
 
-      <span style={{ fontSize: "1.05rem", fontWeight: 600, color: "#3d6b1f" }}>Week {selectedWeek}</span>
-      {selectedWeek === weekNumber && <span style={{ background: "#e8f5e9", color: "#2e7d32", fontSize: ".72rem", fontWeight: 700, padding: ".15rem .6rem", borderRadius: 6 }}>Current</span>}
-    </div>
+{/* ───────────────── SCHEDULE TAB ───────────────── */}
 
-    {/* Day Cards */}
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: ".85rem" }}>
- {Object.entries(WEEKLY_MENU[((selectedWeek - 1) % 4) + 1] || {}).map(([day, meal]) => {
-  const DAY_OFFSETS = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5 };
+{activeTab === "schedule" && (() => {
 
-  // Get actual calendar date for this card
-  const activation = new Date(subscription.activationAt);
-  activation.setHours(0, 0, 0, 0);
-  const dow = activation.getDay(); // 0=Sun,1=Mon...6=Sat
-  const daysFromMon = dow === 0 ? 6 : dow - 1;
-  const week1Mon = new Date(activation);
-  week1Mon.setDate(activation.getDate() - daysFromMon);
-  const thisWeekMon = new Date(week1Mon);
-  thisWeekMon.setDate(week1Mon.getDate() + (selectedWeek - 1) * 7);
-  const cardDate = new Date(thisWeekMon);
-  cardDate.setDate(thisWeekMon.getDate() + DAY_OFFSETS[day]);
-  cardDate.setHours(0, 0, 0, 0);
+  const activationDate = new Date(subscription.activationAt);
+  const endDate = new Date(subscription.endDate);
 
-  // Hide days before activation date
-  if (cardDate < activation) return null;
+  activationDate.setHours(0, 0, 0, 0);
+  endDate.setHours(0, 0, 0, 0);
 
-  // Check if today
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const isToday = cardDate.getTime() === today.getTime();
+  // CURRENT MONTH VIEW
+  const currentMonth = calendarDate.getMonth();
+  const currentYear = calendarDate.getFullYear();
+
+  // MONTH START
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+
+  // WEEK START
+  const startDay = firstDayOfMonth.getDay();
+
+  // NAV LIMITS
+  const thisMonthStart = new Date(currentYear, currentMonth, 1);
+  const subStartMonth = new Date(activationDate.getFullYear(), activationDate.getMonth(), 1);
+  const subEndMonth   = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+  const canGoPrev = thisMonthStart > subStartMonth;
+  const canGoNext = thisMonthStart < subEndMonth;
+
+  // PREVIOUS MONTH
+  const handlePrevMonth = () => {
+    if (!canGoPrev) return;
+    const prev = new Date(calendarDate);
+    prev.setMonth(prev.getMonth() - 1);
+    setCalendarDate(prev);
+  };
+
+  // NEXT MONTH
+  const handleNextMonth = () => {
+    if (!canGoNext) return;
+    const next = new Date(calendarDate);
+    next.setMonth(next.getMonth() + 1);
+    setCalendarDate(next);
+  };
+
+  const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
-    <div key={day} style={{ background: isToday ? "linear-gradient(135deg,#2d5016,#3d6b1f)" : "white", padding: "1rem", borderRadius: 10, border: isToday ? "none" : "1px solid rgba(45,80,22,.1)", boxShadow: isToday ? "0 6px 20px rgba(45,80,22,.22)" : "0 2px 6px rgba(0,0,0,.04)", position: "relative" }}>
-      {isToday && <div style={{ position: "absolute", top: 7, right: 7, background: "#d4af37", color: "#2d5016", fontSize: ".62rem", fontWeight: 700, padding: "3px 7px", borderRadius: 5 }}>TODAY</div>}
-      <div style={{ fontWeight: 700, fontSize: ".85rem", color: isToday ? "#d4af37" : "#2d5016", marginBottom: ".2rem" }}>{day}</div>
-      <div style={{ fontSize: ".82rem", color: isToday ? "rgba(255,255,255,.75)" : "#999", marginBottom: ".55rem" }}>
-        {cardDate.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+    <div>
+
+      {/* HEADER */}
+      <div style={{ marginBottom: "1.5rem" }}>
+        <h2
+          style={{
+            margin: "0 0 4px 0",
+            fontSize: "1.4rem",
+            fontWeight: 600,
+            color: "#111",
+          }}
+        >
+          My Daily Schedule
+        </h2>
+        <p style={{ margin: 0, fontSize: 14, color: "#666" }}>
+          Meal calendar overview
+        </p>
       </div>
-      <div style={{ fontSize: ".82rem", color: isToday ? "white" : "#3d6b1f", lineHeight: 1.4, fontWeight: 500 }}>{meal}</div>
+
+      {/* CALENDAR CARD */}
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 16,
+          border: "1px solid #e5e5e5",
+          overflow: "hidden",
+        }}
+      >
+
+        {/* MONTH NAV */}
+        <div
+          style={{
+            padding: "1.1rem 1.5rem",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottom: "1px solid #f0f0f0",
+          }}
+        >
+          {/* PREV */}
+          <button
+            onClick={handlePrevMonth}
+            disabled={!canGoPrev}
+            style={{
+              border: "1px solid #e0e0e0",
+              background: "#f7f7f7",
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              cursor: canGoPrev ? "pointer" : "default",
+              fontSize: "1.1rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#555",
+              opacity: canGoPrev ? 1 : 0.3,
+              transition: "opacity .15s",
+            }}
+          >
+            ‹
+          </button>
+
+          {/* MONTH LABEL */}
+          <span
+            style={{
+              fontSize: "1.05rem",
+              fontWeight: 600,
+              color: "#111",
+            }}
+          >
+            {calendarDate.toLocaleDateString("en-IN", {
+              month: "long",
+              year: "numeric",
+            })}
+          </span>
+
+          {/* NEXT */}
+          <button
+            onClick={handleNextMonth}
+            disabled={!canGoNext}
+            style={{
+              border: "1px solid #e0e0e0",
+              background: "#f7f7f7",
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              cursor: canGoNext ? "pointer" : "default",
+              fontSize: "1.1rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#555",
+              opacity: canGoNext ? 1 : 0.3,
+              transition: "opacity .15s",
+            }}
+          >
+            ›
+          </button>
+        </div>
+
+        {/* WEEK DAY LABELS */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(7, 1fr)",
+            borderBottom: "1px solid #f0f0f0",
+          }}
+        >
+          {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+            <div
+              key={day}
+              style={{
+                textAlign: "center",
+                fontWeight: 600,
+                color: "#999",
+                padding: "10px 0",
+                fontSize: "0.75rem",
+                letterSpacing: "0.05em",
+              }}
+            >
+              {day}
+            </div>
+          ))}
+        </div>
+
+        {/* CALENDAR GRID */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(7, 1fr)",
+          }}
+        >
+          {Array.from({ length: 42 }).map((_, index) => {
+
+            // GRID START DATE
+            let gridStartDate;
+
+            if (
+              currentMonth === activationDate.getMonth() &&
+              currentYear === activationDate.getFullYear()
+            ) {
+              gridStartDate = new Date(activationDate);
+              gridStartDate.setDate(
+                activationDate.getDate() - activationDate.getDay()
+              );
+            } else {
+              gridStartDate = new Date(currentYear, currentMonth, 1 - startDay);
+            }
+
+            // CURRENT CELL DATE
+            const currentDate = new Date(gridStartDate);
+            currentDate.setDate(gridStartDate.getDate() + index);
+            currentDate.setHours(0, 0, 0, 0);
+
+            // TODAY
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const isToday    = currentDate.getTime() === today.getTime();
+            const isPast     = currentDate < today;
+            const isFuture   = currentDate > today;
+            const isSunday   = currentDate.getDay() === 0;
+            const isCurrentMonth = currentDate.getMonth() === currentMonth;
+            const beforeStart = currentDate < activationDate;
+            const afterEnd    = currentDate > endDate;
+
+            // HIDE EXTRA DAYS AFTER SUBSCRIPTION END
+            if (afterEnd && !isCurrentMonth) {
+              return (
+                <div
+                  key={index}
+                  style={{
+                    minHeight: 110,
+                    borderRight: "1px solid #f0f0f0",
+                    borderBottom: "1px solid #f0f0f0",
+                    background: "#fafafa",
+                  }}
+                />
+              );
+            }
+
+            // MEAL DATA
+            const diffDays   = Math.floor((currentDate - activationDate) / 86400000);
+            const weekNumber = Math.floor(diffDays / 7) + 1;
+            const menu       = WEEKLY_MENU[basePlan]?.[(((weekNumber - 1) % 4) + 1)] || {};
+            const dayName    = DAYS[currentDate.getDay()];
+            const meal       = !beforeStart && !afterEnd && !isSunday ? menu[dayName] : null;
+
+            return (
+              <div
+                key={index}
+                style={{
+                  minHeight: 110,
+                  padding: "10px 8px 8px",
+                  borderRight: "1px solid #f0f0f0",
+                  borderBottom: "1px solid #f0f0f0",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 5,
+                  background: isToday ? "#EBF3FC" : afterEnd ? "#fafafa" : "transparent",
+                  opacity: beforeStart ? 0.18 : !isCurrentMonth ? 0.38 : afterEnd ? 0.4 : 1,
+                  pointerEvents: beforeStart ? "none" : "auto",
+                }}
+              >
+
+                {/* DATE NUMBER */}
+                <div
+                  style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: "50%",
+                    background: isToday ? "#185FA5" : "transparent",
+                    color: isToday
+                      ? "#fff"
+                      : isCurrentMonth
+                      ? "#444"
+                      : "#bbb",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "0.8rem",
+                    fontWeight: 500,
+                    flexShrink: 0,
+                  }}
+                >
+                  {currentDate.getDate()}
+                </div>
+
+                {/* REST DAY */}
+                {!beforeStart && !afterEnd && isSunday ? (
+                  <div
+                    style={{
+                      fontSize: "0.65rem",
+                      color: "#bbb",
+                      fontStyle: "italic",
+                      textAlign: "center",
+                      marginTop: 4,
+                    }}
+                  >
+                    Rest day
+                  </div>
+                ) : (
+                  <>
+                    {/* MEAL NAME */}
+                    {meal && (
+                      <div
+                        style={{
+                          fontSize: "0.68rem",
+                          color: isToday ? "#0C447C" : isCurrentMonth ? "#777" : "#bbb",
+                          lineHeight: 1.45,
+                          flex: 1,
+                        }}
+                      >
+                        {meal}
+                      </div>
+                    )}
+
+                    {/* STATUS PILL */}
+                    {!beforeStart && !afterEnd && (
+                      <div>
+                        {isPast && (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 3,
+                              background: "#EAF3DE",
+                              color: "#3B6D11",
+                              padding: "2px 8px",
+                              borderRadius: 20,
+                              fontSize: "0.62rem",
+                              fontWeight: 600,
+                            }}
+                          >
+                            ✓ Done
+                          </span>
+                        )}
+
+                        {isToday && (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              background: "#FAEEDA",
+                              color: "#854F0B",
+                              padding: "2px 8px",
+                              borderRadius: 20,
+                              fontSize: "0.62rem",
+                              fontWeight: 600,
+                            }}
+                          >
+                            Today
+                          </span>
+                        )}
+
+                        {isFuture && (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              background: "#f3f3f3",
+                              color: "#999",
+                              padding: "2px 8px",
+                              borderRadius: 20,
+                              fontSize: "0.62rem",
+                              fontWeight: 600,
+                              border: "1px solid #e5e5e5",
+                            }}
+                          >
+                            Upcoming
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* LEGEND */}
+        <div
+          style={{
+            display: "flex",
+            gap: 16,
+            flexWrap: "wrap",
+            padding: "12px 1.5rem",
+            borderTop: "1px solid #f0f0f0",
+          }}
+        >
+          {[
+            { color: "#185FA5", label: "Today" },
+            { color: "#3B6D11", label: "Done" },
+            { color: "#854F0B", label: "Current" },
+            { color: "#ccc",    label: "Upcoming" },
+          ].map(({ color, label }) => (
+            <div
+              key={label}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 12,
+                color: "#888",
+              }}
+            >
+              <div
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: color,
+                }}
+              />
+              {label}
+            </div>
+          ))}
+        </div>
+
+      </div>
     </div>
   );
-})}
-    </div>
-  </div>
-)}
+
+})()}
+
 
           {/* ── My Subscription ── */}
           {activeTab === "subscription" && (
@@ -1189,7 +1655,7 @@ const allPlans = [
                 <h3 style={{ color: "#2d5016", fontSize: "1.1rem", fontWeight: 600, marginBottom: "1.25rem" }}>Raise a Complaint or Share Feedback</h3>
                 <select style={{ width: "100%", padding: ".75rem", border: "1px solid rgba(45,80,22,.2)", borderRadius: 9, fontSize: ".9rem", fontFamily: "'Outfit',sans-serif", marginBottom: "1rem", color: "#2d5016", background: "white", outline: "none" }}>
                   <option>Select Type</option>
-                  <option>Complaint</option>
+                  <option>Query</option>
                   <option>Feedback</option>
                 </select>
                 <textarea placeholder="Describe your concern or feedback in detail..." style={{ width: "100%", minHeight: 110, padding: ".85rem", border: "1px solid rgba(45,80,22,.2)", borderRadius: 9, fontSize: ".9rem", fontFamily: "'Outfit',sans-serif", resize: "vertical", marginBottom: "1rem", color: "#2d5016", outline: "none" }} />
@@ -1215,28 +1681,302 @@ const allPlans = [
           )}
 
           {/* ── Notifications ── */}
-          {activeTab === "notifications" && (
-            <div>
-              <h2 style={{ margin: "0 0 .25rem 0", fontSize: "1.8rem", fontWeight: 700, color: "#2d5016" }}>Notifications</h2>
-              <p style={{ margin: "0 0 1.75rem 0", color: "#666" }}>Stay updated with your wellness journey</p>
-              <div style={{ ...S.card, padding: 0, overflow: "hidden" }}>
-                {notifications.map((notif, i) => (
-                  <div key={notif.id} style={{ padding: "1.1rem 1.5rem", borderBottom: i < notifications.length - 1 ? "1px solid rgba(45,80,22,.07)" : "none", background: !notif.read ? "rgba(212,175,55,.04)" : "white", display: "flex", gap: ".9rem", alignItems: "flex-start" }}>
-                    <div style={{ width: 38, height: 38, borderRadius: 9, background: notif.type === "delivery" ? "#e8f5e9" : notif.type === "update" ? "#fff8e5" : "#e3f2fd", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 16 }}>
-                      {notif.type === "delivery" ? "📦" : notif.type === "update" ? "🔔" : "⚠️"}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ margin: "0 0 .3rem 0", fontSize: ".95rem", fontWeight: notif.read ? 500 : 600, color: "#2d5016" }}>{notif.message}</p>
-                      <p style={{ margin: 0, fontSize: ".82rem", color: "#999" }}>{notif.time}</p>
-                    </div>
-                    {!notif.read && <div style={{ width: 9, height: 9, borderRadius: "50%", background: "#d4af37", marginTop: ".3rem", flexShrink: 0 }} />}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+     {activeTab === "notifications" && (() => {
 
-        </main>
+  const endDateObj = new Date(subscription.endDate);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const daysLeft = Math.max(
+    Math.ceil(
+      (endDateObj.getTime() - today.getTime()) /
+      (1000 * 60 * 60 * 24)
+    ),
+    0
+  );
+
+  const isExpiringSoon = daysLeft <= 10;
+  const isExpired = daysLeft === 0;
+
+  const renewalMessage = isExpired
+    ? `Your RYVIVE ${basePlan} subscription has expired. Renew now to continue.`
+    : isExpiringSoon
+    ? `Your subscription expires in ${daysLeft} day${
+        daysLeft !== 1 ? "s" : ""
+      } on ${endDateObj.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })}. Renew soon!`
+    : `Your RYVIVE ${basePlan} plan renews on ${endDateObj.toLocaleDateString(
+        "en-IN",
+        {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }
+      )}.`;
+
+  const renewalIcon = isExpired
+    ? "⚠️"
+    : isExpiringSoon
+    ? "🔴"
+    : "🔄";
+
+  const renewalIconBg = isExpired
+    ? "#ffebee"
+    : isExpiringSoon
+    ? "#fff4e5"
+    : "#e8f5e9";
+
+  const btnBg = isExpired
+    ? "linear-gradient(135deg,#c62828,#e53935)"
+    : isExpiringSoon
+    ? "linear-gradient(135deg,#c8860f,#f4a020)"
+    : "linear-gradient(135deg,#2d5016,#3d6b1f)";
+
+  return (
+    <div>
+
+      {/* HEADER */}
+      <h2
+        style={{
+          margin: "0 0 .25rem 0",
+          fontSize: "1.8rem",
+          fontWeight: 700,
+          color: "#2d5016",
+        }}
+      >
+        Notifications
+      </h2>
+
+      <p
+        style={{
+          margin: "0 0 1.75rem 0",
+          color: "#666",
+        }}
+      >
+        Stay updated with your wellness journey
+      </p>
+
+      {/* RENEWAL NOTIFICATION */}
+      <div
+        style={{
+          ...S.card,
+          padding: 0,
+          overflow: "hidden",
+          marginBottom: "1rem",
+        }}
+      >
+        <div
+          style={{
+            padding: "1.1rem 1.5rem",
+            background: "rgba(212,175,55,.04)",
+            display: "flex",
+            gap: ".9rem",
+            alignItems: "flex-start",
+          }}
+        >
+
+          {/* ICON */}
+          <div
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 9,
+              background: renewalIconBg,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              fontSize: 16,
+            }}
+          >
+            {renewalIcon}
+          </div>
+
+          {/* MESSAGE */}
+          <div style={{ flex: 1 }}>
+            <p
+              style={{
+                margin: "0 0 .3rem 0",
+                fontSize: ".95rem",
+                fontWeight: 600,
+                color: "#2d5016",
+                lineHeight: 1.4,
+              }}
+            >
+              {renewalMessage}
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: ".75rem",
+                flexWrap: "wrap",
+              }}
+            >
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: ".82rem",
+                  color: "#999",
+                }}
+              >
+                Just now
+              </p>
+
+              <button
+                onClick={() => setShowRenewModal(true)}
+                style={{
+                  background: btnBg,
+                  color: "#fff",
+                  border: "none",
+                  padding: ".3rem .85rem",
+                  borderRadius: 7,
+                  fontSize: ".78rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "'Outfit',sans-serif",
+                }}
+              >
+                Renew Now
+              </button>
+            </div>
+          </div>
+
+          {/* UNREAD DOT */}
+          <div
+            style={{
+              width: 9,
+              height: 9,
+              borderRadius: "50%",
+              background: "#d4af37",
+              marginTop: ".3rem",
+              flexShrink: 0,
+            }}
+          />
+        </div>
+      </div>
+
+      {/* ADMIN NOTIFICATIONS */}
+
+      {notifications.length === 0 ? (
+
+        <div style={S.card}>
+          <p
+            style={{
+              margin: 0,
+              textAlign: "center",
+              color: "#777",
+            }}
+          >
+            No admin notifications yet
+          </p>
+        </div>
+
+      ) : (
+
+        notifications.map((n) => (
+
+          <div
+            key={n._id}
+            style={{
+              ...S.card,
+              padding: 0,
+              overflow: "hidden",
+              marginBottom: "1rem",
+            }}
+          >
+            <div
+              style={{
+                padding: "1.1rem 1.5rem",
+                display: "flex",
+                gap: ".9rem",
+                alignItems: "flex-start",
+                background: "#f8fdf5",
+              }}
+            >
+
+              {/* ICON */}
+              <div
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 9,
+                  background: "#e8f5e9",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  fontSize: 16,
+                }}
+              >
+                📢
+              </div>
+
+              {/* CONTENT */}
+              <div style={{ flex: 1 }}>
+                <p
+                  style={{
+                    margin: "0 0 .3rem 0",
+                    fontSize: ".95rem",
+                    fontWeight: 700,
+                    color: "#2d5016",
+                  }}
+                >
+                  {n.title}
+                </p>
+
+                <p
+                  style={{
+                    margin: "0 0 .5rem 0",
+                    fontSize: ".88rem",
+                    color: "#555",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {n.message}
+                </p>
+
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: ".78rem",
+                    color: "#999",
+                  }}
+                >
+                  {new Date(n.createdAt).toLocaleString("en-IN")}
+                </p>
+              </div>
+
+              {/* UNREAD DOT */}
+              {!n.read && (
+                <div
+                  style={{
+                    width: 9,
+                    height: 9,
+                    borderRadius: "50%",
+                    background: "#d4af37",
+                    marginTop: ".3rem",
+                    flexShrink: 0,
+                  }}
+                />
+              )}
+            </div>
+          </div>
+
+        ))
+      )}
+    </div>
+  );
+})()}
+ 
+
+
+        </main> 
       </div>
 
       {/* ── Pause Modal ── */}

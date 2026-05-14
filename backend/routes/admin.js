@@ -1,5 +1,6 @@
 import express from "express";
 import Order from "../models/order.js";
+import Notification from "../models/Notification.js";
 import sendEmail from "../utils/sendEmail.js";
 import generateInvoice from "../utils/generateInvoice.js";
 import generateReceiptNumber from "../utils/generateReceiptNumber.js";
@@ -10,8 +11,6 @@ import { rebuildExcelFromMongo } from "../utils/excelHelper.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
-
-
 
 
 const router = express.Router();
@@ -1045,6 +1044,76 @@ router.post("/fix-all-invoices", async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ success: false });
+  }
+});
+
+
+/* ===========================
+   SEND INDIVIDUAL MESSAGE
+=========================== */
+router.post("/send-message", async (req, res) => {
+  try {
+    const { membershipId, message } = req.body;
+
+    const order = await Order.findOne({ membershipId });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
+    }
+
+    const notification = await Notification.create({
+      membershipId,
+      title: "Message From Admin",
+      message,
+    });
+
+    res.json({
+      success: true,
+      notification,
+    });
+
+  } catch (err) {
+    console.log(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
+/* ===========================
+   BROADCAST MESSAGE
+=========================== */
+router.post("/broadcast", async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    const orders = await Order.find();
+
+    const notifications = orders.map((o) => ({
+      membershipId: o.membershipId,
+      title: "Broadcast Message",
+      message,
+    }));
+
+    await Notification.insertMany(notifications);
+
+    res.json({
+      success: true,
+      message: "Broadcast sent",
+    });
+
+  } catch (err) {
+    console.log(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 });
 
