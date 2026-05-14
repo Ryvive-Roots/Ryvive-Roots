@@ -565,136 +565,345 @@ router.put("/order/:id/health", async (req, res) => {
       { new: true }
     );
 
-    // 3️⃣ Sync User collection
-    if (user?.phone || user?.email) {
-      await User.findOneAndUpdate(
-        { membershipId: order.membershipId },
-        {
-          ...(user?.phone && { phone: user.phone }),
-          ...(user?.email && { email: user.email }),
-        }
-      );
+     // 3️⃣ Sync User collection
+if (user?.phone || user?.email) {
+
+  await User.findOneAndUpdate(
+    { membershipId: order.membershipId },
+
+    {
+      ...(user?.phone && {
+        phone: user.phone,
+      }),
+
+      ...(user?.email && {
+        email: user.email,
+      }),
+
+      ...(user?.firstName && {
+        firstName: user.firstName,
+      }),
+
+      ...(user?.lastName && {
+        lastName: user.lastName,
+      }),
+    },
+
+    {
+      new: true,
     }
+  );
 
-    // 4️⃣ Detect changes
-    const phoneChanged =
-      user?.phone && user.phone !== oldOrder.user.phone;
+}
 
-    const emailChanged =
-      user?.email && user.email !== oldOrder.user.email;
+ const phoneChanged =
+  user?.phone !== oldOrder.user.phone;
 
-      const healthChanged =
+const emailChanged =
+  user?.email !== oldOrder.user.email;
+
+const firstNameChanged =
+  user?.firstName !== oldOrder.user.firstName;
+
+const lastNameChanged =
+  user?.lastName !== oldOrder.user.lastName;
+
+const dobChanged =
+  new Date(user?.dob).toISOString() !==
+  new Date(oldOrder.user.dob).toISOString();
+
+const addressChanged =
+  JSON.stringify(address || {}) !==
+  JSON.stringify(oldOrder.address || {});
+
+const healthChanged =
   JSON.stringify(healthInfo || {}) !==
   JSON.stringify(oldOrder.healthInfo || {});
 
 const remarksChanged =
   (remarks || "") !== (oldOrder.remarks || "");
 
-    // 📩 SEND CUSTOMER EMAIL (only if email exists & changed)
-   // 📩 SEND CUSTOMER EMAIL (only if email changed)
-if (emailChanged && order.user.email) {
-  await sendEmail({
-    to: order.user.email,
-    subject: "Your Email Address Has Been Updated – Ryvive Roots",
-    html: `
-      <div style="font-family: Arial, sans-serif; line-height:1.6;">
-        <p>Hello,</p>
+// ✅ ANY CHANGE
+const anyChanges =
+  phoneChanged ||
+  emailChanged ||
+  firstNameChanged ||
+  lastNameChanged ||
+  dobChanged ||
+  addressChanged ||
+  healthChanged ||
+  remarksChanged;
 
-        <p>
-          We would like to inform you that the email address linked to your
-          <b>${order.subscription.plan}</b> subscription has been successfully
-          updated in our system.
-        </p>
 
-        <table style="border-collapse: collapse;">
-          <tr>
-            <td><b>Membership Plan</b></td>
-            <td>: ${order.subscription.plan}</td>
-          </tr>
-          <tr>
-            <td><b>Updated Email ID</b></td>
-            <td>: ${order.user.email}</td>
-          </tr>
-          <tr>
-            <td><b>Date & Time</b></td>
-            <td>: ${new Date().toLocaleString("en-IN")}</td>
-          </tr>
-        </table>
+/* =====================================
+   CUSTOMER EMAIL
+===================================== */
 
-        <br/>
+try {
 
-        <p>
-          This update has been made to ensure smooth communication regarding
-          your membership, including important updates, offers, and subscription details.
-        </p>
+  if (anyChanges && order.user.email) {
 
-        <p>
-          If you believe this update was made in error or if you have any concerns,
-          please reach out to us immediately and we’ll be happy to assist you.
-        </p>
+    await sendEmail({
+      to: order.user.email,
 
-        <p>
-          Thank you for being a valued member of <b>Ryvive Roots</b>.
-        </p>
+      subject: "Your Profile Has Been Updated – Ryvive Roots",
 
-        <br/>
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height:1.6; color:#333;">
 
-        <p>
-          Warm regards,<br/>
-          <b>Ryvive Roots</b><br/>
-          customersupport@ryviveroots.com
-        </p>
-      </div>
-    `,
-  });
+          <h2>Hello ${order.user.firstName},</h2>
+
+          <p>
+            We would like to inform you that your membership profile details
+            have been updated successfully in our system.
+          </p>
+
+          <table style="border-collapse: collapse; margin-top:10px;">
+            
+            <tr>
+              <td><b>Membership ID</b></td>
+              <td>: ${order.membershipId}</td>
+            </tr>
+
+            <tr>
+              <td><b>Membership Plan</b></td>
+              <td>: ${order.subscription.plan}</td>
+            </tr>
+
+            <tr>
+              <td><b>Updated On</b></td>
+              <td>: ${new Date().toLocaleString("en-IN")}</td>
+            </tr>
+
+          </table>
+
+          <br/>
+
+          <p><b>Updated Details:</b></p>
+
+          <ul>
+
+            ${
+              firstNameChanged || lastNameChanged
+                ? `<li>👤 Name Updated</li>`
+                : ""
+            }
+
+            ${
+              phoneChanged
+                ? `<li>📞 Phone Updated: ${order.user.phone}</li>`
+                : ""
+            }
+
+            ${
+              emailChanged
+                ? `<li>📧 Email Updated: ${order.user.email}</li>`
+                : ""
+            }
+
+            ${
+              dobChanged
+                ? `<li>🎂 Date of Birth Updated</li>`
+                : ""
+            }
+
+            ${
+              addressChanged
+                ? `<li>🏠 Address Updated</li>`
+                : ""
+            }
+
+            ${
+              healthChanged
+                ? `<li>🩺 Health Information Updated</li>`
+                : ""
+            }
+
+            ${
+              remarksChanged
+                ? `<li>📝 Remarks Updated</li>`
+                : ""
+            }
+
+          </ul>
+
+          <br/>
+
+          <p>
+            If you did not request these changes,
+            please contact us immediately.
+          </p>
+
+          <br/>
+
+          <p>
+            Warm regards,<br/>
+            <b>Ryvive Roots</b><br/>
+            customersupport@ryviveroots.com
+          </p>
+
+        </div>
+      `,
+    });
+
+  }
+
+} catch (err) {
+
+  console.error(
+    "❌ Customer email failed:",
+    err.message
+  );
+
 }
 
 
-    // 📩 SEND COMPANY EMAIL
-    if (phoneChanged || emailChanged || healthChanged || remarksChanged) {
-  await sendEmail({
-    to: process.env.COMPANY_EMAIL,
-    subject: `✏️ Member Details Updated - ${order.membershipId}`,
-    html: `
-      <h3>Member Profile Updated</h3>
+/* =====================================
+   COMPANY EMAIL
+===================================== */
 
-      <p><b>Name:</b> ${order.user.firstName} ${order.user.lastName}</p>
-      <p><b>Membership ID:</b> ${order.membershipId}</p>
+try {
 
-      <p><b>Changes:</b></p>
-      <ul>
-        ${
-          phoneChanged
-            ? `<li>📞 Phone: ${oldOrder.user.phone} → ${order.user.phone}</li>`
-            : ""
-        }
-        ${
-          emailChanged
-            ? `<li>📧 Email: ${oldOrder.user.email || "N/A"} → ${order.user.email}</li>`
-            : ""
-        }
-        ${
-          healthChanged
-            ? `
-              <li>🩺 Health Info Updated
-                <ul>
-                  <li>Allergies: ${order.healthInfo?.allergies || "N/A"}</li>
-                  <li>Medical Conditions: ${order.healthInfo?.medicalConditions || "N/A"}</li>
-                </ul>
-              </li>
-            `
-            : ""
-        }
-        ${
-          remarksChanged
-            ? `<li>📝 Remarks Updated: ${order.remarks || "—"}</li>`
-            : ""
-        }
-      </ul>
+  if (anyChanges) {
 
-      <p>🕒 Updated on: ${new Date().toLocaleString("en-IN")}</p>
-    `,
-  });
+    await sendEmail({
+
+      to: process.env.COMPANY_EMAIL,
+
+      subject: `✏️ Member Details Updated - ${order.membershipId}`,
+
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height:1.6;">
+
+          <h2>Member Profile Updated</h2>
+
+          <p>
+            <b>Name:</b>
+            ${order.user.firstName} ${order.user.lastName}
+          </p>
+
+          <p>
+            <b>Membership ID:</b>
+            ${order.membershipId}
+          </p>
+
+          <p>
+            <b>Updated On:</b>
+            ${new Date().toLocaleString("en-IN")}
+          </p>
+
+          <br/>
+
+          <h3>Changes:</h3>
+
+          <ul>
+
+            ${
+              firstNameChanged || lastNameChanged
+                ? `
+                  <li>
+                    👤 Name:
+                    ${oldOrder.user.firstName} ${oldOrder.user.lastName}
+                    →
+                    ${order.user.firstName} ${order.user.lastName}
+                  </li>
+                `
+                : ""
+            }
+
+            ${
+              phoneChanged
+                ? `
+                  <li>
+                    📞 Phone:
+                    ${oldOrder.user.phone}
+                    →
+                    ${order.user.phone}
+                  </li>
+                `
+                : ""
+            }
+
+            ${
+              emailChanged
+                ? `
+                  <li>
+                    📧 Email:
+                    ${oldOrder.user.email || "N/A"}
+                    →
+                    ${order.user.email}
+                  </li>
+                `
+                : ""
+            }
+
+            ${
+              dobChanged
+                ? `
+                  <li>
+                    🎂 DOB Updated
+                  </li>
+                `
+                : ""
+            }
+
+            ${
+              addressChanged
+                ? `
+                  <li>
+                    🏠 Address Updated
+                  </li>
+                `
+                : ""
+            }
+
+            ${
+              healthChanged
+                ? `
+                  <li>
+                    🩺 Health Info Updated
+                    <ul>
+                      <li>
+                        Allergies:
+                        ${order.healthInfo?.allergies || "N/A"}
+                      </li>
+
+                      <li>
+                        Medical Conditions:
+                        ${order.healthInfo?.medicalConditions || "N/A"}
+                      </li>
+                    </ul>
+                  </li>
+                `
+                : ""
+            }
+
+            ${
+              remarksChanged
+                ? `
+                  <li>
+                    📝 Remarks:
+                    ${order.remarks || "—"}
+                  </li>
+                `
+                : ""
+            }
+
+          </ul>
+
+        </div>
+      `,
+    });
+
+  }
+
+} catch (err) {
+
+  console.error(
+    "❌ Company email failed:",
+    err.message
+  );
+
 }
 
 
