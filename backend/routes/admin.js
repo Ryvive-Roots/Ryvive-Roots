@@ -565,10 +565,11 @@ router.put("/order/:id/health", async (req, res) => {
       { new: true }
     );
 
-     // 3️⃣ Sync User collection
+ // 3️⃣ Sync User collection
 if (user?.phone || user?.email) {
 
   await User.findOneAndUpdate(
+
     { membershipId: order.membershipId },
 
     {
@@ -579,19 +580,8 @@ if (user?.phone || user?.email) {
       ...(user?.email && {
         email: user.email,
       }),
-
-      ...(user?.firstName && {
-        firstName: user.firstName,
-      }),
-
-      ...(user?.lastName && {
-        lastName: user.lastName,
-      }),
-    },
-
-    {
-      new: true,
     }
+
   );
 
 }
