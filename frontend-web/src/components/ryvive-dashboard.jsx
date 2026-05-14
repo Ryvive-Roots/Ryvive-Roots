@@ -426,9 +426,9 @@ const [calendarDate, setCalendarDate] = useState(new Date());
         }
       } catch (err) {
         console.error("Dashboard fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
+     } finally {
+  setLoading(false);
+}
     };
 
     fetchDashboard();
@@ -736,12 +736,8 @@ const handleDownloadReceipt = async (receiptNumber) => {
   }
 };
 
-  // ── Unread notifications count ──────────────────────────────────────────────
-  const notifications = [
-    { id: 1, type: "delivery", message: "Your meal for tomorrow has been prepared", time: "2 hours ago", read: false },
-    { id: 2, type: "update",   message: "Your subscription will renew on June 15",  time: "1 day ago",   read: false },
-    { id: 3, type: "reminder", message: "Time to update your delivery preferences", time: "3 hours ago", read: true  },
-  ];
+
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   // ── Upgrade plans ───────────────────────────────────────────────────────────
