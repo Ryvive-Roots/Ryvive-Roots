@@ -602,9 +602,14 @@ const dobChanged =
   new Date(user?.dob).toISOString() !==
   new Date(oldOrder.user.dob).toISOString();
 
+
 const addressChanged =
-  JSON.stringify(address || {}) !==
-  JSON.stringify(oldOrder.address || {});
+  oldOrder.address?.house !== address?.house ||
+  oldOrder.address?.street !== address?.street ||
+  oldOrder.address?.landmark !== address?.landmark ||
+  oldOrder.address?.city !== address?.city ||
+  oldOrder.address?.pincode !== address?.pincode;
+
 
 const healthChanged =
   JSON.stringify(healthInfo || {}) !==
@@ -636,103 +641,157 @@ try {
     await sendEmail({
       to: order.user.email,
 
-      subject: "Your Profile Has Been Updated – Ryvive Roots",
+      subject: "Your Account Has Been Updated – Ryvive Roots",
 
       html: `
-        <div style="font-family: Arial, sans-serif; line-height:1.6; color:#333;">
+       
+<div style="font-family: Arial, sans-serif; line-height:1.7; color:#333; max-width:650px; margin:auto;">
 
-          <h2>Hello ${order.user.firstName},</h2>
+ 
 
-          <p>
-            We would like to inform you that your membership profile details
-            have been updated successfully in our system.
-          </p>
+  <p>Dear ${order.user.firstName || "Customer"},</p>
 
-          <table style="border-collapse: collapse; margin-top:10px;">
-            
-            <tr>
-              <td><b>Membership ID</b></td>
-              <td>: ${order.membershipId}</td>
-            </tr>
+  <p>
+    We're writing to confirm that changes have been made to your
+    Ryvive Roots account.
+  </p>
 
-            <tr>
-              <td><b>Membership Plan</b></td>
-              <td>: ${order.subscription.plan}</td>
-            </tr>
+  <h3 style="margin-top:25px; color:#222;">Update Confirmation</h3>
 
-            <tr>
-              <td><b>Updated On</b></td>
-              <td>: ${new Date().toLocaleString("en-IN")}</td>
-            </tr>
+  <table style="border-collapse: collapse; width:100%; margin-top:10px;">
+    
+    <tr>
+      <td style="padding:6px 0;"><b>Date</b></td>
+      <td>: ${new Date().toLocaleDateString("en-IN")}</td>
+    </tr>
 
-          </table>
+    <tr>
+      <td style="padding:6px 0;"><b>Time</b></td>
+      <td>: ${new Date().toLocaleTimeString("en-IN")}</td>
+    </tr>
 
-          <br/>
+    <tr>
+      <td style="padding:6px 0;"><b>Membership ID</b></td>
+      <td>: ${order.membershipId}</td>
+    </tr>
 
-          <p><b>Updated Details:</b></p>
+    <tr>
+      <td style="padding:6px 0;"><b>Membership Plan</b></td>
+      <td>: ${order.subscription?.plan || "-"}</td>
+    </tr>
 
-          <ul>
+  </table>
 
-            ${
-              firstNameChanged || lastNameChanged
-                ? `<li>👤 Name Updated</li>`
-                : ""
-            }
+  <h3 style="margin-top:30px; color:#222;">What Changed</h3>
 
-            ${
-              phoneChanged
-                ? `<li>📞 Phone Updated: ${order.user.phone}</li>`
-                : ""
-            }
+  <ul style="padding-left:20px;">
 
-            ${
-              emailChanged
-                ? `<li>📧 Email Updated: ${order.user.email}</li>`
-                : ""
-            }
+    ${
+      firstNameChanged || lastNameChanged
+        ? `<li>
+            <b>Name:</b> 
+            ${oldFirstName || ""} ${oldLastName || ""}
+            →
+            ${order.user.firstName || ""} ${order.user.lastName || ""}
+          </li>`
+        : ""
+    }
 
-            ${
-              dobChanged
-                ? `<li>🎂 Date of Birth Updated</li>`
-                : ""
-            }
+    ${
+      phoneChanged
+        ? `<li>
+            <b>Phone Number:</b>
+            ${oldPhone || "-"}
+            →
+            ${order.user.phone || "-"}
+          </li>`
+        : ""
+    }
 
-            ${
-              addressChanged
-                ? `<li>🏠 Address Updated</li>`
-                : ""
-            }
+    ${
+      emailChanged
+        ? `<li>
+            <b>Email Address:</b>
+            ${oldEmail || "-"}
+            →
+            ${order.user.email || "-"}
+          </li>`
+        : ""
+    }
 
-            ${
-              healthChanged
-                ? `<li>🩺 Health Information Updated</li>`
-                : ""
-            }
+    ${
+      dobChanged
+        ? `<li>
+            <b>Date of Birth:</b> Updated Successfully
+          </li>`
+        : ""
+    }
 
-            ${
-              remarksChanged
-                ? `<li>📝 Remarks Updated</li>`
-                : ""
-            }
+    ${
+      addressChanged
+        ? `<li>
+            <b>Address Information:</b> Updated Successfully
+          </li>`
+        : ""
+    }
 
-          </ul>
+    ${
+      healthChanged
+        ? `<li>
+            <b>Health Information:</b> Updated Successfully
+          </li>`
+        : ""
+    }
 
-          <br/>
+    ${
+      remarksChanged
+        ? `<li>
+            <b>Remarks / Notes:</b> Updated Successfully
+          </li>`
+        : ""
+    }
 
-          <p>
-            If you did not request these changes,
-            please contact us immediately.
-          </p>
+  </ul>
 
-          <br/>
+  <div style="margin-top:30px; padding:15px; background:#f8f8f8; border-radius:8px;">
+    
+    <h3 style="margin-top:0; color:#222;">
+      Your Updated Information
+    </h3>
 
-          <p>
-            Warm regards,<br/>
-            <b>Ryvive Roots</b><br/>
-            customersupport@ryviveroots.com
-          </p>
+    <p style="margin-bottom:0;">
+      All changes have been saved successfully and will take effect
+      from your next scheduled delivery.
+    </p>
 
-        </div>
+  </div>
+
+  <p style="margin-top:25px;">
+    If you did not request this change or notice any discrepancies,
+    please contact our support team immediately.
+  </p>
+
+  <div style="margin-top:20px; line-height:1.8;">
+    <b>Customer Support:</b> +91 97656 00701<br/>
+    <b>Email:</b> customerservice@ryviveroots.com
+  </div>
+
+  <br/>
+
+  <p>
+    Thank you for being a valued member of Ryvive Roots.
+  </p>
+
+  <p style="margin-top:30px;">
+    Warm regards,<br/>
+    <b>Team Ryvive Roots</b><br/>
+    <span style="color:#666;">
+      Live | Relive | Believe
+    </span>
+  </p>
+
+</div>
+
       `,
     });
 

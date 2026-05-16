@@ -244,6 +244,7 @@ const openRenewModal = (order) => {
 
 const handleSaveEdit = async (orderId) => {
   try {
+     setSaving(true);
     const res = await fetch(
       `https://api.ryviveroots.com/api/admin/order/${orderId}/health`,
       {
@@ -282,7 +283,10 @@ const handleSaveEdit = async (orderId) => {
   } catch (err) {
     console.error(err);
     alert("❌ Failed to update details");
+  } finally {
+    setSaving(false);
   }
+
 };
 
 const handleRenew = async () => {
@@ -911,12 +915,13 @@ const daysLeft = (order) => {
 </select>
 
                           <div className="flex gap-2">
-                            <button
-                              onClick={() => handleSaveEdit(order._id)}
-                              className="text-green-600 text-xs font-semibold"
-                            >
-                              💾 Save
-                            </button>
+                           <button
+  onClick={() => handleSaveEdit(order._id)}
+  disabled={saving}
+  className="text-green-600 text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+>
+  {saving ? "Saving..." : "💾 Save"}
+</button>
 
                             <button
                               onClick={() => setEditingRow(null)}
