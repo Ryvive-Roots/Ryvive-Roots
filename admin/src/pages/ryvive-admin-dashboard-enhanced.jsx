@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, MessageSquare, Plus, Lock, Eye, Edit, Clock, Activity, Mail, Search, X, Send, FileText, Package, TrendingUp, Calendar, DollarSign, Truck, PauseCircle, Settings, BarChart3, ShoppingBag, AlertCircle } from 'lucide-react';
+import { Users, MessageSquare, Plus, Lock, Eye, Edit, Clock, Activity, Mail, Search, X, Send, FileText, Package, TrendingUp, Calendar, DollarSign, Truck, PauseCircle, Settings, BarChart3, ShoppingBag, AlertCircle, RefreshCcw, CalendarClock } from 'lucide-react';
 
 export default function RyviveAdminDashboard2() {
   const [activeView, setActiveView] = useState('dashboard');
@@ -199,7 +199,6 @@ export default function RyviveAdminDashboard2() {
             {[
               { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
               { id: 'customers', icon: Users, label: 'Customers' },
-              { id: 'deliveries', icon: Truck, label: 'Deliveries' },
               { id: 'pause', icon: PauseCircle, label: 'Pause Requests' },
               { id: 'queries', icon: MessageSquare, label: 'Customer Queries' },
               { id: 'payments', icon: DollarSign, label: 'Payments' },
@@ -248,10 +247,12 @@ export default function RyviveAdminDashboard2() {
                 {[
                   { label: 'Total Customers', value: dashboardStats.totalCustomers, icon: Users, color: '#2d5016' },
                   { label: 'Active Subscriptions', value: dashboardStats.activeSubscriptions, icon: Package, color: '#3d6b1f' },
-                  { label: "Today's Deliveries", value: dashboardStats.todayDeliveries, icon: Truck, color: '#d4af37' },
+               
                   { label: 'Pending Queries', value: dashboardStats.pendingQueries, icon: MessageSquare, color: '#c62828' },
-                  { label: 'Monthly Revenue', value: dashboardStats.monthlyRevenue, icon: DollarSign, color: '#2e7d32' },
-                  { label: 'Paused Subscriptions', value: dashboardStats.pausedSubscriptions, icon: PauseCircle, color: '#1976d2' }
+               
+                  { label: 'Paused Subscriptions', value: dashboardStats.pausedSubscriptions, icon: PauseCircle, color: '#1976d2' },
+                  { label: 'Upcoming Renewals', value: dashboardStats.upcomingRenewals, icon: CalendarClock, color: '#7b1fa2' },
+{ label: 'Pending Renewals',  value: dashboardStats.pendingRenewals,  icon: RefreshCcw,   color: '#e65100' }
                 ].map((stat, idx) => (
                   <div key={idx} style={{
                     background: 'white',
@@ -296,7 +297,7 @@ export default function RyviveAdminDashboard2() {
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                   {[
-                    { label: 'View Deliveries', action: 'deliveries', icon: Truck },
+                    { label: 'Pending Payments', action: 'deliveries', icon: Truck },
                     { label: 'Pause Requests', action: 'pause', icon: PauseCircle },
                     { label: 'Customer Queries', action: 'queries', icon: MessageSquare },
                     { label: 'Create Account', action: 'create', icon: Plus }
@@ -596,6 +597,8 @@ export default function RyviveAdminDashboard2() {
               </div>
             </div>
           )}
+
+          
 
           {/* Renewals Section */}
           {activeView === 'renewals' && (
