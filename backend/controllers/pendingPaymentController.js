@@ -1,4 +1,5 @@
 import PendingPayment from "../models/PendingPayment.js";
+import AuditLog from "../models/AuditLog.js";
 
 
 // ✅ CREATE PENDING PAYMENT
@@ -50,6 +51,19 @@ export const createPendingPayment = async (req, res) => {
 
       paymentStatus: "PENDING",
     });
+
+    await AuditLog.create({
+  action: "PENDING_PAYMENT_CREATED",
+
+  performedBy:
+    createdBy || "Admin",
+
+  customerName:
+    `${user.firstName} ${user.lastName}`,
+
+  details:
+    `Pending payment created for ${subscription.plan}`,
+});
 
     res.status(201).json({
       success: true,

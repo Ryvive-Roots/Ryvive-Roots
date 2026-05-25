@@ -11,6 +11,7 @@ import invoiceRoutes from "./routes/invoiceRoutes.js";
 import adminRoutes from "./routes/admin.js";
 import subscriptionRoutes from "./routes/subscription.js";
 import adminAuthRoutes from "./routes/adminAuth.js";
+import auditRoutes from "./routes/auditRoutes.js";
 import pendingPaymentRoutes from "./routes/pendingPaymentRoutes.js";
 import createAdminIfNotExists from "./utils/createAdmin.js";
 import cron from "node-cron";
@@ -47,6 +48,10 @@ app.use("/api/invoice", invoiceRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 app.use("/api/admin-auth", adminAuthRoutes);
+app.use(
+  "/api/admin",
+  auditRoutes
+);
 app.use(
   "/api/admin",
   pendingPaymentRoutes

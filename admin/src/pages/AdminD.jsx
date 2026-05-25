@@ -22,7 +22,7 @@ const teamMembers = [
   { id: 'shravani', name: 'Shravani', role: 'Web Developer' },
   { id: 'sakshi', name: 'Sakshi', role: 'Operations Associate' }
 ];
-
+ 
 // ── Package Features (from doc 2) ──
 const packageFeatures = [
   'High-Protein Meals',
@@ -53,6 +53,8 @@ export default function AdminD() {
   const [editingRow, setEditingRow] = useState(null);
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [individualMessage, setIndividualMessage] = useState('');
+  const [auditLogs, setAuditLogs] =
+  useState([]);
 const [pendingCustomers, setPendingCustomers] =
   useState([]);
 
@@ -174,6 +176,7 @@ const [pendingCustomers, setPendingCustomers] =
     if (!token) window.location.href = "/";
     fetchOrders();
     fetchPendingPayments();
+    fetchAuditLogs();
   }, []);
 
   const fetchOrders = async () => {
@@ -212,6 +215,31 @@ const [pendingCustomers, setPendingCustomers] =
       err
     );
   }
+};
+
+const fetchAuditLogs =
+  async () => {
+
+    try {
+
+      const res = await fetch(
+        "https://api.ryviveroots.com/api/admin/audit-logs"
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+
+        setAuditLogs(data.logs);
+      }
+
+    } catch (err) {
+
+      console.error(
+        "Failed to fetch audit logs",
+        err
+      );
+    }
 };
 
   const getPauseStatusText = (order) => {
@@ -852,18 +880,39 @@ const [pendingCustomers, setPendingCustomers] =
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                            <h4 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 600, color: '#2d5016' }}>{pending.name}</h4>
+                            <h4 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 600, color: '#2d5016' }}>{pending.user?.firstName} {pending.user?.lastName}</h4>
                             <span style={{ background: '#fff4e5', color: '#d4af37', padding: '0.4rem 0.85rem', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600 }}>⏳ Awaiting Payment</span>
                           </div>
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
-                            <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>📞 {pending.phone}</p>
-                            <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>✉️ {pending.email}</p>
-                            <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>📦 {pending.package}</p>
-                            <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#2e7d32' }}>💰 ₹{pending.amount}</p>
+                            <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}> {pending.user?.phone}</p>
+                            <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}> {pending.user?.email}</p>
+                            <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>{pending.subscription?.plan}</p>
+                            <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#2e7d32' }}>₹{pending.subscription?.amount}</p>
                           </div>
-                          <div style={{ background: '#f0f7ec', padding: '0.75rem 1rem', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#666' }}>
-                            👤 Added by: <strong>{pending.addedBy}</strong> · 📅 {pending.dateAdded}
-                          </div>
+                         <div
+  style={{
+    background: '#f0f7ec',
+    padding: '0.75rem 1rem',
+    borderRadius: 8,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    fontSize: '0.85rem',
+    color: '#666'
+  }}
+>
+  👤 Added by:
+
+  <strong>
+    {pending.createdBy || "Admin"}
+  </strong>
+
+  
+
+  {new Date(
+    pending.createdAt
+  ).toLocaleDateString("en-IN")}
+</div>
                         </div>
                         <button onClick={() => handleVerifyPayment(pending)} style={{ background: 'linear-gradient(135deg, #d4af37 0%, #f4d03f 100%)', color: '#2d5016', border: 'none', padding: '1rem 2rem', borderRadius: 12, fontSize: '1rem', fontWeight: 600, cursor: 'pointer', marginLeft: '2rem', boxShadow: '0 4px 12px rgba(212,175,55,0.3)' }}>
                           💰 Verify Payment
@@ -1425,37 +1474,219 @@ const [pendingCustomers, setPendingCustomers] =
           )}
 
           {/* ──────────────── AUDIT LOGS ──────────────── */}
-          {activeView === 'audit' && (
-            <div style={{ animation: 'fadeIn 0.4s ease' }}>
-              <h2 style={{ margin: '0 0 2rem 0', fontSize: '1.8rem', fontWeight: 700, color: '#2d5016' }}>Audit Logs & Activity Tracking</h2>
-              <div style={{ background: 'white', borderRadius: 16, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', border: '1px solid rgba(45,80,22,0.08)' }}>
-                {loading && <p style={{ padding: '2rem', color: '#666' }}>Loading…</p>}
-                {orders.slice(0, 20).map((order, idx) => (
-                  <div key={order._id} style={{ padding: '1.5rem 2rem', borderBottom: idx < 19 ? '1px solid rgba(45,80,22,0.08)' : 'none' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                          <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600, color: '#2d5016' }}>{order.user?.firstName} {order.user?.lastName}</h4>
-                          <span style={{ background: '#e8f5e9', color: '#2e7d32', padding: '0.3rem 0.75rem', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600 }}>{order.subscription?.plan}</span>
-                          <span style={{ background: getPauseStatusText(order).includes('ACTIVE') ? '#e8f5e9' : '#fff4e5', color: getPauseStatusText(order).includes('ACTIVE') ? '#2e7d32' : '#e65100', padding: '0.3rem 0.75rem', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600 }}>{getPauseStatusText(order)}</span>
-                        </div>
-                        <p style={{ margin: '0 0 0.25rem', fontSize: '0.9rem', color: '#666' }}>ID: <strong>{order.membershipId}</strong> · 📞 {order.user?.phone}</p>
-                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#999' }}>Payment: {order.paymentMethod || 'CASH'}</p>
-                      </div>
-                      <div style={{ textAlign: 'right', minWidth: 160 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                          <Clock size={14} color="#666" />
-                          <p style={{ margin: 0, fontSize: '0.85rem', color: '#666', fontWeight: 500 }}>{order.subscription?.startDate ? new Date(order.subscription.startDate).toLocaleDateString('en-GB') : '—'}</p>
-                        </div>
-                        <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: '#999' }}>Ends: {order.subscription?.endDate ? new Date(order.subscription.endDate).toLocaleDateString('en-GB') : '—'}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {orders.length === 0 && !loading && <div style={{ padding: '3rem', textAlign: 'center', color: '#999' }}>No records found.</div>}
+       {activeView === 'audit' && (
+  <div style={{ animation: 'fadeIn 0.4s ease' }}>
+
+    {/* HEADER */}
+    <div style={{ marginBottom: '2rem' }}>
+      <h2
+        style={{
+          margin: '0 0 0.5rem 0',
+          fontSize: '1.8rem',
+          fontWeight: 700,
+          color: '#2d5016'
+        }}
+      >
+        Audit Logs & Activity Tracking
+      </h2>
+
+      <p
+        style={{
+          margin: 0,
+          color: '#666'
+        }}
+      >
+        Track all admin activities and customer actions
+      </p>
+    </div>
+
+    {/* LOADING */}
+    {loading && (
+      <div
+        style={{
+          background: 'white',
+          padding: '2rem',
+          borderRadius: 16,
+          color: '#666'
+        }}
+      >
+        Loading audit logs...
+      </div>
+    )}
+
+    {/* EMPTY */}
+    {!loading &&
+      auditLogs.length === 0 && (
+        <div
+          style={{
+            background: 'white',
+            padding: '3rem',
+            borderRadius: 16,
+            textAlign: 'center',
+            color: '#999',
+            boxShadow:
+              '0 4px 20px rgba(0,0,0,0.06)'
+          }}
+        >
+          No audit logs found.
+        </div>
+      )}
+
+    {/* LOGS */}
+    <div
+      style={{
+        display: 'grid',
+        gap: '1rem'
+      }}
+    >
+
+      {auditLogs.map((log) => (
+
+        <div
+          key={log._id}
+          style={{
+            background: 'white',
+            borderRadius: 16,
+            padding: '1.5rem 2rem',
+            boxShadow:
+              '0 4px 20px rgba(0,0,0,0.06)',
+            border:
+              '1px solid rgba(45,80,22,0.08)'
+          }}
+        >
+
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'start'
+            }}
+          >
+
+            {/* LEFT */}
+            <div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1rem',
+                  marginBottom: '0.75rem',
+                  flexWrap: 'wrap'
+                }}
+              >
+
+                <h4
+                  style={{
+                    margin: 0,
+                    fontSize: '1.05rem',
+                    fontWeight: 600,
+                    color: '#2d5016'
+                  }}
+                >
+                  {log.customerName}
+                </h4>
+
+                <span
+                  style={{
+                    background: '#e8f5e9',
+                    color: '#2e7d32',
+                    padding: '0.3rem 0.75rem',
+                    borderRadius: 6,
+                    fontSize: '0.75rem',
+                    fontWeight: 600
+                  }}
+                >
+                  {log.action}
+                </span>
+              </div>
+
+              <p
+                style={{
+                  margin: '0 0 0.5rem 0',
+                  fontSize: '0.92rem',
+                  color: '#555',
+                  lineHeight: 1.6
+                }}
+              >
+                {log.details}
+              </p>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontSize: '0.85rem',
+                  color: '#777'
+                }}
+              >
+                👤
+
+                <strong>
+                  {log.performedBy}
+                </strong>
               </div>
             </div>
-          )}
+
+            {/* RIGHT */}
+            <div
+              style={{
+                textAlign: 'right',
+                minWidth: 180
+              }}
+            >
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  gap: '0.5rem'
+                }}
+              >
+                <Clock
+                  size={14}
+                  color="#666"
+                />
+
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '0.85rem',
+                    color: '#666',
+                    fontWeight: 500
+                  }}
+                >
+                  {new Date(
+                    log.createdAt
+                  ).toLocaleDateString(
+                    "en-GB"
+                  )}
+                </p>
+              </div>
+
+              <p
+                style={{
+                  margin: '4px 0 0',
+                  fontSize: '0.8rem',
+                  color: '#999'
+                }}
+              >
+                {new Date(
+                  log.createdAt
+                ).toLocaleTimeString(
+                  "en-IN"
+                )}
+              </p>
+            </div>
+
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
         </main>
       </div>
 
@@ -1631,55 +1862,282 @@ const [pendingCustomers, setPendingCustomers] =
         </div>
       )}
 
-      {/* ── PAYMENT VERIFICATION MODAL ── */}
-      {showPaymentModal && selectedPending && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '2rem' }}>
-          <div style={{ background: 'white', borderRadius: 16, padding: '2.5rem', maxWidth: 600, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-            <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.6rem', fontWeight: 700, color: '#2d5016' }}>💰 Verify Payment</h3>
-              <p style={{ margin: 0, color: '#666' }}>Complete payment verification to activate account</p>
-            </div>
-            <div style={{ background: '#f0f7ec', padding: '1.5rem', borderRadius: 12, marginBottom: '2rem' }}>
-              <h4 style={{ margin: '0 0 1rem 0', color: '#2d5016' }}>Customer Details</h4>
-              {[['Name', selectedPending.name], ['Package', selectedPending.package], ['Amount Due', `₹${selectedPending.amount}`]].map(([label, value]) => (
-                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                  <span style={{ color: '#666' }}>{label}:</span>
-                  <strong style={{ fontSize: label === 'Amount Due' ? '1.2rem' : '1rem', color: label === 'Amount Due' ? '#2e7d32' : '#333' }}>{value}</strong>
-                </div>
-              ))}
-            </div>
-            <div style={{ display: 'grid', gap: '1.5rem', marginBottom: '2rem' }}>
-              <div>
-                <label style={labelStyle}>Payment Method <span style={{ color: '#d32f2f' }}>*</span></label>
-                <select value={paymentData.method} onChange={e => setPaymentData({ ...paymentData, method: e.target.value })} style={selectStyle}>
-                  <option value="">Select method</option>
-                  <option value="Cash">Cash</option>
-                  <option value="UPI">UPI</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="Card">Card</option>
-                  <option value="Cheque">Cheque</option>
-                </select>
-              </div>
-              <div>
-                <label style={labelStyle}>Amount Received <span style={{ color: '#d32f2f' }}>*</span></label>
-                <input type="number" value={paymentData.amount} onChange={e => setPaymentData({ ...paymentData, amount: e.target.value })} style={inputStyle} />
-              </div>
-              {paymentData.method && paymentData.method !== 'Cash' && (
-                <div>
-                  <label style={labelStyle}>Transaction ID / Reference</label>
-                  <input type="text" value={paymentData.transactionId} onChange={e => setPaymentData({ ...paymentData, transactionId: e.target.value })} placeholder="Enter transaction reference" style={inputStyle} />
-                </div>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <button onClick={handleConfirmPayment} disabled={!paymentData.method || !paymentData.amount} style={{ flex: 1, background: (paymentData.method && paymentData.amount) ? 'linear-gradient(135deg, #2e7d32 0%, #43a047 100%)' : '#ccc', color: 'white', border: 'none', padding: '1rem 2rem', borderRadius: 12, fontSize: '1rem', fontWeight: 600, cursor: (paymentData.method && paymentData.amount) ? 'pointer' : 'not-allowed' }}>
-                ✓ Confirm & Activate
-              </button>
-              <button onClick={() => { setShowPaymentModal(false); setSelectedPending(null); }} style={{ background: 'transparent', color: '#666', border: '1px solid #ddd', padding: '1rem 2rem', borderRadius: 12, fontSize: '1rem', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-            </div>
+    {/* ── PAYMENT VERIFICATION MODAL ── */}
+{showPaymentModal && selectedPending && (
+  <div
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      padding: '2rem'
+    }}
+  >
+    <div
+      style={{
+        background: 'white',
+        borderRadius: 16,
+        padding: '2.5rem',
+        maxWidth: 600,
+        width: '100%',
+        maxHeight: '90vh',
+        overflowY: 'auto',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+      }}
+    >
+
+      {/* HEADER */}
+      <div style={{ marginBottom: '2rem' }}>
+        <h3
+          style={{
+            margin: '0 0 0.5rem',
+            fontSize: '1.6rem',
+            fontWeight: 700,
+            color: '#2d5016'
+          }}
+        >
+          💰 Verify Payment
+        </h3>
+
+        <p style={{ margin: 0, color: '#666' }}>
+          Complete payment verification to activate account
+        </p>
+      </div>
+
+      {/* CUSTOMER DETAILS */}
+      <div
+        style={{
+          background: '#f0f7ec',
+          padding: '1.5rem',
+          borderRadius: 12,
+          marginBottom: '2rem'
+        }}
+      >
+        <h4
+          style={{
+            margin: '0 0 1rem 0',
+            color: '#2d5016'
+          }}
+        >
+          Customer Details
+        </h4>
+
+        {[
+          [
+            'Name',
+            `${selectedPending?.user?.firstName || ''} ${selectedPending?.user?.lastName || ''}`
+          ],
+
+          [
+            'Package',
+            selectedPending?.subscription?.plan || 'N/A'
+          ],
+
+          [
+            'Amount Due',
+            `₹${selectedPending?.subscription?.amount || 0}`
+          ],
+        ].map(([label, value]) => (
+          <div
+            key={label}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginBottom: '0.75rem'
+            }}
+          >
+            <span style={{ color: '#666' }}>
+              {label}:
+            </span>
+
+            <strong
+              style={{
+                fontSize:
+                  label === 'Amount Due'
+                    ? '1.2rem'
+                    : '1rem',
+
+                color:
+                  label === 'Amount Due'
+                    ? '#2e7d32'
+                    : '#333'
+              }}
+            >
+              {value}
+            </strong>
           </div>
+        ))}
+      </div>
+
+      {/* FORM */}
+      <div
+        style={{
+          display: 'grid',
+          gap: '1.5rem',
+          marginBottom: '2rem'
+        }}
+      >
+
+        {/* PAYMENT METHOD */}
+        <div>
+          <label style={labelStyle}>
+            Payment Method
+            <span style={{ color: '#d32f2f' }}>
+              *
+            </span>
+          </label>
+
+          <select
+            value={paymentData.method}
+            onChange={(e) =>
+              setPaymentData({
+                ...paymentData,
+                method: e.target.value
+              })
+            }
+            style={selectStyle}
+          >
+            <option value="">
+              Select method
+            </option>
+
+            <option value="CASH">
+              Cash
+            </option>
+
+            <option value="GPAY">
+              GPay
+            </option>
+
+            <option value="ONLINE">
+              Online Transfer
+            </option>
+
+            <option value="CARD">
+              Card
+            </option>
+
+            <option value="EASEBUZZ">
+              Easebuzz
+            </option>
+          </select>
         </div>
-      )}
+
+        {/* AMOUNT */}
+        <div>
+          <label style={labelStyle}>
+            Amount Received
+            <span style={{ color: '#d32f2f' }}>
+              *
+            </span>
+          </label>
+
+          <input
+            type="number"
+            value={paymentData.amount}
+            onChange={(e) =>
+              setPaymentData({
+                ...paymentData,
+                amount: e.target.value
+              })
+            }
+            style={inputStyle}
+          />
+        </div>
+
+        {/* TRANSACTION ID */}
+        {paymentData.method &&
+          paymentData.method !== 'CASH' && (
+            <div>
+              <label style={labelStyle}>
+                Transaction ID / Reference
+              </label>
+
+              <input
+                type="text"
+                value={paymentData.transactionId}
+                onChange={(e) =>
+                  setPaymentData({
+                    ...paymentData,
+                    transactionId:
+                      e.target.value
+                  })
+                }
+                placeholder="Enter transaction reference"
+                style={inputStyle}
+              />
+            </div>
+          )}
+      </div>
+
+      {/* BUTTONS */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '1rem'
+        }}
+      >
+
+        <button
+          onClick={handleConfirmPayment}
+          disabled={
+            !paymentData.method ||
+            !paymentData.amount
+          }
+          style={{
+            flex: 1,
+
+            background:
+              paymentData.method &&
+              paymentData.amount
+                ? 'linear-gradient(135deg, #2e7d32 0%, #43a047 100%)'
+                : '#ccc',
+
+            color: 'white',
+            border: 'none',
+            padding: '1rem 2rem',
+            borderRadius: 12,
+            fontSize: '1rem',
+            fontWeight: 600,
+
+            cursor:
+              paymentData.method &&
+              paymentData.amount
+                ? 'pointer'
+                : 'not-allowed'
+          }}
+        >
+          ✓ Confirm & Activate
+        </button>
+
+        <button
+          onClick={() => {
+            setShowPaymentModal(false);
+            setSelectedPending(null);
+          }}
+          style={{
+            background: 'transparent',
+            color: '#666',
+            border: '1px solid #ddd',
+            padding: '1rem 2rem',
+            borderRadius: 12,
+            fontSize: '1rem',
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
