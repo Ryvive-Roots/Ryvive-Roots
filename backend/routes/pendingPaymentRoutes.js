@@ -3,6 +3,7 @@ import express from "express";
 import {
   createPendingPayment,
   getPendingPayments,
+    verifyPendingPayment
 } from "../controllers/pendingPaymentController.js";
 
 const router = express.Router();
@@ -19,6 +20,12 @@ router.post(
 router.get(
   "/pending-payments",
   getPendingPayments
+);
+
+
+router.post(
+  "/verify-pending-payment/:id",
+  verifyPendingPayment
 );
 
 export default router;
