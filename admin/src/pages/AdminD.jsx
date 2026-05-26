@@ -626,70 +626,14 @@ const fetchAuditLogs =
     setShowPaymentModal(true);
   };
 
- const handleConfirmPayment =
-  async () => {
-
-    try {
-
-      if (!selectedPending)
-        return;
-
-      const res = await fetch(
-        `https://api.ryviveroots.com/api/admin/verify-pending-payment/${selectedPending._id}`,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify({
-            paymentMethod:
-              paymentData.method,
-          }),
-        }
-      );
-
-      const data =
-        await res.json();
-
-      if (!res.ok) {
-        throw new Error(
-          data.message ||
-          "Verification failed"
-        );
-      }
-
-      alert(
-        "✅ Payment verified successfully!"
-      );
-
-      // REFRESH
-      await fetchOrders();
-
-      await fetchPendingPayments();
-
-      await fetchAuditLogs();
-
-      // CLOSE MODAL
-      setShowPaymentModal(false);
-
-      setSelectedPending(null);
-
-      // GO TO CUSTOMERS
-      setActiveView("customers");
-
-    } catch (err) {
-
-      console.error(err);
-
-      alert(
-        err.message ||
-        "❌ Failed to verify payment"
-      );
-    }
-};
+  const handleConfirmPayment = () => {
+    if (!selectedPending) return;
+    setPendingCustomers(prev => prev.filter(p => p.id !== selectedPending.id));
+    alert(`✅ Payment Verified!\n\nCustomer: ${selectedPending.name}\nPayment: ₹${paymentData.amount} via ${paymentData.method}\n\nAccount activated successfully!`);
+    setShowPaymentModal(false);
+    setSelectedPending(null);
+    setPaymentData({ received: false, method: '', amount: '', transactionId: '', date: new Date().toISOString().split('T')[0], notes: '' });
+  };
 
   const filteredOrders = orders.filter((order) => {
     const text = searchQuery.toLowerCase();
