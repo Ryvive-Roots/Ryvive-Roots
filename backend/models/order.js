@@ -165,6 +165,11 @@ renewal: {
   default: "CASH",
 },
 
+transactionId: {
+  type: String,
+  default: "",
+},
+
   },
   { timestamps: true },
 );

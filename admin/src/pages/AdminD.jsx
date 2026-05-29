@@ -66,6 +66,7 @@ const [pendingCustomers, setPendingCustomers] =
     method: '',
     amount: '',
     transactionId: '',
+    startDate: "",
     date: new Date().toISOString().split('T')[0],
     notes: ''
   });
@@ -615,25 +616,77 @@ const fetchAuditLogs =
 
   const handleVerifyPayment = (pending) => {
     setSelectedPending(pending);
-    setPaymentData({
-      received: false,
-      method: '',
-      amount: pending.amount,
-      transactionId: '',
-      date: new Date().toISOString().split('T')[0],
-      notes: ''
-    });
+   setPaymentData({
+  received: false,
+  method: pending.paymentMethod || "CASH",
+  amount: pending.subscription?.amount || "",
+  transactionId: "",
+  startDate:
+    pending.subscription?.startDate
+      ? new Date(pending.subscription.startDate)
+          .toISOString()
+          .split("T")[0]
+      : new Date()
+          .toISOString()
+          .split("T")[0],
+  date: new Date().toISOString().split("T")[0],
+  notes: "",
+});
     setShowPaymentModal(true);
   };
 
-  const handleConfirmPayment = () => {
-    if (!selectedPending) return;
-    setPendingCustomers(prev => prev.filter(p => p.id !== selectedPending.id));
-    alert(`✅ Payment Verified!\n\nCustomer: ${selectedPending.name}\nPayment: ₹${paymentData.amount} via ${paymentData.method}\n\nAccount activated successfully!`);
+ const handleConfirmPayment = async () => {
+  try {
+    if (!selectedPending) {
+      alert("No customer selected");
+      return;
+    }
+
+    const res = await fetch(
+      `https://api.ryviveroots.com/api/admin/verify-pending-payment/${selectedPending._id}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          paymentMethod: paymentData.method,
+          transactionId: paymentData.transactionId,
+          amount: Number(paymentData.amount),
+          startDate: paymentData.startDate,
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(
+        data.message || "Failed to activate customer"
+      );
+    }
+
+    alert("✅ Customer activated successfully");
+
     setShowPaymentModal(false);
     setSelectedPending(null);
-    setPaymentData({ received: false, method: '', amount: '', transactionId: '', date: new Date().toISOString().split('T')[0], notes: '' });
-  };
+
+    // Refresh Pending Payments list
+    await fetchPendingPayments();
+
+    // Refresh Orders/Customers list
+    if (typeof fetchOrders === "function") {
+      await fetchOrders();
+    }
+
+  } catch (error) {
+    console.error(error);
+
+    alert(
+      error.message || "Activation failed"
+    );
+  }
+};
 
   const filteredOrders = orders.filter((order) => {
     const text = searchQuery.toLowerCase();
@@ -876,7 +929,7 @@ const fetchAuditLogs =
               ) : (
                 <div style={{ display: 'grid', gap: '1rem' }}>
                   {pendingCustomers.map(pending => (
-                    <div key={pending.id} style={{ background: 'white', borderRadius: 16, padding: '2rem', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', border: '2px solid #fff4e5' }}>
+                    <div key={pending._id} style={{ background: 'white', borderRadius: 16, padding: '2rem', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', border: '2px solid #fff4e5' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
@@ -1993,6 +2046,8 @@ const fetchAuditLogs =
             </span>
           </label>
 
+
+
           <select
             value={paymentData.method}
             onChange={(e) =>
@@ -2074,7 +2129,30 @@ const fetchAuditLogs =
               />
             </div>
           )}
+
+
       </div>
+
+      <div className='my-5'>
+  <label style={labelStyle}>
+    Subscription Start Date
+    <span style={{ color: "#d32f2f" }}>
+      *
+    </span>
+  </label>
+
+  <input
+    type="date"
+    value={paymentData.startDate}
+    onChange={(e) =>
+      setPaymentData({
+        ...paymentData,
+        startDate: e.target.value,
+      })
+    }
+    style={inputStyle}
+  />
+</div>
 
       {/* BUTTONS */}
       <div
@@ -2086,10 +2164,11 @@ const fetchAuditLogs =
 
         <button
           onClick={handleConfirmPayment}
-          disabled={
-            !paymentData.method ||
-            !paymentData.amount
-          }
+         disabled={
+  !paymentData.method ||
+  !paymentData.amount ||
+  !paymentData.startDate
+}
           style={{
             flex: 1,
 
