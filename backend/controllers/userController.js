@@ -92,15 +92,98 @@ export const updateProfile = async (req, res) => {
     const oldEmail = order.user.email;
     const oldPhone = order.user.phone;
 
-    if (email && email !== oldEmail) {
-      order.user.email = email;
-      changes.push({ label: "Email", old: oldEmail || "N/A", new: email });
-    }
+    // Email change limit check
+if (email && email !== oldEmail) {
+  const emailChanges = order.user.emailChanges || 0;
+  const lastEmailChange = order.user.lastEmailChange;
 
-    if (phone && phone !== oldPhone) {
-      order.user.phone = phone;
-      changes.push({ label: "Phone", old: oldPhone || "N/A", new: phone });
+  if (emailChanges >= 2) {
+    return res.json({ success: false, message: "Email change limit reached." });
+  }
+
+  if (emailChanges === 1 && lastEmailChange) {
+    const daysSince = Math.floor((Date.now() - new Date(lastEmailChange)) / 86400000);
+    if (daysSince < 6) {
+      return res.json({ success: false, message: `Wait ${6 - daysSince} more day(s) to change email again.` });
     }
+  }
+
+  order.user.email = email;
+  order.user.emailChanges = emailChanges + 1;
+  order.user.lastEmailChange = new Date();
+  changes.push({ label: "Email", old: oldEmail || "N/A", new: email });
+}
+
+// Phone change limit check
+if (phone && phone !== oldPhone) {
+  const phoneChanges = order.user.phoneChanges || 0;
+  const lastPhoneChange = order.user.lastPhoneChange;
+
+  if (phoneChanges >= 2) {
+    return res.json({ success: false, message: "Phone change limit reached." });
+  }
+
+  if (phoneChanges === 1 && lastPhoneChange) {
+    const daysSince = Math.floor((Date.now() - new Date(lastPhoneChange)) / 86400000);
+    if (daysSince < 6) {
+      return res.json({ success: false, message: `Wait ${6 - daysSince} more day(s) to change phone again.` });
+    }
+  }
+
+  order.user.phone = phone;
+  order.user.phoneChanges = phoneChanges + 1;
+  order.user.lastPhoneChange = new Date();
+  changes.push({ label: "Phone", old: oldPhone || "N/A", new: phone });
+}
+
+// Address change limit + window check
+const { address } = req.body;
+
+if (address && (address.house || address.street || address.landmark || address.pincode || address.city)) {
+
+  // ── Window check: Friday 11AM – Saturday 5PM IST ──
+const nowUTC = new Date();
+const istOffset = 5.5 * 60 * 60 * 1000; // IST = UTC + 5:30
+const nowIST = new Date(nowUTC.getTime() + istOffset);
+
+const day = nowIST.getUTCDay();           // use UTC methods on shifted time
+const timeInMinutes = nowIST.getUTCHours() * 60 + nowIST.getUTCMinutes();
+
+const isWindowOpen =
+  (day === 5 && timeInMinutes >= 11 * 60) ||   // Friday 11:00 AM IST+
+  (day === 6 && timeInMinutes < 17 * 60);       // Saturday before 5:00 PM IST
+
+if (!isWindowOpen) {
+  return res.json({
+    success: false,
+    message: "Address changes are only allowed Friday 11:00 AM – Saturday 5:00 PM.",
+  });
+}
+
+  // ── Change limit ──
+  const addressChanges = order.address?.addressChanges || 0;
+  const maxChanges = order.subscription?.durationMonths === 3 ? 3 : 1;
+
+  if (addressChanges >= maxChanges) {
+    return res.json({ success: false, message: `Address change limit reached (${maxChanges} max for your plan).` });
+  }
+
+  const oldAddress = { ...order.address.toObject?.() || order.address };
+
+  order.address.house    = address.house    || order.address.house;
+  order.address.street   = address.street   || order.address.street;
+  order.address.landmark = address.landmark || order.address.landmark;
+  order.address.pincode  = address.pincode  || order.address.pincode;
+  order.address.city     = address.city     || order.address.city;
+  order.address.addressChanges    = addressChanges + 1;
+  order.address.lastAddressChange = new Date();
+
+  changes.push({
+    label: "Address",
+    old: `${oldAddress.house}, ${oldAddress.street}, ${oldAddress.city}`,
+    new: `${order.address.house}, ${order.address.street}, ${order.address.city}`,
+  });
+}
 
     if (changes.length === 0) {
       return res.json({ success: true, message: "No changes detected" });
@@ -271,13 +354,30 @@ ${footerHtml}
     }
 
  // Sync User collection too
-await User.findOneAndUpdate(
-  { membershipId },
-  {
-    ...(email && email !== oldEmail && { email }),
-    ...(phone && phone !== oldPhone && { phone }),
-  }
-);
+const userUpdateFields = {};
+const userIncrements = {};
+
+if (email && email !== oldEmail) {
+  userUpdateFields.email = email;
+  userUpdateFields.lastEmailChange = new Date();
+  userIncrements.emailChanges = 1;
+}
+
+if (phone && phone !== oldPhone) {
+  userUpdateFields.phone = phone;
+  userUpdateFields.lastPhoneChange = new Date();
+  userIncrements.phoneChanges = 1;
+}
+
+if (Object.keys(userUpdateFields).length > 0) {
+  await User.findOneAndUpdate(
+    { membershipId },
+    {
+      $set: userUpdateFields,
+      $inc: userIncrements,
+    }
+  );
+}
 
 return res.json({ success: true, message: "Profile updated successfully" });
 

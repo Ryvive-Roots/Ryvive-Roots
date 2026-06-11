@@ -40,20 +40,26 @@ const OrderSchema = new mongoose.Schema(
       lastName: String,
       phone: String,
       email: String,
+       emailChanges:    { type: Number, default: 0 },  // ← add this
+  lastEmailChange: { type: Date },                 // ← add this
+  phoneChanges:    { type: Number, default: 0 },  // ← add this
+  lastPhoneChange: { type: Date }, 
       dob: {
         type: Date, // ✅ BEST PRACTICE
       },
     },
 
 
-    address: {
-      pincode: String,
-      house: String,
-      street: String,
-      landmark: String,
-      city: { type: String, default: "Dombivli" },
-      state: { type: String, default: "Maharashtra" },
-    },
+   address: {
+  pincode:  String,
+  house:    String,
+  street:   String,
+  landmark: String,
+  city:     { type: String, default: "Dombivli" },
+  state:    { type: String, default: "Maharashtra" },
+  addressChanges:    { type: Number, default: 0 },  // ← add
+  lastAddressChange: { type: Date },                 // ← add
+},
 
    healthInfo: {
   allergies: String,

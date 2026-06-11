@@ -1,0 +1,44 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+/* Chrome, Edge, Safari */
+nav::-webkit-scrollbar {
+  width: 8px;
+}
+
+nav::-webkit-scrollbar-track {
+  background: #1A1610; /* DARK */
+}
+
+nav::-webkit-scrollbar-thumb {
+  background: #d4af37; /* GOLD */
+  border-radius: 10px;
+}
+
+nav::-webkit-scrollbar-thumb:hover {
+  background: #c19b2f;
+}
+
+/* Firefox */
+nav {
+  scrollbar-width: thin;
+  scrollbar-color: #d4af37 #1A1613;
+}
+
+main::-webkit-scrollbar {
+  width: 8px;
+}
+
+main::-webkit-scrollbar-track {
+  background: #f4efe6;
+}
+
+main::-webkit-scrollbar-thumb {
+  background: #6f7a65; /* SAGE_DARK */
+  border-radius: 20px;
+}
+
+main::-webkit-scrollbar-thumb:hover {
+  background: #55604d;
+}

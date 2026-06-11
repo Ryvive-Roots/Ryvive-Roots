@@ -11,6 +11,10 @@ const UserSchema = new mongoose.Schema(
 
     email: { type: String, unique: true, sparse: true },
     phone: { type: String, unique: true, sparse: true },
+    emailChanges:    { type: Number, default: 0 },
+lastEmailChange: { type: Date },
+phoneChanges:    { type: Number, default: 0 },
+lastPhoneChange: { type: Date },
 
     membershipId: {
       type: String,

@@ -1,0 +1,438 @@
+export const menuSections = [
+    {
+        number: '01',
+        title: 'SIGNATURE DETOX COLLECTION',
+        subtitle: 'Cold-pressed blends for cleansing and balance',
+        blurb: 'Cold-pressed blends designed for deep cleansing, vitality, and internal balance. Freshly prepared, quietly potent, and rooted in clean nourishment.',
+        items: [
+            {
+                name: 'TESTO PLUS',
+                description: 'Vitality. Hormone balance. Strength.',
+                details: 'Spinach, Lettuce, Beetroot, Carrot, Pomegranate, Ginger, Amla, Ashwagandha',
+                price: '₹219',
+            },
+            {
+                name: 'IMMUNI BOOST+',
+                description: 'Strong immunity. Metabolism uplift.',
+                details: 'Pineapple, Cucumber, Apple, Amla, Lemon, Ginger, Black Pepper, Turmeric',
+                price: '₹219',
+            },
+            {
+                name: 'RED RYVIVER',
+                description: 'Iron rich. Energising. Blood builder.',
+                details: 'Beetroot, Carrot, Apple, Pineapple, Amla, Ginger, Lemon, Honey',
+                price: '₹209',
+            },
+            {
+                name: 'CLEAN RYVIVE',
+                description: 'Deep detox. Gut light. Fresh cleanse.',
+                details: 'Spinach, Celery, Cucumber, Apple, Amla, Lemon, Ginger',
+                price: '₹199',
+            },
+        ],
+    },
+    {
+        number: '02',
+        title: 'FRUIT & VEGETABLE ELIXIRS',
+        subtitle: 'Daily hydration with restorative fruit blends',
+        blurb: 'Fresh fruit and vegetable blends crafted for daily nourishment, lightness, and hydration. Bright, restorative, and balanced for everyday ritual.',
+        items: [
+            {
+                name: 'BE FOR BRAIN',
+                description: 'Sharper focus. Memory-friendly drink.',
+                details: 'Blueberries, Beetroot, Pomegranate, Lemon',
+                price: '₹299',
+            },
+            {
+                name: 'DRAGON PINE',
+                description: 'Improve metabolism. Light tropical energy.',
+                details: 'Pineapple, Dragon Fruit, Honey',
+                price: '₹279',
+            },
+            {
+                name: 'APB SHAKE',
+                description: 'Great for stamina. Fills hunger fast.',
+                details: 'Apple, Pomegranate, Banana, Milk',
+                price: '₹269',
+            },
+            {
+                name: 'POMEGRANATE DELIGHT',
+                description: 'Rich iron support. Hormone-friendly sweetness.',
+                details: 'Pomegranate, Curd, Honey',
+                price: '₹199',
+            },
+        ],
+    },
+    {
+        number: '03',
+        title: 'WELLNESS BLENDS',
+        subtitle: 'Targeted blends for everyday health support',
+        blurb: 'Targeted wellness blends crafted for everyday health support. Clean, supportive, and composed with a premium wellness-first tone.',
+        items: [
+            {
+                name: 'BRIGHT EYES',
+                description: 'Enhances eyesight glow. Reduces fatigue.',
+                details: 'Carrot, Orange, Grapefruit',
+                price: '₹279',
+            },
+            {
+                name: 'HAPPY GUT',
+                description: 'Smooth digestion. Reduces acidity naturally.',
+                details: 'Cucumber, Apple, Lemon, Ginger',
+                price: '₹269',
+            },
+            {
+                name: 'FOR SKIN SAKE',
+                description: 'Collagen support. Deep skin hydration.',
+                details: 'Cucumber, Celery, Apple, Kale, Lemon',
+                price: '₹199',
+            },
+            {
+                name: 'DIGESTION BOOSTER',
+                description: 'Eases heaviness. Tropical digestive support.',
+                details: 'Watermelon, Pineapple, Mango, Lemon, Ginger',
+                price: '₹279',
+            },
+        ],
+    },
+    {
+        number: '04',
+        title: 'CREAMY & NOURISHING SMOOTHIES',
+        subtitle: 'Rich blends with natural sweetness and depth',
+        blurb: 'Rich, satisfying blends with natural sweetness. Smooth, generous, and designed to feel like a complete, nourishing pause.',
+        items: [
+            {
+                name: 'MANGO MAGIC',
+                description: 'Rich energy sip. Naturally mood lifting.',
+                details: 'Mango, Milk, Walnut, Honey',
+                price: '₹299',
+            },
+            {
+                name: 'ALL AVOCADO SMOOTHIE',
+                description: 'Creamy good fats. Sustained fullness boost.',
+                details: 'Avocado, Banana, Spinach, Milk, Dry Fruits, Honey',
+                price: '₹279',
+            },
+            {
+                name: 'DRAGON DELIGHT',
+                description: 'Cool tropical sweetness. Smooth digestion.',
+                details: 'Dragon Fruit, Banana, Milk, Honey',
+                price: '₹210',
+            },
+            {
+                name: 'SUPER SMOOTHIE',
+                description: 'Gentle on gut. Everyday nourishment.',
+                details: 'Papaya, Banana, Dragon Fruit, Milk, Nuts, Honey',
+                price: '₹199',
+            },
+        ],
+    },
+    {
+        number: '05',
+        title: 'CURATED SALAD COLLECTION',
+        subtitle: 'House-made dressings and plant protein signatures',
+        blurb: 'Crisp greens, vibrant vegetables, and signature in-house dressings. Fresh, nourishing, and crafted to feel quietly luxurious.',
+        items: [
+            {
+                name: 'SPROUT GLOW MIX',
+                description: 'Slow-boiled green gram, root vegetables, pomegranate.',
+                details: 'Grated coconut dressing',
+                price: '₹309',
+            },
+            {
+                name: 'SIGNATURE TWIN PULSE',
+                description: 'Mix sprouts, sweet corn, garden vegetables, seed and berries.',
+                details: 'Honey curd dressing',
+                price: '₹351',
+            },
+            {
+                name: 'HIGH PROTEIN BLACK CHANA',
+                description: 'Slow-cooked black chana with fresh vegetables.',
+                details: 'Honey curd dressing',
+                price: '₹312',
+            },
+            {
+                name: 'HIGH PROTEIN PANEER SALAD',
+                description: 'Ghee-roasted paneer, boiled chana, almond finish.',
+                details: 'California almond dressing',
+                price: '₹309',
+            },
+        ],
+    },
+    {
+        number: '06',
+        title: 'CREAMY & INDULGENT SALADS',
+        subtitle: 'Comforting bowls with rich dressings and depth',
+        blurb: 'Creamy, layered salads and hearty combinations for those who want indulgence without losing the clean, wellness-led character of the menu.',
+        items: [
+            {
+                name: 'BROCCOLI CASHEW CREAM',
+                description: 'Steamed broccoli, baby corn, tri-colour peppers.',
+                details: 'Cashew cheese dressing',
+                price: '₹366',
+            },
+            {
+                name: 'GREEN GARDEN BOWL',
+                description: 'Greens medley, spinach, kale, garden vegetables.',
+                details: 'Cashew cheese dressing',
+                price: '₹439',
+            },
+            {
+                name: 'THAI MUSHROOM SALAD',
+                description: 'Ghee-sautéed mushroom and steamed vegetables.',
+                details: 'Thai green coconut dressing',
+                price: '₹329',
+            },
+            {
+                name: 'CHILLI LIME SOYA SALAD',
+                description: 'Ghee-roasted soya, red cabbage, citrus spice.',
+                details: 'Chilli lime dressing',
+                price: '₹366',
+            },
+        ],
+    },
+    {
+        number: '07',
+        title: 'FRESH & CRISP SALADS',
+        subtitle: 'Clean, bright, and balanced everyday bowls',
+        blurb: 'Bright, clean, and micronutrient rich salads with a fresh crisp profile. Balanced, breathable, and easy to read visually and nutritionally.',
+        items: [
+            {
+                name: 'CLASSIC VEGGIE BOWL',
+                description: 'Market vegetables, seeds, subtle spice.',
+                details: 'Coconut crunch dressing',
+                price: '₹339',
+            },
+            {
+                name: 'CHILLI CRUNCH SALAD',
+                description: 'Red cabbage, root vegetables, almond heat.',
+                details: 'Almond chilli cream',
+                price: '₹249',
+            },
+            {
+                name: 'CORN PANEER BALANCE BOWL',
+                description: 'Sweet corn, dairy-fresh paneer, cooling herbs.',
+                details: 'Mint hung curd dressing',
+                price: '₹199',
+            },
+            {
+                name: 'CUCUMBER CHILL BOWL',
+                description: 'Crisp cucumber, corn, soft curd finish.',
+                details: 'Honey curd dressing',
+                price: '₹189',
+            },
+        ],
+    },
+    {
+        number: '08',
+        title: 'SANDWICHES',
+        subtitle: 'The luxury avocado and royal paneer series',
+        blurb: 'Handcrafted grills made fresh to order. Premium ingredients layered between artisan bread for a wholesome, satisfying meal.',
+        items: [
+            {
+                name: 'AVOCADO PANEER ROYAL GRILL',
+                description: 'Avocado, premium paneer, tomato, and fresh greens in a gourmet grill.',
+                details: 'Signature',
+                price: '₹389',
+            },
+            {
+                name: 'AVOCADO SUPREME FRESH GRILL',
+                description: 'Creamy avocado, bell peppers, kale, and spinach.',
+                details: 'Signature',
+                price: '₹369',
+            },
+            {
+                name: 'CORN & PANEER CREME MELT',
+                description: 'Creamy paneer, sweet corn, spinach, and bell peppers.',
+                details: 'Royal paneer series',
+                price: '₹389',
+            },
+            {
+                name: 'THE HEALTHY GREEN TOASTIE',
+                description: 'Creamy paneer with spinach and antioxidant-rich greens.',
+                details: 'House special',
+                price: '₹275',
+            },
+        ],
+    },
+    {
+        number: '09',
+        title: 'SANDWICHES CONTINUED',
+        subtitle: 'Corn, mushroom, and wholesome veg collections',
+        blurb: 'Layered grilled sandwiches with a brighter vegetable-forward balance. Clean comfort, composed with the same premium pace as the rest of the menu.',
+        items: [
+            {
+                name: 'BROCCOLI CORN CHEESE',
+                description: 'Broccoli, corn, and cheese in a creamy, hearty classic.',
+                details: 'Corn and veg series',
+                price: '₹189',
+            },
+            {
+                name: 'SPICY CORN CREAM GRILL',
+                description: 'Corn, chilli, and cream for a light yet satisfying bite.',
+                details: 'Corn and veg series',
+                price: '₹169',
+            },
+            {
+                name: 'SAUTEED MUSHROOM CREME MELT',
+                description: 'Mushrooms, spinach, and garlic in a smooth creme melt.',
+                details: 'Mushroom and gourmit grill series',
+                price: '₹229',
+            },
+            {
+                name: 'WHOLESOME VEGGIE CHEESE GRILL',
+                description: 'A complete vegetable grill with a soft cheese finish.',
+                details: 'Wholesome veg collection',
+                price: '₹229',
+            },
+        ],
+    },
+    {
+        number: '10',
+        title: 'WRAPS',
+        subtitle: 'Freshly made and slow-crafted dressings',
+        blurb: 'Packed with goodness and rolled fresh daily. Light, flavorful, and designed to fuel your day with clean ingredients.',
+        items: [
+            {
+                name: 'PINK POWER WELLNESS WRAP',
+                description: 'Beetroot-gram flour wrap with zucchini, carrot, onion, paneer, bell pepper, and kale.',
+                details: 'Hung curd mint dressing',
+                price: '₹319',
+            },
+            {
+                name: 'VEG PROTEIN SUPREME WRAP',
+                description: 'Spinach wrap with grated paneer, pickled onion, broccoli, corn, and lettuce.',
+                details: 'Hung curd mint dressing',
+                price: '₹299',
+            },
+            {
+                name: 'PANEER CRUNCH WRAP',
+                description: 'Whole-wheat wrap with bell peppers, pickled onion, red cabbage, paneer, carrot, and lettuce.',
+                details: 'Classic hung curd mint',
+                price: '₹199',
+            },
+            {
+                name: 'CHICKPEA AVOCADO WRAP',
+                description: 'Whole-wheat wrap with chickpeas, avocado, onion, tomato, carrot, cucumber, coriander, and lemon.',
+                details: 'Classic hung curd mint',
+                price: '₹199',
+            },
+        ],
+    },
+    {
+        number: '11',
+        title: 'SOUPS & CHAAT',
+        subtitle: 'Warm bowls and clean street-style favourites',
+        blurb: 'Warm, comforting bowls and thoughtfully spiced chaat. Familiar flavours, refined with clean ingredients and a calm editorial tone.',
+        items: [
+            {
+                name: 'BROCCOLI ALMOND HUG',
+                description: 'A velvety green blend finished with almond richness.',
+                details: 'Slow simmered soup',
+                price: '₹209',
+            },
+            {
+                name: 'GARDEN VEGETABLE SOUP',
+                description: 'A clear, healing bowl of seasonal vegetables.',
+                details: 'Slow simmered soup',
+                price: '₹189',
+            },
+            {
+                name: 'SWEET POTATO & PEA',
+                description: 'Roasted sweet potato with green peas, hung curd, citrus.',
+                details: 'Chef\'s pick chaat',
+                price: '₹139',
+            },
+            {
+                name: 'CORN N, CHEESE',
+                description: 'Sweet corn with bell pepper and house cashew cheese.',
+                details: 'Signature favourites',
+                price: '₹129',
+            },
+        ],
+    },
+    {
+        number: '12',
+        title: 'PASTA ZOODLE COLLECTIONS',
+        subtitle: 'Grain-free house-crafted sauces and dips',
+        blurb: 'Light, guilt-free alternatives to traditional pasta, plus small in-house crafted dips that complete the meal without clutter.',
+        items: [
+            {
+                name: 'THE ZOODLE FLAME',
+                description: 'Julienned zucchini with bell peppers and spring onion in slow-cooked red sauce.',
+                details: 'Zoodle collection',
+                price: '₹329',
+            },
+            {
+                name: 'THE PESTO ZOODLE HOUR',
+                description: 'Fresh zucchini ribbons finished in house basil pesto and aromatic chill oil.',
+                details: 'Zoodle collection',
+                price: '₹309',
+            },
+            {
+                name: 'THE CHIPOTLE',
+                description: 'Gentle warmth. Gut-light.',
+                details: 'House crafted dip',
+                price: '₹25',
+            },
+            {
+                name: 'AVOCADO LIME MOUSSE',
+                description: 'Healthy fats. Skin glow.',
+                details: 'House crafted dip',
+                price: '₹55',
+            },
+        ],
+    },
+];
+export const menuPreviewCards = [
+    {
+        imageLabel: 'Detox',
+        title: 'Signature Detox',
+        description: 'Clean Ryvive, Immuni Boost+, and other cold-pressed essentials.',
+        price: 'From ₹199',
+    },
+    {
+        imageLabel: 'Salads',
+        title: 'Curated Salads',
+        description: 'Plant protein signatures and creamy indulgent bowls.',
+        price: 'From ₹189',
+    },
+    {
+        imageLabel: 'Sandwiches',
+        title: 'Sandwich Series',
+        description: 'Avocado, paneer, corn, and mushroom grills.',
+        price: 'From ₹189',
+    },
+    {
+        imageLabel: 'Wraps',
+        title: 'Wrap House',
+        description: 'Wellness wraps, cheese indulgence, and classic mint dressings.',
+        price: 'From ₹169',
+    },
+];
+export const homeSignatureCards = [
+    {
+        imageLabel: 'Clean Ryvive',
+        title: 'CLEAN RYVIVE',
+        description: 'Deep detox. Gut light. Fresh cleanse.',
+        price: '₹199',
+    },
+    {
+        imageLabel: 'Signature Twin Pulse',
+        title: 'SIGNATURE TWIN PULSE',
+        description: 'Mix sprouts, sweet corn, and garden vegetables.',
+        price: '₹351',
+    },
+    {
+        imageLabel: 'Avocado Paneer Royal Grill',
+        title: 'AVOCADO PANEER ROYAL GRILL',
+        description: 'Avocado, premium paneer, tomato, and fresh green layers.',
+        price: '₹389',
+    },
+    {
+        imageLabel: 'The Zoodle Flame',
+        title: 'THE ZOODLE FLAME',
+        description: 'Julienned zucchini in a slow-cooked red sauce.',
+        price: '₹329',
+    },
+];
