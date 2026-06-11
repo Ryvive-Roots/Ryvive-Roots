@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import gsap from 'gsap';
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { User, Calendar, TrendingUp, Package, MessageCircle, Bell, LogOut, Edit3, Lock, Clock, CheckCircle, Pause, MapPin, Receipt, ChevronRight as DashMenuIcon, X as XIcon, } from "lucide-react";
 import { CREAM, CREAM_2, DARK, INK, SAGE, SAGE_DARK } from "../theme";

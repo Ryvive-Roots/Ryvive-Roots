@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ShieldCheck, Sparkles, Leaf, Calendar, Clock, Sprout } from 'lucide-react';
 import { useState, useEffect } from 'react';
 // Images
