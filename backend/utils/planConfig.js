@@ -13,7 +13,7 @@ export const PLANS = {
     durationMonths: 1,
   },
   PLATINUM_1MONTH: {
-    price: 1,
+    price: 6999,
     durationMonths: 1,
   },
 
