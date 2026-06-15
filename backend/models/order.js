@@ -1,19 +1,31 @@
 import mongoose from "mongoose";
 
+
 const OrderSchema = new mongoose.Schema(
+ 
+
   {
+     
     // 🧪 TEST MODE FLAG
     isTest: {
       type: Boolean,
       default: false,
-      index: true,
+      index: true, // helpful for filtering test orders
     },
 
-    membershipId: {
-      type: String,
-      required: true,
-      index: true, // ✅ fast search, NOT unique — child orders share base ID
-    },
+   membershipId: {
+  type: String,
+  required: true,
+  index: true,   // ✅ fast search, NOT unique
+},
+
+
+// // ✅ ADD THIS
+// parentMembershipId: {
+//   type: String,
+//   required: true,
+//   index: true, // 🔥 important for fast grouping
+// },
 
     receiptNumber: {
       type: String,
@@ -28,61 +40,73 @@ const OrderSchema = new mongoose.Schema(
       lastName: String,
       phone: String,
       email: String,
-      emailChanges:    { type: Number, default: 0 },
-      lastEmailChange: { type: Date },
-      phoneChanges:    { type: Number, default: 0 },
-      lastPhoneChange: { type: Date },
-      dob:             { type: Date },
+       emailChanges:    { type: Number, default: 0 },  // ← add this
+  lastEmailChange: { type: Date },                 // ← add this
+  phoneChanges:    { type: Number, default: 0 },  // ← add this
+  lastPhoneChange: { type: Date }, 
+      dob: {
+        type: Date, // ✅ BEST PRACTICE
+      },
     },
 
-    address: {
-      pincode:           String,
-      house:             String,
-      street:            String,
-      landmark:          String,
-      city:              { type: String, default: "Dombivli" },
-      state:             { type: String, default: "Maharashtra" },
-      addressChanges:    { type: Number, default: 0 },
-      lastAddressChange: { type: Date },
-    },
 
-    healthInfo: {
-      allergies:         String,
-      medicalConditions: String,
-    },
+   address: {
+  pincode:  String,
+  house:    String,
+  street:   String,
+  landmark: String,
+  city:     { type: String, default: "Dombivli" },
+  state:    { type: String, default: "Maharashtra" },
+  addressChanges:    { type: Number, default: 0 },  // ← add
+  lastAddressChange: { type: Date },                 // ← add
+},
 
-    remarks: String,
+   healthInfo: {
+  allergies: String,
+  medicalConditions: String,
+},
 
-    // ✅ removed required:true — renewal + child orders copy from parent
+remarks: String,
+
+
+    // ✅ DELIVERY SLOT (FIXED)
     deliverySlot: {
       type: String,
+      required: true,
     },
 
     subscription: {
-      plan: {
-        type: String,
-        enum: [
-          "SILVER_1MONTH",
-          "GOLD_1MONTH",
-          "PLATINUM_1MONTH",
-          "SILVER_3MONTH",
-          "GOLD_3MONTH",
-          "PLATINUM_3MONTH",
-        ],
-      },
+plan: {
+  type: String,
+  enum: [
+   
+    "SILVER_1MONTH",
+    "GOLD_1MONTH",
+    "PLATINUM_1MONTH",
+    "SILVER_3MONTH",
+    "GOLD_3MONTH",
+    "PLATINUM_3MONTH",
+  ],
+},
       amount: {
         type: Number,
         required: true,
       },
       durationMonths: {
         type: Number,
-        default: 1,
+        default: 1, // ✅ 1 month
       },
-      activationAt: {
-        type: Date,
-        required: true,
-        default: Date.now,
-      },
+
+      // ⏳ ACTIVATION AFTER 48 HOURS
+   activationAt: {
+  type: Date,
+  required: true,
+  default: Date.now,
+},
+
+
+
+      // 📆 Subscription starts ONLY after activation
       startDate: {
         type: Date,
         required: true,
@@ -92,67 +116,69 @@ const OrderSchema = new mongoose.Schema(
         required: true,
       },
       pause: {
-        used: { type: Number, default: 0 },
+        used: { type: Number, default: 0 }, // ✅ pause counter
         history: [
           {
-            startDate:  Date,
-            endDate:    Date,
+            startDate: Date,
+            endDate: Date,   
             resumeDate: Date,
-            days:       Number,
+            days: Number,
           },
         ],
       },
+
       status: {
         type: String,
         enum: ["UNDER_PROCESS", "ACTIVE", "PAUSED", "CANCELLED", "EXPIRED"],
-        default: "UNDER_PROCESS",
+        default: "UNDER_PROCESS", // 🟠 default now
       },
+       // 🔔 NEW FIELDS (ADD THESE)
+   // 🔔 MULTI-REMINDER SUPPORT
       renewalReminderStage: {
         type: String,
         enum: ["NONE", "4D", "1D"],
         default: "NONE",
       },
-      renewalReminderDate: { type: Date },
-      thankYouEmailSentAt: { type: Date },
-      welcomeEmailSent: {
-        type: Boolean,
-        default: false,
+
+      renewalReminderDate: {
+        type: Date,
       },
-      renewal: {
-        pending:        { type: Boolean, default: false },
-        durationMonths: { type: Number },
-      },
-    },
-
-    paymentStatus: {
-      type: String,
-      enum: ["PENDING", "PAID", "FAILED"],
-      default: "PENDING",
-    },
-
-    // ✅ removed ONLINE — use EASEBUZZ for all gateway payments
-    paymentMethod: {
-      type: String,
-      enum: ["CASH", "GPAY", "CARD", "EASEBUZZ"],
-      default: "CASH",
-    },
-
-    // ✅ kept for simple single-field reference
-    transactionId: {
-      type: String,
-      default: "",
-    },
-
-    // ✅ ADDED — full Easebuzz payment details
-    paymentDetails: {
-      gateway:   { type: String },
-      txnid:     { type: String },
-      easepayid: { type: String },
-    },
+    
+      thankYouEmailSentAt: Date,
+welcomeEmailSent: {
+  type: Boolean,
+  default: false,
+},
+renewal: {
+  pending: {
+    type: Boolean,
+    default: false,
   },
-  { timestamps: true }
-);
+  durationMonths: Number,
+},},
 
+    
+
+   paymentStatus: {
+  type: String,
+  enum: ["PENDING", "PAID", "FAILED"],
+  default: "PENDING",
+},
+
+   paymentMethod: {
+  type: String,
+  enum: ["CASH", "ONLINE", "GPAY", "CARD", "EASEBUZZ"],
+  default: "CASH",
+},
+
+transactionId: {
+  type: String,
+  default: "",
+},
+
+  },
+  { timestamps: true },
+);
 if (mongoose.models.Order) {
   delete mongoose.models.Order;
 }

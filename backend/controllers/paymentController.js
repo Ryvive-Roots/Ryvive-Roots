@@ -3,9 +3,13 @@ import axios from "axios";
 import TempPayment from "../models/TempPayment.js";
 import { PLANS } from "../utils/planConfig.js";
 
+/**
+ * STEP 1️⃣ — INITIATE EASEBUZZ PAYMENT
+ */
 export const initiateEasebuzzPayment = async (req, res) => {
   try {
     let {
+    
       firstname,
       email,
       phone,
@@ -17,10 +21,8 @@ export const initiateEasebuzzPayment = async (req, res) => {
     } = req.body;
 
     isRenewal = isRenewal === true || isRenewal === "true";
-    isExistingCustomerPurchase =
-      isExistingCustomerPurchase === true ||
-      isExistingCustomerPurchase === "true";
 
+    // ✅ Basic validation (common fields)
     if (!firstname || !email || !phone || !plan) {
       return res.status(400).json({
         success: false,
@@ -28,13 +30,19 @@ export const initiateEasebuzzPayment = async (req, res) => {
       });
     }
 
-    if (!isRenewal && !isExistingCustomerPurchase && !formData) {
+    // ✅ Require formData ONLY for new subscription
+    if (
+  !isRenewal &&
+  !isExistingCustomerPurchase &&
+  !formData
+) {
       return res.status(400).json({
         success: false,
         message: "Form data required for new subscription",
       });
     }
 
+    // ✅ Require membershipId for renewal
     if (isRenewal && !membershipId) {
       return res.status(400).json({
         success: false,
@@ -42,55 +50,57 @@ export const initiateEasebuzzPayment = async (req, res) => {
       });
     }
 
-    if (isExistingCustomerPurchase && !membershipId) {
-      return res.status(400).json({
-        success: false,
-        message: "Membership ID required for existing customer purchase",
-      });
-    }
+// 🔎 Extract base plan
+const selectedPlan = PLANS[plan];
 
-    const selectedPlan = PLANS[plan];
 
-    if (!selectedPlan) {
-      return res.status(400).json({ success: false, message: "Invalid plan" });
-    }
 
-    const durationMonths = selectedPlan.durationMonths;
-    const dbAmount = selectedPlan.price;
+if (!selectedPlan) {
+  return res.status(400).json({
+    success: false,
+    message: "Invalid plan",
+  });
+}
 
-    if (dbAmount === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid pricing configuration",
-      });
-    }
+const durationMonths = selectedPlan.durationMonths;
+const dbAmount = selectedPlan.price;
+ 
 
-const easebuzzAmount = dbAmount.toString();
-const txnid = `TXN_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+if (dbAmount === undefined) 
+ {
+  return res.status(400).json({
+    success: false,
+    message: "Invalid pricing configuration",
+  });
+}
 
-// ✅ Strip -R suffix — child IDs generated at order creation, never stored here
-const baseMembershipId = membershipId
-  ? membershipId.split("-R")[0].trim()
-  : null;
 
-// ✅ Save temp payment
-await TempPayment.create({
-  txnid,
-  amount: dbAmount,
-  plan,
-  durationMonths,
-  // ✅ These must come BEFORE formData so Mongoose `this` context is set correctly
-  isRenewal,
-  isExistingCustomerPurchase,
-  membershipId: baseMembershipId,
-  // ✅ Only save formData for brand new subscriptions
-  formData: !isRenewal && !isExistingCustomerPurchase ? formData : undefined,
-  status: "PENDING",
-});
 
-// 🔐 Easebuzz hash
-const udf1 = plan;
-const udf2 = phone.toString();
+
+
+
+
+    const easebuzzAmount = dbAmount.toString();
+    const txnid = `TXN_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+    // ✅ Save temp payment
+    await TempPayment.create({
+      txnid,
+      amount: dbAmount,
+      plan: plan,
+      durationMonths,
+    formData: isRenewal ? undefined : formData,
+      isRenewal: isRenewal || false,
+      isExistingCustomerPurchase:
+  isExistingCustomerPurchase || false,
+      membershipId: membershipId || null,
+      status: "PENDING",
+    });
+
+    // 🔐 Easebuzz hash
+   const udf1 = plan;   // IMPORTANT
+    const udf2 = phone.toString();
+
     const productinfo = "Subscription Payment";
 
     const hashString = [
@@ -147,7 +157,9 @@ const udf2 = phone.toString();
         furl: `${process.env.BACKEND_URL}/api/payment/easebuzz/failure`,
         hash,
       }),
-      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
     );
 
     console.log("Easebuzz FULL RESPONSE:", easebuzzResponse.data);
@@ -164,24 +176,31 @@ const udf2 = phone.toString();
       access_key: easebuzzResponse.data.data,
     });
   } catch (error) {
-    console.error(
-      "Easebuzz initiate error:",
-      error.response?.data || error.message || error
-    );
-    return res.status(500).json({
-      success: false,
-      message: "Payment initiation failed",
-    });
-  }
+  console.error(
+    "Easebuzz initiate error:",
+    error.response?.data || error.message || error
+  );
+
+  return res.status(500).json({
+    success: false,
+    message: "Payment initiation failed",
+  });
+}
 };
 
+/**
+ * SUCCESS CALLBACK
+ */
 export const easebuzzPaymentSuccess = async (req, res) => {
   try {
     const response = await axios.post(
       `${process.env.BACKEND_URL}/api/orders/easebuzz-success`,
       req.body,
-      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
     );
+
     return res.redirect(response.request.res.responseUrl);
   } catch (error) {
     console.error("Easebuzz payment success forward error:", error);
@@ -189,6 +208,9 @@ export const easebuzzPaymentSuccess = async (req, res) => {
   }
 };
 
+/**
+ * FAILURE CALLBACK
+ */
 export const easebuzzFailure = async (req, res) => {
   return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
 };
