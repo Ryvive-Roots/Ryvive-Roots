@@ -1,3 +1,4 @@
+
 const generateMembershipId = async (Model, amount) => {
   const now = new Date();
 
@@ -44,3 +45,29 @@ const generateMembershipId = async (Model, amount) => {
 };
 
 export default generateMembershipId;
+
+// generateChildMembershipId.js
+
+const generateChildMembershipId = async (Order, baseMembershipId) => {
+  // Find all child orders for this base membership (e.g. RR202506001-R1, -R2 ...)
+  const existingChildren = await Order.find({
+    membershipId: { $regex: `^${baseMembershipId}-R\\d+$` },
+  }).select("membershipId");
+
+  let maxR = 0;
+
+  for (const order of existingChildren) {
+    const match = order.membershipId.match(/-R(\d+)$/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (num > maxR) maxR = num;
+    }
+  }
+
+  const nextR = maxR + 1;
+
+  return `${baseMembershipId}-R${nextR}`;
+};
+
+export default generateChildMembershipId;
+

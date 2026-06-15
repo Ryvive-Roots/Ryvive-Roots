@@ -9,18 +9,16 @@ import Career from './pages/Career';
 import Contact from './pages/Contact';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import AdminDashboard from './pages/AdminDashboard';
+
 import Dashboard1 from './pages/Dashboard1';
 import SubscriptionCheckout from './pages/SubscriptionCheckout';
+import Dash from "./pages/Dash";
 export const router = createBrowserRouter([
     {
         path: '/login',
         Component: Login,
     },
-    {
-        path: '/admin',
-        Component: AdminDashboard,
-    },
+    
     {
         path: '/',
         Component: Layout,
