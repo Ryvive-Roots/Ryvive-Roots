@@ -6,7 +6,6 @@ import generateMembershipId from "../utils/generateMembershipId.js";
 import sendEmail from "../utils/sendEmail.js";
 import generateInvoice from "../utils/generateInvoice.js";
 import generateReceiptNumber from "../utils/generateReceiptNumber.js";
-import generateChildMembershipId from "../utils/generateChildMembershipId.js";
 import TempPayment from "../models/TempPayment.js";
 
 
@@ -409,9 +408,6 @@ await sendEmail({
 }
 
 
-
-
-// inside isExistingCustomerPurchase block:
 if (tempPayment.isExistingCustomerPurchase) {
 
   const existingUser = await User.findOne({
@@ -422,26 +418,32 @@ if (tempPayment.isExistingCustomerPurchase) {
     return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
   }
 
-  // ✅ Generate child ID: RR202506001 → RR202506001-R1, R2, R3...
-  const childMembershipId = await generateChildMembershipId(
-    Order,
-    existingUser.membershipId   // always use the clean base from User, not TempPayment
+  const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+
+  const startDate = new Date(activationAt);
+
+  const endDate = addMonthsSafe(
+    startDate,
+    selectedPlan.durationMonths
   );
 
-  const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-  const startDate = new Date(activationAt);
-  const endDate = addMonthsSafe(startDate, selectedPlan.durationMonths);
-  const receiptNumber = await generateReceiptNumber(Order, tempPayment.amount);
+  const receiptNumber = await generateReceiptNumber(
+    Order,
+    tempPayment.amount
+  );
 
   const order = await Order.create({
-    membershipId: childMembershipId,   // ✅ e.g. RR202506001-R1
+    membershipId: existingUser.membershipId,
+
     receiptNumber,
+
     user: {
       firstName: existingUser.firstName,
       lastName: existingUser.lastName,
       email: existingUser.email,
       phone: existingUser.phone,
     },
+
     subscription: {
       plan: exactPlan,
       amount: tempPayment.amount,
@@ -452,16 +454,17 @@ if (tempPayment.isExistingCustomerPurchase) {
       pause: { used: 0, history: [] },
       status: "UNDER_PROCESS",
     },
+
     paymentStatus: "PAID",
+
     paymentMethod: "ONLINE",
+
     paymentDetails: {
       gateway: "EASEBUZZ",
       txnid,
       easepayid,
     },
   });
-
-  // rest of your invoice + email code stays exactly the same...
 
   // ✅ Generate Invoice
 const invoicePath = await generateInvoice(order);
