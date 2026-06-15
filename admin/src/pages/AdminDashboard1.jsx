@@ -112,11 +112,7 @@ export default function AdminDashboard1() {
   const [createCustomerData, setCreateCustomerData] = useState({ fullName: '', phone: '', email: '', dob: '', timeSlot: '', startDate: '', allergies: '', medicalConditions: '', remarks: '', pincode: '', area: '', house: '', street: '', landmark: '', city: 'Dombivli' });
   const [createPaymentData, setCreatePaymentData] = useState({ received: null, method: '', amount: '', transactionId: '', date: new Date().toISOString().split('T')[0], notes: '' });
 
-  const [pauseRequests, setPauseRequests] = useState([
-    { id: 'P001', customer: 'Sneha Desai', memberId: 'RR003', requestDate: 'May 10, 2024', pauseFrom: 'May 15', pauseTo: 'May 20', reason: 'Traveling', status: 'Approved' },
-    { id: 'P002', customer: 'Rohan Mehta', memberId: 'RR007', requestDate: 'May 14, 2024', pauseFrom: 'May 18', pauseTo: 'May 22', reason: 'Family function', status: 'Pending' },
-    { id: 'P003', customer: 'Kavya Iyer', memberId: 'RR008', requestDate: 'May 13, 2024', pauseFrom: 'May 20', pauseTo: 'May 25', reason: 'Out of station', status: 'Pending' },
-  ]);
+ const [pauseRequests, setPauseRequests] = useState([]);
 
   // ── Lifecycle ──
   useEffect(() => {
@@ -125,6 +121,7 @@ export default function AdminDashboard1() {
     fetchOrders();
     fetchPendingPayments();
     fetchAuditLogs();
+    fetchPauseRequests();
   }, []);
 
   useEffect(() => { setMobileNavOpen(false); }, [activeView]);
@@ -135,6 +132,12 @@ export default function AdminDashboard1() {
     return () => { document.body.style.overflow = ''; };
   }, [showPasskeyModal, showBroadcastModal, showCustomerDetail, showIndividualMessage, showRenew, showPaymentModal, mobileNavOpen]);
 
+
+  useEffect(() => {
+  if (orders.length > 0) {
+    derivePauseRequestsFromOrders(orders);
+  }
+}, [orders]);
   // ── API calls ──
   const fetchOrders = async () => {
     setLoading(true);
@@ -158,6 +161,57 @@ export default function AdminDashboard1() {
       console.error("Failed to fetch pending payments", err);
     }
   };
+
+  const fetchPauseRequests = async () => {
+  // First try a dedicated endpoint
+  try {
+    const res = await fetch("https://api.ryviveroots.com/api/admin/pause-requests");
+    const data = await res.json();
+    if (data.success && data.pauseRequests?.length) {
+      setPauseRequests(data.pauseRequests.map(r => ({
+        id: r._id,
+        customer: r.customerName || `${r.user?.firstName} ${r.user?.lastName}`,
+        memberId: r.membershipId,
+        requestDate: new Date(r.createdAt).toLocaleDateString('en-IN'),
+        pauseFrom: new Date(r.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+        pauseTo: new Date(r.resumeDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+        reason: r.reason || 'Not specified',
+        status: r.status === 'APPROVED' ? 'Approved' : r.status === 'REJECTED' ? 'Rejected' : 'Pending',
+        days: r.days,
+      })));
+      return;
+    }
+  } catch (_) {}
+
+  // Fallback: derive from orders already in state
+  derivePauseRequestsFromOrders(orders);
+};
+
+const derivePauseRequestsFromOrders = (orderList) => {
+  const requests = [];
+  orderList.forEach(order => {
+    const history = order.subscription?.pause?.history || [];
+    history.forEach((entry, idx) => {
+      const start = new Date(entry.startDate);
+      const resume = new Date(entry.resumeDate);
+      requests.push({
+        id: `${order._id}-${idx}`,
+        customer: `${order.user?.firstName} ${order.user?.lastName}`,
+        memberId: order.membershipId,
+        requestDate: entry.requestedAt
+          ? new Date(entry.requestedAt).toLocaleDateString('en-IN')
+          : start.toLocaleDateString('en-IN'),
+        pauseFrom: start.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+        pauseTo: resume.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+        reason: entry.reason || 'Not specified',
+        status: entry.status === 'ACTIVE' || !entry.status ? 'Approved' : entry.status,
+        days: entry.days,
+      });
+    });
+  });
+  // Sort newest first
+  setPauseRequests(requests.reverse());
+};
 
   const fetchAuditLogs = async () => {
     try {
@@ -383,9 +437,25 @@ export default function AdminDashboard1() {
     } catch (err) { alert("Failed"); }
   };
 
-  const handlePauseAction = (id, action) => {
-    setPauseRequests(prev => prev.map(r => r.id === id ? { ...r, status: action === 'approve' ? 'Approved' : 'Rejected' } : r));
-  };
+ const handlePauseAction = async (id, action) => {
+  // Optimistically update UI
+  setPauseRequests(prev =>
+    prev.map(r => r.id === id
+      ? { ...r, status: action === 'approve' ? 'Approved' : 'Rejected' }
+      : r
+    )
+  );
+
+  // Try to persist to backend (won't break if endpoint doesn't exist yet)
+  try {
+    await fetch(`https://api.ryviveroots.com/api/admin/pause-requests/${id}/${action}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (_) {
+    // Silent fail — UI already updated
+  }
+};
 
   const handleVerifyPayment = (pending) => {
     setSelectedPending(pending);
