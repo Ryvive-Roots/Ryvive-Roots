@@ -10,8 +10,15 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  ChefHat,
+  Truck,
+   UtensilsCrossed, 
   CheckCircle,
 } from "lucide-react";
+import landing1 from '../images/Landing-1.jpeg';
+import landing2 from '../images/Landing-2.jpeg';
+import landing3 from '../images/Landing-3.jpeg';
+import landing4 from '../images/Landing-4.jpeg';
 import { useLocation } from "react-router-dom";
 const SubscriptionHeader = new URL('../images/Landing-3.jpeg', import.meta.url).href;
 
@@ -187,19 +194,42 @@ function CustomSelect({ value, onChange, options, placeholder, disabled }) {
   );
 }
 
+const subscriptionTestimonials = [
+  {
+    rating: "★★★★★",
+    text: "Meals arrive fresh every day and have completely changed my routine. The packaging is clean and temperature-controlled.",
+    name: "Aarav Mehta",
+    label: "Verified Subscriber"
+  },
+  {
+    rating: "★★★★★",
+    text: "Finally found a meal subscription that actually tastes homemade. Every dish is seasoned perfectly without feeling heavy.",
+    name: "Riya Sen",
+    label: "Verified Subscriber"
+  },
+  {
+    rating: "★★★★★",
+    text: "The delivery schedule is reliable and the food quality is exceptional. Customer service is also incredibly accommodating.",
+    name: "Kabir Malhotra",
+    label: "Verified Subscriber"
+  }
+];
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function SubscriptionCheckout() {
   const location = useLocation();
   const [step, setStep] = useState(1);
   const [loadingOrder, setLoadingOrder] = useState(false);
   const [membershipId, setMembershipId] = useState("");
+   const [currentIndex, setCurrentIndex] = useState(0);
+     const [isHovered, setIsHovered] = useState(false);
   const [showSuccessPopper, setShowSuccessPopper] = useState(false);
   const [termsAgreed, setTermsAgreed] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: typeof window !== "undefined" ? window.innerWidth : 800,
     height: typeof window !== "undefined" ? window.innerHeight : 600,
   });
-
+ const visibleCards = 1;
   // Plan state
   const [selectedPlan, setSelectedPlan] = useState("gold");
   const [durations, setDurations] = useState({ silver: 1, gold: 1, platinum: 1 });
@@ -238,6 +268,30 @@ export default function SubscriptionCheckout() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+    useEffect(() => {
+      if (isHovered)
+        return;
+      const interval = setInterval(() => {
+        setCurrentIndex((prev) => {
+          const maxIndex = subscriptionTestimonials.length - visibleCards;
+          return prev >= maxIndex ? 0 : prev + 1;
+        });
+      }, 2800);
+      return () => clearInterval(interval);
+    }, [isHovered]);
+    const handleNextTestimonial = () => {
+      setCurrentIndex((prev) => {
+        const maxIndex = subscriptionTestimonials.length - visibleCards;
+        return prev >= maxIndex ? 0 : prev + 1;
+      });
+    };
+    const handlePrevTestimonial = () => {
+      setCurrentIndex((prev) => {
+        const maxIndex = subscriptionTestimonials.length - visibleCards;
+        return prev === 0 ? maxIndex : prev - 1;
+      });
+    };
 
   // Check for payment return (membershipId in URL)
   useEffect(() => {
@@ -630,6 +684,290 @@ export default function SubscriptionCheckout() {
           </main>
         </div>
       </div>
+
+        <section className="px-8 lg:px-14 py-14 lg:py-16 relative overflow-hidden" style={{
+            background: CREAM_2,
+          }} data-tone="light">
+            {/* Subtle Luxury Visual Overlays and Gradients */}
+            <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(28,24,20,0.04) 0%, rgba(28,24,20,0.01) 30%, rgba(28,24,20,0.05) 100%)' }} />
+              <div style={{ position: 'absolute', left: '-10%', top: '-6%', width: '34%', height: '64%', background: 'radial-gradient(closest-side, rgba(139,149,121,0.14), transparent 60%)', filter: 'blur(56px)', opacity: 0.95 }} />
+              <div style={{ position: 'absolute', right: '-10%', bottom: '-10%', width: '34%', height: '64%', background: 'radial-gradient(closest-side, rgba(28,24,20,0.08), transparent 62%)', filter: 'blur(56px)', opacity: 0.8 }} />
+      
+              {/* Low-opacity Blurred Food Accents */}
+              <div className="absolute inset-0 opacity-[0.025] select-none" style={{ mixBlendMode: 'multiply' }}>
+                <img src={landing2} alt="" className="absolute -left-[10%] -bottom-[6%] w-[38%] aspect-square object-cover rounded-full filter blur-[40px] saturate-[0.8]" />
+                <img src={landing3} alt="" className="absolute -right-[10%] -top-[6%] w-[38%] aspect-square object-cover rounded-full filter blur-[40px] saturate-[0.8]" />
+              </div>
+            </div>
+      
+            <div className="max-w-[1400px] mx-auto relative z-10">
+              <div className="text-center mb-10 lg:mb-12">
+                <p className="uppercase tracking-[0.28em] mb-4" style={{
+                  color: SAGE_DARK,
+                  fontSize: '11px',
+                }}>
+                  How It Works
+                </p>
+      
+                <h2 className="font-serif mx-auto" style={{
+                  color: INK,
+                  fontSize: 'clamp(34px, 4.8vw, 58px)',
+                  lineHeight: '0.96',
+                  fontWeight: 300,
+                  maxWidth: '900px',
+                }}>
+                  Simple steps to eat
+                  <br />
+                  better every day
+                </h2>
+              </div>
+      
+              <div className="relative">
+                {/* Soft Premium Connecting Line Glow */}
+                <div className="hidden lg:block absolute left-[10%] right-[10%] top-10 h-px" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(107,117,96,0.15) 15%, rgba(139,149,121,0.4) 50%, rgba(107,117,96,0.15) 85%, transparent 100%)' }} />
+                <div className="hidden lg:flex absolute left-[13%] right-[13%] top-[34px] items-center justify-between pointer-events-none">
+                  <span style={{ width: '10px', height: '10px', borderRadius: '999px', background: SAGE, opacity: 0.55, boxShadow: '0 0 8px rgba(139,149,121,0.4)' }} />
+                  <span style={{ width: '10px', height: '10px', borderRadius: '999px', background: SAGE_DARK, opacity: 0.55, boxShadow: '0 0 8px rgba(107,117,96,0.4)' }} />
+                  <span style={{ width: '10px', height: '10px', borderRadius: '999px', background: SAGE, opacity: 0.55, boxShadow: '0 0 8px rgba(139,149,121,0.4)' }} />
+                </div>
+      
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 pt-4">
+                  {[
+                    {
+                      number: '01',
+                      title: 'Choose Your Plan',
+                      desc: 'Select from Silver, Gold, or Platinum nourishment rituals curated for your lifestyle.',
+                      icon: ChefHat,
+                    },
+                    {
+                      number: '02',
+                      title: 'Schedule Delivery',
+                      desc: 'Choose your preferred delivery cadence for effortless morning or evening nourishment.',
+                      icon: Truck,
+                    },
+                    {
+                      number: '03',
+                      title: 'Receive Daily',
+                      desc: 'Freshly prepared wellness meals arrive daily with seamless concierge-style delivery.',
+                      icon: UtensilsCrossed,
+                    },
+                  ].map((item, index) => {
+                    const Icon = item.icon;
+                    return (<motion.div key={index} whileHover={{
+                      y: -6,
+                      scale: 1.015,
+                      boxShadow: '0 20px 40px -16px rgba(14,41,27,0.14), 0 0 0 1px rgba(255,255,255,0.95) inset',
+                      borderColor: 'rgba(107,117,96,0.35)'
+                    }} whileTap={{ y: -3, scale: 1.01 }} transition={{ duration: 0.45, ease }} className="relative overflow-hidden" style={{
+                      minHeight: '235px',
+                      padding: '20px 20px 18px',
+                      borderRadius: '12px',
+                      background: 'rgba(248,244,237,0.95)',
+                      border: '1px solid rgba(107,117,96,0.16)',
+                      boxShadow: '0 15px 35px -20px rgba(14,41,27,0.1), 0 0 0 1px rgba(255,255,255,0.7) inset',
+                      backdropFilter: 'blur(8px)',
+                      transitionProperty: 'transform, box-shadow, border-color',
+                    }}>
+                      <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.06) 28%, rgba(28,24,20,0.02) 100%)' }} />
+                        <div style={{ position: 'absolute', right: '-12%', top: '-18%', width: '58%', height: '72%', background: 'radial-gradient(closest-side, rgba(139,149,121,0.15), transparent 68%)', filter: 'blur(26px)', opacity: 0.75 }} />
+                      </div>
+      
+                      <div className="relative z-10 flex h-full flex-col">
+                        <div className="flex items-start justify-between gap-4 mb-4">
+                          <div>
+                            <div className="font-serif" style={{
+                              fontSize: 'clamp(28px, 3.8vw, 48px)',
+                              lineHeight: 0.9,
+                              color: SAGE_DARK,
+                              opacity: 0.75,
+                              letterSpacing: '-0.04em',
+                              fontWeight: 600,
+                            }}>
+                              {item.number}
+                            </div>
+                            <div className="mt-2" style={{
+                              width: '36px',
+                              height: '1px',
+                              background: `linear-gradient(90deg, ${SAGE} 0%, ${SAGE_DARK} 100%)`,
+                              opacity: 0.8,
+                            }} />
+                          </div>
+      
+                          {/* Refined Icon Visibility with SAGE colors */}
+                          <div className="flex items-center justify-center transition-colors duration-300" style={{
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: '999px',
+                            background: 'rgba(107,117,96,0.06)',
+                            border: '1px solid rgba(107,117,96,0.15)',
+                          }}>
+                            <Icon size={24} strokeWidth={1.35} color={SAGE_DARK} />
+                          </div>
+                        </div>
+      
+                        <h3 className="font-serif" style={{
+                          color: INK,
+                          fontSize: 'clamp(18px, 2.2vw, 24px)',
+                          lineHeight: 1.1,
+                          marginBottom: '8px',
+                          fontWeight: 600,
+                        }}>
+                          {item.title}
+                        </h3>
+      
+                        <p style={{
+                          color: 'rgba(28,24,20,0.76)',
+                          fontSize: '14px',
+                          lineHeight: 1.65,
+                          marginBottom: '12px',
+                          maxWidth: '24ch',
+                        }}>
+                          {item.desc}
+                        </p>
+      
+                        <div className="mt-auto flex items-center justify-between gap-4 pt-3.5" style={{ borderTop: '1px solid rgba(28,24,20,0.08)' }}>
+                          <div style={{ fontSize: '10px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(28,24,20,0.52)' }}>
+      
+                          </div>
+                          <div style={{ width: '24px', height: '1px', background: 'rgba(28,24,20,0.22)' }} />
+                        </div>
+                      </div>
+                    </motion.div>);
+                  })}
+                </div>
+              </div>
+            </div>
+          </section>
+      
+          {/* SUBSCRIBER TESTIMONIALS SECTION — DARK LUXURY (MATCHES HOMEPAGE DESIGN SYSTEM EXACTLY IN STRUCTURE, BUT WITH SUBTLE ELEVATED DARK PANELS) */}
+          <section 
+            data-tone="dark" 
+            className="py-10 lg:py-12 relative overflow-hidden" 
+            style={{ background: '#0D0A09' }}
+            onMouseEnter={() => setIsHovered(true)} 
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <div className="max-w-[1100px] mx-auto px-8 lg:px-14 relative z-10">
+              {/* Section Header */}
+              <div className="text-center mb-6 lg:mb-8 relative">
+                <div className="tracking-[0.42em] uppercase mb-5" style={{ fontSize: '11px', color: SAGE, fontWeight: 600 }}>— Voices</div>
+                <h2 className="font-serif" style={{ fontSize: 'clamp(30px, 3.5vw, 46px)', lineHeight: 1.1, color: CREAM, fontWeight: 300 }}>
+                  SUBSCRIBER DIARIES
+                </h2>
+              </div>
+      
+              {/* Testimonials Carousel Track Container with swipe controls */}
+              <div className="relative w-full max-w-2xl mx-auto overflow-hidden py-2">
+                <motion.div 
+                  className="flex gap-12 items-stretch" 
+                  animate={{ x: `calc(-${currentIndex} * (100% + 48px) / ${visibleCards})` }} 
+                  transition={{ type: "spring", stiffness: 90, damping: 18 }} 
+                  onPanEnd={(event, info) => {
+                    const threshold = 50;
+                    if (info.offset.x < -threshold) {
+                      handleNextTestimonial();
+                    }
+                    else if (info.offset.x > threshold) {
+                      handlePrevTestimonial();
+                    }
+                  }}
+                >
+                  {subscriptionTestimonials.map((t, idx) => (
+                    <div 
+                      key={idx} 
+                      className="flex-shrink-0 flex flex-col justify-between text-left" 
+                      style={{
+                        width: `calc((100% - ${(visibleCards - 1) * 48}px) / ${visibleCards})`,
+                        background: '#13100E',
+                        border: '1px solid rgba(244, 239, 230, 0.04)',
+                        borderRadius: '3px',
+                        padding: '36px 36px 32px',
+                        boxShadow: '0 16px 40px -10px rgba(0,0,0,0.35)',
+                      }}
+                    >
+                      {/* Testimonial Quote Text in Warm Ivory (matching homepage styling) */}
+                      <div className="font-serif mb-6" style={{ fontSize: '22px', lineHeight: 1.6, color: CREAM, fontWeight: 300, fontStyle: 'italic' }}>
+                        “{t.text}”
+                      </div>
+                      
+                      {/* Testimonial Divider & Client Name */}
+                      <div className="pt-4" style={{ borderTop: '1px solid rgba(244,239,230,0.08)' }}>
+                        <div style={{ fontSize: '13px', color: '#FFFFFF', letterSpacing: '0.04em', fontWeight: 600 }}>{t.name}</div>
+                        <div className="tracking-[0.22em] uppercase mt-1" style={{ fontSize: '10px', color: SAGE, fontWeight: 500 }}>{t.label}</div>
+                      </div>
+                    </div>
+                  ))}
+                </motion.div>
+              </div>
+      
+              {/* Left/Right Navigation and Autoplay Indicators */}
+              <div className="flex items-center justify-center gap-6 mt-6">
+                {/* Left Arrow Button */}
+                <button 
+                  onClick={handlePrevTestimonial} 
+                  className="p-3 rounded-full border transition-all duration-300 group cursor-pointer" 
+                  style={{
+                    borderColor: 'rgba(244, 239, 230, 0.15)',
+                    background: 'rgba(244, 239, 230, 0.01)',
+                    backdropFilter: 'blur(8px)',
+                    borderWidth: '1px'
+                  }} 
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(244, 239, 230, 0.06)';
+                    e.currentTarget.style.borderColor = 'rgba(244, 239, 230, 0.3)';
+                  }} 
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(244, 239, 230, 0.01)';
+                    e.currentTarget.style.borderColor = 'rgba(244, 239, 230, 0.15)';
+                  }}
+                  aria-label="Previous testimonial"
+                >
+                  <ChevronLeft size={16} style={{ color: CREAM }}/>
+                </button>
+                
+                {/* Dynamic Slider Pagination Dots */}
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: subscriptionTestimonials.length - visibleCards + 1 }).map((_, index) => (
+                    <button 
+                      key={index} 
+                      onClick={() => setCurrentIndex(index)} 
+                      className="h-1.5 rounded-full transition-all duration-500 cursor-pointer" 
+                      style={{
+                        width: currentIndex === index ? '18px' : '6px',
+                        background: currentIndex === index ? SAGE : 'rgba(244, 239, 230, 0.15)'
+                      }}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+      
+                {/* Right Arrow Button */}
+                <button 
+                  onClick={handleNextTestimonial} 
+                  className="p-3 rounded-full border transition-all duration-300 group cursor-pointer" 
+                  style={{
+                    borderColor: 'rgba(244, 239, 230, 0.15)',
+                    background: 'rgba(244, 239, 230, 0.01)',
+                    backdropFilter: 'blur(8px)',
+                    borderWidth: '1px'
+                  }} 
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(244, 239, 230, 0.06)';
+                    e.currentTarget.style.borderColor = 'rgba(244, 239, 230, 0.3)';
+                  }} 
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(244, 239, 230, 0.01)';
+                    e.currentTarget.style.borderColor = 'rgba(244, 239, 230, 0.15)';
+                  }}
+                  aria-label="Next testimonial"
+                >
+                  <ChevronRight size={16} style={{ color: CREAM }}/>
+                </button>
+              </div>
+            </div>
+          </section>
     </div>
   );
 }
