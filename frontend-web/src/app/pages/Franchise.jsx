@@ -19,14 +19,14 @@ export default function Franchise() {
     const [form, setForm] = useState({ name: '', email: '', phone: '', city: '', capacity: '', message: '' });
     const [submitted, setSubmitted] = useState(false);
     const onChange = (k) => (e) => setForm((s) => ({ ...s, [k]: e.target.value }));
-  const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
 
 const onSubmit = async (e) => {
   e.preventDefault();
   setLoading(true);
-
+  
   const formData = new FormData();
-
+  
   formData.append("access_key", "7b1d39a2-f749-448d-87f2-f41a09741bc7");
   formData.append("subject", "New Franchise Inquiry - Ryvive Roots");
 
@@ -34,7 +34,7 @@ const onSubmit = async (e) => {
   formData.append("email", form.email);
   formData.append("phone", form.phone);
   formData.append("city", form.city);
-  formData.append("investment_capacity", form.capacity);
+
   formData.append("message", form.message);
 
   const response = await fetch(
@@ -57,7 +57,7 @@ const onSubmit = async (e) => {
       email: "",
       phone: "",
       city: "",
-      capacity: "",
+   
       message: "",
     });
   } else {
@@ -208,15 +208,7 @@ const onSubmit = async (e) => {
                 <div style={labelStyle}>City</div>
                 <input required value={form.city} onChange={onChange('city')} style={inputStyle}/>
               </div>
-              <div className="md:col-span-2">
-                <div style={labelStyle}>Investment Capacity</div>
-                <select value={form.capacity} onChange={onChange('capacity')} style={{ ...inputStyle, appearance: 'none' }}>
-                  <option value="">Select a range</option>
-                  <option value="1.0-1.5">₹1.0 – 1.5 Cr</option>
-                  <option value="1.5-2.0">₹1.5 – 2.0 Cr</option>
-                  <option value="2.0+">₹2.0 Cr +</option>
-                </select>
-              </div>
+             
               <div className="md:col-span-2">
                 <div style={labelStyle}>Message</div>
                 <textarea rows={4} value={form.message} onChange={onChange('message')} style={{ ...inputStyle, resize: 'none' }}/>

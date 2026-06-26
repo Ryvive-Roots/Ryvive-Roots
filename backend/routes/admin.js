@@ -1114,7 +1114,7 @@ router.get("/excel", (req, res) => {
 ===================================== */
 router.post("/renew", async (req, res) => {
   try {
-  const { membershipId, durationMonths, paymentMethod, startDate, totalPrice } = req.body;
+    const { membershipId, durationMonths, paymentMethod, startDate, totalPrice } = req.body;
 
     if (!membershipId || !durationMonths) {
       return res.status(400).json({ success: false, message: "Missing data" });
@@ -1134,114 +1134,134 @@ router.post("/renew", async (req, res) => {
       });
     }
 
-/* ======================
-   PLAN + AMOUNT
-====================== */
+    /* ======================
+       PLAN + AMOUNT
+    ====================== */
+    let basePlan = existingOrder.subscription.plan?.toUpperCase()?.trim();
 
-let basePlan = existingOrder.subscription.plan?.toUpperCase()?.trim();
+    // If plan already contains _1MONTH or _3MONTH etc, strip it
+    if (basePlan && basePlan.includes("_")) {
+      basePlan = basePlan.split("_")[0];
+    }
 
-// If plan already contains _1M or _3M remove it
-if (basePlan && basePlan.includes("_")) {
-  basePlan = basePlan.split("_")[0];
-}
+    const duration = Number(durationMonths);
 
-const duration = Number(durationMonths);
+    const planKey = `${basePlan}_${duration}MONTH`;
 
-const planKey = `${basePlan}_${duration}MONTH`;
+    const selectedPlan = PLANS[planKey];
 
-const selectedPlan = PLANS[planKey];
+    if (!selectedPlan) {
+      console.error("Invalid plan key:", planKey);
+      return res.status(400).json({
+        success: false,
+        message: "Invalid plan configuration",
+      });
+    }
 
-if (!selectedPlan) {
-  console.error("Invalid plan key:", planKey);
-  return res.status(400).json({
-    success: false,
-    message: "Invalid plan configuration",
-  });
-}
-
-existingOrder.subscription.plan = planKey;
+    existingOrder.subscription.plan = planKey;
 
     // ⭐ amount based on duration (same logic you use frontend pricing)
-const amount = totalPrice ? Number(totalPrice) : selectedPlan.price;
+    const amount = totalPrice ? Number(totalPrice) : selectedPlan.price;
 
     /* ======================
-       RENEWAL MARK PENDING
+       ACTIVATION DATE
     ====================== */
-  let activationAt;
+    let activationAt;
 
-if (startDate) {
-  const selected = new Date(startDate);
+    if (startDate) {
+      const selected = new Date(startDate);
+      // ✅ Force correct local date (no timezone issue)
+      selected.setHours(0, 0, 0, 0);
+      activationAt = selected;
+    } else {
+      activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+    }
 
-  // ✅ Force correct local date (no timezone issue)
-  selected.setHours(0, 0, 0, 0);
+    // ✅ Declared BEFORE use — fixes the ReferenceError / 500
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  activationAt = selected;
-} else {
-  activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-}
+    const selectedDate = new Date(activationAt);
+    selectedDate.setHours(0, 0, 0, 0);
 
-   existingOrder.subscription.renewal = {
-  pending: selectedDate > today, // only future dates
-  durationMonths,
-};
+    /* ======================
+       RENEWAL PENDING FLAG + STATUS
+    ====================== */
+    existingOrder.subscription.renewal = {
+      pending: selectedDate > today,
+      durationMonths,
+    };
 
     existingOrder.subscription.durationMonths = durationMonths;
-   // set activation
-existingOrder.subscription.activationAt = activationAt;
-existingOrder.subscription.startDate = activationAt;
+    existingOrder.subscription.activationAt = activationAt;
+    existingOrder.subscription.startDate = activationAt;
 
-// compare dates (ignore time)
-const today = new Date();
-today.setHours(0, 0, 0, 0);
+    // ✅ status based on start date (single block — duplicate removed)
+    if (selectedDate <= today) {
+      existingOrder.subscription.status = "ACTIVE";
+    } else {
+      existingOrder.subscription.status = "UNDER_PROCESS";
+    }
 
-const selectedDate = new Date(activationAt);
-selectedDate.setHours(0, 0, 0, 0);
+    /* ======================
+       ✅ EXTEND END DATE (this was missing before)
+    ====================== */
+    const baseEndDate = existingOrder.subscription.endDate
+      ? new Date(existingOrder.subscription.endDate)
+      : new Date(activationAt);
 
-// ✅ status based on start date
-if (selectedDate <= today) {
-  existingOrder.subscription.status = "ACTIVE";
-} else {
-  existingOrder.subscription.status = "UNDER_PROCESS";
-}
+    // If the old plan already expired, extend from the new activation date
+    // instead of stacking onto a stale/past endDate.
+    const extendFrom = baseEndDate > activationAt ? baseEndDate : activationAt;
+
+    const newEndDate = addMonthsSafe(extendFrom, duration);
+
+    existingOrder.subscription.endDate = newEndDate;
 
     existingOrder.paymentMethod = paymentMethod || "CASH";
-  
     existingOrder.paymentStatus = "PAID";
 
     /* ======================
        RECEIPT + INVOICE
     ====================== */
-   const receiptNumber = await generateReceiptNumber(Order);
+    const receiptNumber = await generateReceiptNumber(Order);
 
-existingOrder.receiptNumber = receiptNumber;
-existingOrder.subscription.amount = amount;
+    existingOrder.receiptNumber = receiptNumber;
+    existingOrder.subscription.amount = amount;
 
-await existingOrder.save();
+    await existingOrder.save();
 
-const invoicePath = await generateInvoice(existingOrder);
-
-    existingOrder.invoiceUrl = invoicePath;
+    let invoicePath;
+    try {
+      invoicePath = await generateInvoice(existingOrder);
+      existingOrder.invoiceUrl = invoicePath;
+    } catch (invoiceErr) {
+      console.error("❌ Invoice generation failed:", invoiceErr.message);
+      // Don't fail the whole renewal just because the PDF failed
+      invoicePath = null;
+    }
 
     existingOrder.subscription.amount = amount;
-existingOrder.receiptNumber = receiptNumber;
-existingOrder.subscription.renewedAt = new Date();
-existingOrder.subscription.renewalTriggeredBy = "ADMIN";
-existingOrder.subscription.renewalHistory =
-  existingOrder.subscription.renewalHistory || [];
+    existingOrder.receiptNumber = receiptNumber;
+    existingOrder.subscription.renewedAt = new Date();
+    existingOrder.subscription.renewalTriggeredBy = "ADMIN";
+    existingOrder.subscription.renewalHistory =
+      existingOrder.subscription.renewalHistory || [];
 
-existingOrder.subscription.renewalHistory.push({
-  date: new Date(),
-  durationMonths,
-  amount,
-  paymentMethod: paymentMethod || "CASH",
-    startDate: startDate ? new Date(startDate) : null,   // 👈 user input
-  activationAt: activationAt  
-});
+    existingOrder.subscription.renewalHistory.push({
+      date: new Date(),
+      durationMonths,
+      amount,
+      paymentMethod: paymentMethod || "CASH",
+      startDate: startDate ? new Date(startDate) : null, // 👈 user input
+      activationAt: activationAt,
+      endDate: newEndDate,
+    });
 
     await existingOrder.save();
 
     /* ======================
-       TEMP PAYMENT TRICK (EMAIL SAME)
+       EMAIL SUMMARY DATA
     ====================== */
     const tempPayment = {
       durationMonths,
@@ -1249,16 +1269,18 @@ existingOrder.subscription.renewalHistory.push({
     };
 
     const activationText = startDate
-  ? new Date(startDate).toLocaleDateString("en-IN")
-  : "within 48 hours";
+      ? new Date(startDate).toLocaleDateString("en-IN")
+      : "within 48 hours";
+
     /* ======================
        CUSTOMER EMAIL (SAME TEMPLATE)
     ====================== */
     if (existingOrder.user.email) {
-    await sendEmail({
-      to: existingOrder.user.email,
-      subject: "You’re Back, And We’re Glad 🌿",
-      html: `
+      try {
+        await sendEmail({
+          to: existingOrder.user.email,
+          subject: "You’re Back, And We’re Glad 🌿",
+          html: `
 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
 
   <h2>Hi ${existingOrder.user.firstName},</h2>
@@ -1296,6 +1318,10 @@ existingOrder.subscription.renewalHistory.push({
       <td style="padding: 6px 10px;"><b>Payment Date</b></td>
       <td style="padding: 6px 10px;">: ${new Date().toLocaleDateString("en-IN")}</td>
     </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>New Expiry Date</b></td>
+      <td style="padding: 6px 10px;">: ${newEndDate.toLocaleDateString("en-IN")}</td>
+    </tr>
   </table>
 
   <br/>
@@ -1306,32 +1332,29 @@ existingOrder.subscription.renewalHistory.push({
 
 </div>
 `,
-      attachments: [
-        {
-          filename: `invoice-${receiptNumber}.pdf`,
-          path: invoicePath,
-        },
-      ],
-    });
-
+          attachments: invoicePath
+            ? [
+                {
+                  filename: `invoice-${receiptNumber}.pdf`,
+                  path: invoicePath,
+                },
+              ]
+            : [],
+        });
+      } catch (emailErr) {
+        console.error("❌ Customer renewal email failed:", emailErr.message);
+      }
     }
 
     /* ======================
        COMPANY EMAIL
     ====================== */
-   const baseEndDate = existingOrder.subscription.endDate
-  ? new Date(existingOrder.subscription.endDate)
-  : new Date();
-
-const previewEnd = addMonthsSafe(
-  baseEndDate,
-  tempPayment.durationMonths
-);
-if (process.env.COMPANY_EMAIL) {
-    await sendEmail({
-      to: process.env.COMPANY_EMAIL,
-      subject: `🔁 Subscription Renewed - ${existingOrder.membershipId}`,
-      html: `
+    if (process.env.COMPANY_EMAIL) {
+      try {
+        await sendEmail({
+          to: process.env.COMPANY_EMAIL,
+          subject: `🔁 Subscription Renewed - ${existingOrder.membershipId}`,
+          html: `
 <h2>Subscription Renewal Received</h2>
 <ul>
   <li><b>Name:</b> ${existingOrder.user.firstName} ${existingOrder.user.lastName}</li>
@@ -1339,24 +1362,31 @@ if (process.env.COMPANY_EMAIL) {
   <li><b>Email:</b> ${existingOrder.user.email}</li>
   <li><b>Plan:</b> ${existingOrder.subscription.plan}</li>
   <li><b>Amount:</b> ₹${tempPayment.amount}</li>
-  <li><b>New Expiry:</b> ${previewEnd.toLocaleDateString("en-IN")}</li>
+  <li><b>New Expiry:</b> ${newEndDate.toLocaleDateString("en-IN")}</li>
   <li><b>Membership ID:</b> ${existingOrder.membershipId}</li>
   <li><b>Receipt No:</b> ${receiptNumber}</li>
 </ul>
 `,
-      attachments: [
-        {
-          filename: `invoice-${receiptNumber}.pdf`,
-          path: invoicePath,
-        },
-      ],
-    });
+          attachments: invoicePath
+            ? [
+                {
+                  filename: `invoice-${receiptNumber}.pdf`,
+                  path: invoicePath,
+                },
+              ]
+            : [],
+        });
+      } catch (emailErr) {
+        console.error("❌ Company renewal email failed:", emailErr.message);
+      }
     }
 
-    return res.json({ success: true });
+    return res.json({ success: true, endDate: newEndDate });
   } catch (err) {
     console.error("Admin renew error:", err);
-    res.status(500).json({ success: false });
+    // TEMP: leaking err.message to help you debug from the browser/network tab.
+    // Remove `message: err.message` once this is confirmed working in production.
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
