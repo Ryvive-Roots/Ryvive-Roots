@@ -2,7 +2,8 @@ import { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Phone, Mail, MapPin, Send, Instagram, CheckCircle2 } from 'lucide-react';
 import { CREAM, CREAM_2, DARK, DARK_2, INK, SAGE, SAGE_DARK } from '../theme';
-import FooterImg from '../images/Contact-hero.jpg';
+import FooterImg from '../images/contact0.jpeg';
+import ImgF from '../images/contact1.jpeg';
 import emailjs from "@emailjs/browser";
 
 const ease = [0.22, 1, 0.36, 1];
@@ -143,7 +144,7 @@ formRef.current.reset();
                     <img
                         src={FooterImg}
                         alt=""
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-top-right"
                         style={{ filter: 'saturate(0.7) brightness(0.45)' }}
                     />
                     <div className="absolute inset-0" style={{
@@ -501,10 +502,10 @@ formRef.current.reset();
                 {/* Background image with heavy overlay */}
                 <div className="absolute inset-0">
                     <img
-                        src={FooterImg}
+                        src={ImgF}
                         alt=""
                         className="w-full h-full object-cover"
-                        style={{ filter: 'saturate(0.5) brightness(0.28)' }}
+                        style={{ filter: 'saturate(0.5) brightness(0.60)' }}
                     />
                     <div className="absolute inset-0" style={{
                         background: 'linear-gradient(180deg, rgba(20,17,15,0.72) 0%, rgba(20,17,15,0.55) 50%, rgba(20,17,15,0.82) 100%)',
