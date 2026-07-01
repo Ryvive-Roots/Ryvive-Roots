@@ -10,6 +10,8 @@ import AdminD from "./pages/AdminD";
 import RyviveCompleteAdminDashboard from "./pages/RyviveCompleteAdminDashboard";
 import AdminD0 from "./pages/AdminD1";
 import AdminDashboard1 from "./pages/AdminDashboard1";
+import AdminDashboard2 from "./pages/AdminDashboard2";
+import AdminDashboard3 from "./pages/AdminDashboard3";
 
 
 function App() {
@@ -27,7 +29,7 @@ function App() {
         {/* 🛡 Protected Dashboard */}
         <Route
           path="/admin-dashboard"
-          element={token ? <AdminDashboard1  /> : <Navigate to="/" />}
+          element={token ? <AdminDashboard3  /> : <Navigate to="/" />}
         />
           <Route
           path="/adminD"

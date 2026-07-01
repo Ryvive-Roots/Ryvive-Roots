@@ -44,7 +44,7 @@ const plans = [
     name: "RYVIVE SILVER",
     tagline: "A gentle introduction.",
  
-    prices: { 1: 4999, 3: 14997},
+    prices: { 1: 4999, 3: 14999},
     apiKey: "SILVER",
   },
   {
@@ -52,7 +52,7 @@ const plans = [
     name: "RYVIVE GOLD",
     tagline: "Our most chosen plan.",
    
-    prices: { 1: 5999, 3: 17997 },
+    prices: { 1: 5999, 3: 17499 },
   
     apiKey: "GOLD",
   },
@@ -61,7 +61,7 @@ const plans = [
     name: "RYVIVE PLATINUM",
     tagline: "A devoted ritual.",
        popular: true,
-    prices: { 1: 6999, 3: 20997 },
+    prices: { 1: 6999, 3: 19999 },
     apiKey: "PLATINUM",
   },
 ];
