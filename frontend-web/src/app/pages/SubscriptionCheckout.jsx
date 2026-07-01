@@ -53,14 +53,14 @@ const plans = [
     tagline: "Our most chosen plan.",
    
     prices: { 1: 5999, 3: 20997 },
-    popular: true,
+  
     apiKey: "GOLD",
   },
   {
     key: "platinum",
     name: "RYVIVE PLATINUM",
     tagline: "A devoted ritual.",
-  
+       popular: true,
     prices: { 1: 6999, 3: 23997 },
     apiKey: "PLATINUM",
   },
