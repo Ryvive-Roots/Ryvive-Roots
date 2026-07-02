@@ -72,6 +72,12 @@ doc.fillColor("#2a2a2a").fontSize(14);
   // Contact Number
   doc.text(order.user?.phone || "-", 430, 165);
 
+    // Auto Detect Payment Mode
+ const paymentMode =
+  order.paymentMethod === "CASH"
+    ? "Cash"
+    : order.paymentMethod || "Online";
+
   // Payment Mode
   doc.text(paymentMode, 430, 230);
 
@@ -98,11 +104,7 @@ doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 422);
 
   const amount = order.subscription?.amount || 0;
 
-  // Auto Detect Payment Mode
- const paymentMode =
-  order.paymentMethod === "CASH"
-    ? "Cash"
-    : order.paymentMethod || "Online";
+
 
 
   // Start Y for payment section
