@@ -46,7 +46,7 @@ doc.pipe(stream);
  const textColor = "#4c4f28";
 
   // Invoice Number (move UP)
-  doc.fillColor(textColor).fontSize(14).text(order.receiptNumber || "-", 146, 145);
+  doc.fillColor(textColor).fontSize(12).text(order.receiptNumber || "-", 146, 130);
 
   // Invoice Date
  const invoiceDate =
@@ -61,16 +61,16 @@ doc.text(
   /* =======================
    CUSTOMER INFO
 ======================= */
-doc.fillColor("#2a2a2a").fontSize(14);
+doc.fillColor("#2a2a2a").fontSize(12);
   // Customer Name
   doc.text(
     `${order.user?.firstName || ""} ${order.user?.lastName || ""}`,
-    430,
-    145
+    434,
+    130
   );
 
   // Contact Number
-  doc.text(order.user?.phone || "-", 430, 165);
+  doc.text(order.user?.phone || "-", 434, 165);
 
     // Auto Detect Payment Mode
  const paymentMode =
@@ -79,14 +79,14 @@ doc.fillColor("#2a2a2a").fontSize(14);
     : order.paymentMethod || "Online";
 
   // Payment Mode
-  doc.text(paymentMode, 430, 230);
+  doc.text(paymentMode, 440, 230);
 
   /* =======================
    PLAN DETAILS (Table Row)
 ======================= */
 
   // Row Y position aligned to background table
-  const planRowY = 389;
+  const planRowY = 395;
 
  const rawPlan = order.subscription?.plan || "";
 const planName = `RYVIVE ${rawPlan.split("_")[0]}`;
@@ -95,7 +95,7 @@ doc.text(planName, 55, planRowY);
   doc.text(`${order.subscription?.durationMonths || 0} Month`, 321, planRowY);
   doc.text("1", 423, planRowY);
   doc.text(`₹ ${order.subscription?.amount || 0}`, 490, planRowY);
-doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 422);
+doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 445);
    /* =======================
    PAYMENT SUMMARY
 ======================= */
@@ -116,8 +116,7 @@ doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 422);
   // Discount
   doc.text(`-`, 490, paymentY + 32);
 
-  // Delivery Charges
-  doc.text(`Free`, 490, paymentY + 70);
+
 
   
 
@@ -125,7 +124,7 @@ doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 422);
   doc
     .fontSize(14)
     .font("Poppins")
-    .text(`₹ ${amount}`, 490, paymentY + 135);
+    .text(`₹ ${amount}`, 490, paymentY + 125);
 
   doc.fontSize(12);
 
