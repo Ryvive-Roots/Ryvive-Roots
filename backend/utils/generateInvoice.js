@@ -55,7 +55,7 @@ doc.pipe(stream);
 doc.text(
   new Date(invoiceDate).toLocaleDateString("en-IN"),
   146,
-  166
+  167
 );
 
   /* =======================
@@ -70,7 +70,7 @@ doc.fillColor("#2a2a2a").fontSize(12);
   );
 
   // Contact Number
-  doc.text(order.user?.phone || "-", 434, 166);
+  doc.text(order.user?.phone || "-", 434, 167);
 
     // Auto Detect Payment Mode
  const paymentMode =
@@ -86,7 +86,7 @@ doc.fillColor("#2a2a2a").fontSize(12);
 ======================= */
 
   // Row Y position aligned to background table
-  const planRowY = 402;
+  const planRowY = 403;
 
  const rawPlan = order.subscription?.plan || "";
 const planName = `RYVIVE ${rawPlan.split("_")[0]}`;
@@ -95,7 +95,7 @@ doc.text(planName, 55, planRowY);
   doc.text(`${order.subscription?.durationMonths || 0} Month`, 321, planRowY);
   doc.text("1", 423, planRowY);
   doc.text(`₹ ${order.subscription?.amount || 0}`, 490, planRowY);
-doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 442);
+doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 441);
    /* =======================
    PAYMENT SUMMARY
 ======================= */
@@ -108,13 +108,13 @@ doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 442);
 
 
   // Start Y for payment section
-  const paymentY = 500;
+  const paymentY = 502;
 
   // Subtotal
   doc.text(`₹ ${amount}`, 490, paymentY);
 
   // Discount
-  doc.text(`-`, 490, paymentY + 32);
+  doc.text(`-`, 490, paymentY + 33);
 
 
 
@@ -124,7 +124,7 @@ doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 442);
   doc
     .fontSize(14)
     .font("Poppins")
-    .text(`₹ ${amount}`, 490, paymentY + 115);
+    .text(`₹ ${amount}`, 490, paymentY + 114);
 
   doc.fontSize(12);
 
