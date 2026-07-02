@@ -23,7 +23,7 @@ doc.pipe(stream);
   /* =======================
      BACKGROUND IMAGE
   ======================= */
-  const bgImagePath = path.join(__dirname, "../assets/invoice0.png");
+  const bgImagePath = path.join(__dirname, "../assets/invoice1.png");
   doc.image(bgImagePath, 0, 0, {
     width: doc.page.width,
     height: doc.page.height,
@@ -46,7 +46,7 @@ doc.pipe(stream);
  const textColor = "#4c4f28";
 
   // Invoice Number (move UP)
-  doc.fillColor(textColor).fontSize(12).text(order.receiptNumber || "-", 146, 130);
+  doc.fillColor(textColor).fontSize(12).text(order.receiptNumber || "-", 146, 138);
 
   // Invoice Date
  const invoiceDate =
@@ -55,7 +55,7 @@ doc.pipe(stream);
 doc.text(
   new Date(invoiceDate).toLocaleDateString("en-IN"),
   146,
-  165
+  163
 );
 
   /* =======================
@@ -66,11 +66,11 @@ doc.fillColor("#2a2a2a").fontSize(12);
   doc.text(
     `${order.user?.firstName || ""} ${order.user?.lastName || ""}`,
     434,
-    130
+    138
   );
 
   // Contact Number
-  doc.text(order.user?.phone || "-", 434, 165);
+  doc.text(order.user?.phone || "-", 434, 163);
 
     // Auto Detect Payment Mode
  const paymentMode =
@@ -79,14 +79,14 @@ doc.fillColor("#2a2a2a").fontSize(12);
     : order.paymentMethod || "Online";
 
   // Payment Mode
-  doc.text(paymentMode, 440, 230);
+  doc.text(paymentMode, 445, 235);
 
   /* =======================
    PLAN DETAILS (Table Row)
 ======================= */
 
   // Row Y position aligned to background table
-  const planRowY = 395;
+  const planRowY = 400;
 
  const rawPlan = order.subscription?.plan || "";
 const planName = `RYVIVE ${rawPlan.split("_")[0]}`;
@@ -95,7 +95,7 @@ doc.text(planName, 55, planRowY);
   doc.text(`${order.subscription?.durationMonths || 0} Month`, 321, planRowY);
   doc.text("1", 423, planRowY);
   doc.text(`₹ ${order.subscription?.amount || 0}`, 490, planRowY);
-doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 445);
+doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 443);
    /* =======================
    PAYMENT SUMMARY
 ======================= */
@@ -124,7 +124,7 @@ doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 445);
   doc
     .fontSize(14)
     .font("Poppins")
-    .text(`₹ ${amount}`, 490, paymentY + 125);
+    .text(`₹ ${amount}`, 490, paymentY + 120);
 
   doc.fontSize(12);
 
