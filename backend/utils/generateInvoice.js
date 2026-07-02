@@ -46,7 +46,7 @@ doc.pipe(stream);
  const textColor = "#4c4f28";
 
   // Invoice Number (move UP)
-  doc.fillColor(textColor).fontSize(14).text(order.receiptNumber || "-", 146, 153);
+  doc.fillColor(textColor).fontSize(14).text(order.receiptNumber || "-", 146, 145);
 
   // Invoice Date
  const invoiceDate =
@@ -55,7 +55,7 @@ doc.pipe(stream);
 doc.text(
   new Date(invoiceDate).toLocaleDateString("en-IN"),
   146,
-  184
+  165
 );
 
   /* =======================
@@ -65,12 +65,15 @@ doc.fillColor("#2a2a2a").fontSize(14);
   // Customer Name
   doc.text(
     `${order.user?.firstName || ""} ${order.user?.lastName || ""}`,
-    303,
-    225
+    430,
+    145
   );
 
   // Contact Number
-  doc.text(order.user?.phone || "-", 303, 259);
+  doc.text(order.user?.phone || "-", 430, 165);
+
+  // Payment Mode
+  doc.text(paymentMode, 430, 230);
 
   /* =======================
    PLAN DETAILS (Table Row)
@@ -90,6 +93,8 @@ doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 422);
    /* =======================
    PAYMENT SUMMARY
 ======================= */
+
+
 
   const amount = order.subscription?.amount || 0;
 
@@ -112,8 +117,7 @@ doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 422);
   // Delivery Charges
   doc.text(`Free`, 490, paymentY + 70);
 
-  // Payment Mode
-  doc.text(paymentMode, 490, paymentY + 102);
+  
 
   // Grand Total (Bold & Center Feel)
   doc
