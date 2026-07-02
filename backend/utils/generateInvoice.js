@@ -23,7 +23,7 @@ doc.pipe(stream);
   /* =======================
      BACKGROUND IMAGE
   ======================= */
-  const bgImagePath = path.join(__dirname, "../assets/invoice.png");
+  const bgImagePath = path.join(__dirname, "../assets/invoice0.png");
   doc.image(bgImagePath, 0, 0, {
     width: doc.page.width,
     height: doc.page.height,

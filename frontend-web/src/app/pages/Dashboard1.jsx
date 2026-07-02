@@ -22,9 +22,9 @@ const PLAN_PAUSES = {
 };
 
 const RENEWAL_PRICING = {
-  SILVER:   { "1": { original: 4999,  final: 4999  }, "3": { original: 17999, final: 14997 } },
-  GOLD:     { "1": { original: 5999,  final: 5999  }, "3": { original: 20997, final: 17997 } },
-  PLATINUM: { "1": { original: 6999,  final: 6999  }, "3": { original: 23997, final: 20997 } },
+  SILVER:   { "1": { original: 4999,  final: 4999  }, "3": { original: 14999, final: 14999 } },
+  GOLD:     { "1": { original: 5999,  final: 5999  }, "3": { original: 17499, final: 17499 } },
+  PLATINUM: { "1": { original: 6999,  final: 6999  }, "3": { original: 19999, final: 19999 } },
 };
 
 const PLAN_FEATURES = {
@@ -329,26 +329,45 @@ export default function Dashboard1() {
   const basePlan       = subscription.plan.split("_")[0].toUpperCase();
   const durationMonths = subscription.durationMonths || 1;
 
-  // ── Meal day calculations ──────────────────────────────────────────────────
-  const getTotalMealDays = (startDate, endDate) => {
-    if (!startDate || !endDate) return 0;
-    const start = new Date(startDate), end = new Date(endDate);
-    let count = 0; const cursor = new Date(start);
-    while (cursor <= end) { if (cursor.getDay() !== 0) count++; cursor.setDate(cursor.getDate() + 1); }
-    return count;
-  };
-  const getCompletedMealDays = (startDate, endDate) => {
-    if (!startDate) return 0;
-    const start = new Date(startDate), end = new Date(endDate), now = new Date();
-    const limit = now < end ? now : end;
-    let count = 0; const cursor = new Date(start);
-    while (cursor <= limit) { if (cursor.getDay() !== 0) count++; cursor.setDate(cursor.getDate() + 1); }
-    return count;
-  };
-  const totalDays     = getTotalMealDays(subscription.activationAt, subscription.endDate);
-  const daysCompleted = getCompletedMealDays(subscription.activationAt, subscription.endDate);
-  const remainingDays = getRemainingDays(subscription.endDate);
-  const pct           = Math.round((daysCompleted / totalDays) * 100) || 0;
+// ── Meal day calculations ──────────────────────────────────────────────────
+const isPausedDate = (date, pauseHistory) => {
+  if (!pauseHistory || pauseHistory.length === 0) return false;
+  return pauseHistory.some((p) => {
+    const pStart = new Date(p.startDate);
+    const pEnd   = new Date(p.resumeDate);
+    pStart.setHours(0, 0, 0, 0);
+    pEnd.setHours(0, 0, 0, 0);
+    return date >= pStart && date <= pEnd;
+  });
+};
+
+const getTotalMealDays = (startDate, endDate, pauseHistory) => {
+  if (!startDate || !endDate) return 0;
+  const start = new Date(startDate), end = new Date(endDate);
+  let count = 0; const cursor = new Date(start);
+  while (cursor <= end) {
+    if (cursor.getDay() !== 0 && !isPausedDate(cursor, pauseHistory)) count++;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return count;
+};
+
+const getCompletedMealDays = (startDate, endDate, pauseHistory) => {
+  if (!startDate) return 0;
+  const start = new Date(startDate), end = new Date(endDate), now = new Date();
+  const limit = now < end ? now : end;
+  let count = 0; const cursor = new Date(start);
+  while (cursor <= limit) {
+    if (cursor.getDay() !== 0 && !isPausedDate(cursor, pauseHistory)) count++;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return count;
+};
+
+const totalDays     = getTotalMealDays(subscription.activationAt, subscription.endDate, subscription.pause?.history);
+const daysCompleted = getCompletedMealDays(subscription.activationAt, subscription.endDate, subscription.pause?.history);
+const remainingDays = getRemainingDays(subscription.endDate);
+const pct           = Math.round((daysCompleted / totalDays) * 100) || 0;
 
   // ── Pause logic ───────────────────────────────────────────────────────────
   const canModify          = basePlan === "GOLD" || basePlan === "PLATINUM" || (basePlan === "SILVER" && durationMonths === 3);
@@ -1244,9 +1263,9 @@ export default function Dashboard1() {
               const PLAN_RANK   = { SILVER: 1, GOLD: 2, PLATINUM: 3 };
               const currentRank = PLAN_RANK[basePlan];
               const allPlans = [
-                { name: "PLATINUM", label: "Ryvive Platinum", prices: { "1": 6999, "3": 23997 }, features: ["Pasta zoodle collections", "3 pauses / month", "House-crafted dips", "Chef-led seasonal edits", "Signature tasting balance"] },
-                { name: "GOLD",     label: "Ryvive Gold",     prices: { "1": 5999, "3": 20997 }, features: ["Curated salad collection", "2 pauses / month", "Sandwiches", "Wraps", "Soups"] },
-                { name: "SILVER",   label: "Ryvive Silver",   prices: { "1": 4999, "3": 17999 }, features: ["Signature detox collection", "1 pause / month", "Fruit & vegetable elixirs", "Wellness blends", "Light daily nourishment"] },
+                { name: "PLATINUM", label: "Ryvive Platinum", prices: { "1": 6999, "3": 19999 }, features: ["Pasta zoodle collections", "3 pauses / month", "House-crafted dips", "Chef-led seasonal edits", "Signature tasting balance"] },
+                { name: "GOLD",     label: "Ryvive Gold",     prices: { "1": 5999, "3": 17499 }, features: ["Curated salad collection", "2 pauses / month", "Sandwiches", "Wraps", "Soups"] },
+                { name: "SILVER",   label: "Ryvive Silver",   prices: { "1": 4999, "3": 14999 }, features: ["Signature detox collection", "1 pause / month", "Fruit & vegetable elixirs", "Wellness blends", "Light daily nourishment"] },
               ];
               return (
                 <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>

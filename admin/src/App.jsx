@@ -12,6 +12,7 @@ import AdminD0 from "./pages/AdminD1";
 import AdminDashboard1 from "./pages/AdminDashboard1";
 import AdminDashboard2 from "./pages/AdminDashboard2";
 import AdminDashboard3 from "./pages/AdminDashboard3";
+import AdminDashboard4 from "./pages/AdminDashboard4";
 
 
 function App() {
@@ -29,7 +30,7 @@ function App() {
         {/* 🛡 Protected Dashboard */}
         <Route
           path="/admin-dashboard"
-          element={token ? <AdminDashboard3  /> : <Navigate to="/" />}
+          element={token ? <AdminDashboard4  /> : <Navigate to="/" />}
         />
           <Route
           path="/adminD"

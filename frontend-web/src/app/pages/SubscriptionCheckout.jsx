@@ -63,7 +63,7 @@ const plans = [
        popular: true,
     prices: { 1: 6999, 3: 19999 },
     apiKey: "PLATINUM",
-  },
+  }, 
 ];
 
 const features = {
