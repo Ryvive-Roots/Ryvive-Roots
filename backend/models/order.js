@@ -149,6 +149,18 @@ plan: {
         type: String,
       },
 
+      periodHistory: [
+        {
+          plan: String,
+          amount: Number,
+          startDate: Date,
+          endDate: Date,
+          activationAt: Date,
+          status: String,
+          snapshotAt: { type: Date, default: Date.now },
+        },
+      ],
+
       status: {
         type: String,
         enum: ["UNDER_PROCESS", "ACTIVE", "PAUSED", "CANCELLED", "EXPIRED"],

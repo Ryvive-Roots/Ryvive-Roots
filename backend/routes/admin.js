@@ -1135,6 +1135,19 @@ router.post("/renew", async (req, res) => {
       });
     }
 
+    // ✅ SNAPSHOT the pre-renewal state — captured BEFORE anything below overwrites it.
+    // This is what stops the original plan/price/dates from being silently lost.
+    existingOrder.subscription.periodHistory = existingOrder.subscription.periodHistory || [];
+    existingOrder.subscription.periodHistory.push({
+      plan: existingOrder.subscription.plan,
+      amount: existingOrder.subscription.amount,
+      startDate: existingOrder.subscription.startDate,
+      endDate: existingOrder.subscription.endDate,
+      activationAt: existingOrder.subscription.activationAt,
+      status: existingOrder.subscription.status,
+      snapshotAt: new Date(),
+    });
+
     /* ======================
        PLAN + AMOUNT
     ====================== */
@@ -1417,13 +1430,18 @@ router.get("/client-history/:membershipId", async (req, res) => {
       detail: `${order.subscription?.plan || "—"} · ₹${order.subscription?.amount || 0}`,
     });
 
-    // Original subscription start
+    // Original subscription start — price comes from the FIRST snapshot if renewals exist,
+    // otherwise the current amount IS the original (never renewed yet)
+    const originalAmount = order.subscription?.periodHistory?.length
+      ? order.subscription.periodHistory[0].amount
+      : order.subscription?.amount;
+
     if (order.subscription?.startDate) {
       timeline.push({
         type: "started",
         date: order.subscription.startDate,
         label: "Subscription Started",
-        detail: `${order.subscription.plan} · ${order.subscription.durationMonths || 1} month(s)`,
+        detail: `${order.subscription.plan} · ₹${originalAmount ?? 0} · ${order.subscription.durationMonths || 1} month(s)`,
       });
     }
 
@@ -1443,6 +1461,16 @@ router.get("/client-history/:membershipId", async (req, res) => {
           detail: `After ${p.days || 0} day(s) pause`,
         });
       }
+    });
+
+    // Past periods — pre-renewal snapshots (this is what previously got silently lost)
+    (order.subscription?.periodHistory || []).forEach((p, i) => {
+      timeline.push({
+        type: "period",
+        date: p.snapshotAt,
+        label: `Previous Subscription (Period ${i + 1})`,
+        detail: `${p.plan || "—"} · ₹${p.amount || 0} · ${p.startDate ? new Date(p.startDate).toLocaleDateString("en-GB") : "—"} → ${p.endDate ? new Date(p.endDate).toLocaleDateString("en-GB") : "—"}`,
+      });
     });
 
     // Renewals
@@ -1470,9 +1498,15 @@ router.get("/client-history/:membershipId", async (req, res) => {
 
     const totalPauses = order.subscription?.pause?.history?.length || 0;
     const totalRenewals = order.subscription?.renewalHistory?.length || 0;
-   const totalSpent =
-  (order.subscription?.originalAmount ?? order.subscription?.amount ?? 0) +
-  (order.subscription?.renewalHistory || []).reduce((sum, r) => sum + (r.amount || 0), 0);
+
+    // Sum of every past period's amount (each period = one paid subscription cycle)
+    // plus the current live amount. Falls back to originalAmount for orders that
+    // never went through a renewal after the periodHistory fix was deployed.
+    const totalSpent = order.subscription?.periodHistory?.length
+      ? (order.subscription.periodHistory.reduce((sum, p) => sum + (p.amount || 0), 0) +
+         (order.subscription?.amount || 0))
+      : ((order.subscription?.originalAmount ?? order.subscription?.amount ?? 0) +
+         (order.subscription?.renewalHistory || []).reduce((sum, r) => sum + (r.amount || 0), 0));
 
     res.json({
       success: true,
