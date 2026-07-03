@@ -92,6 +92,9 @@ plan: {
         type: Number,
         required: true,
       },
+      originalAmount: {
+  type: Number,
+},
       durationMonths: {
         type: Number,
         default: 1, // ✅ 1 month
@@ -127,6 +130,25 @@ plan: {
         ],
       },
 
+      renewalHistory: [
+  {
+    date: Date,
+    durationMonths: Number,
+    amount: Number,
+    paymentMethod: String,
+    startDate: Date,
+    activationAt: Date,
+    endDate: Date,
+  },
+],
+
+ renewedAt: {
+        type: Date,
+      },
+      renewalTriggeredBy: {
+        type: String,
+      },
+
       status: {
         type: String,
         enum: ["UNDER_PROCESS", "ACTIVE", "PAUSED", "CANCELLED", "EXPIRED"],
@@ -156,6 +178,7 @@ renewal: {
   },
   durationMonths: Number,
 },},
+
 
     
 

@@ -123,10 +123,12 @@ export default function AdminDashboard4() {
   const [deliveryLogLoading, setDeliveryLogLoading] = useState(false);
   const [savingDelivery, setSavingDelivery] = useState(false);
 
-  // ── Client History state ──
+ // ── Client History state ──
   const [historyCustomer, setHistoryCustomer] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historySearch, setHistorySearch] = useState('');
+  const [clientHistoryData, setClientHistoryData] = useState(null);   // ← ADD
+  const [historyLoading, setHistoryLoading] = useState(false);         // ← ADD
 
   // ── Impersonate / Login-as-client state ──
   const [showImpersonateConfirm, setShowImpersonateConfirm] = useState(false);
@@ -337,7 +339,22 @@ const derivePauseRequestsFromOrders = (orderList) => {
   };
 
   // ── Open client history modal ──
-  const openHistory = (order) => { setHistoryCustomer(order); setShowHistoryModal(true); };
+// ── Open client history modal ──
+  const openHistory = async (order) => {
+    setHistoryCustomer(order);
+    setShowHistoryModal(true);
+    setClientHistoryData(null);
+    setHistoryLoading(true);
+    try {
+      const res = await fetch(`https://api.ryviveroots.com/api/admin/client-history/${order.membershipId}`);
+      const data = await res.json();
+      if (data.success) setClientHistoryData(data);
+    } catch (err) {
+      console.error("Failed to fetch client history", err);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
 
   // ── Build full timeline for a client ──
   const buildClientTimeline = (order) => {
@@ -1674,60 +1691,69 @@ const derivePauseRequestsFromOrders = (orderList) => {
       {/* ══════════════════════════════════════════════
           CLIENT HISTORY MODAL — Full timeline
       ══════════════════════════════════════════════ */}
-      <AnimatePresence>
-        {showHistoryModal && historyCustomer && (() => {
-          const timeline = buildClientTimeline(historyCustomer);
-          const iconMap = { joined: '🟢', started: '🚀', paused: '⏸', resumed: '▶️', renewed: '🔄', expired: '❌', ends: '📅' };
-          return (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ ...overlayStyle, alignItems: 'flex-start', padding: '1.5rem', overflowY: 'auto' }}>
-              <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }} style={{ ...modalStyle, maxWidth: 600, margin: 'auto', maxHeight: '90vh', overflowY: 'auto', width: '100%' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
-                  <div>
-                    <h3 className="font-serif" style={{ margin: '0 0 0.25rem', fontSize: '1.5rem', fontWeight: 400, color: INK }}>Client History</h3>
-                    <p style={{ margin: 0, color: 'rgba(42,37,32,0.6)', fontSize: '0.85rem' }}>{historyCustomer.user?.firstName} {historyCustomer.user?.lastName} · {historyCustomer.membershipId}</p>
-                  </div>
-                  <button onClick={() => setShowHistoryModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={22} color={SAGE_DARK} /></button>
-                </div>
+    <AnimatePresence>
+  {showHistoryModal && historyCustomer && (() => {
+    const timeline = clientHistoryData?.timeline || [];
+    const summary = clientHistoryData?.summary || {};
+    const iconMap = { joined: '🟢', started: '🚀', paused: '⏸', resumed: '▶️', renewed: '🔄', expired: '❌', ends: '📅' };
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ ...overlayStyle, alignItems: 'flex-start', padding: '1.5rem', overflowY: 'auto' }}>
+        <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }} style={{ ...modalStyle, maxWidth: 600, margin: 'auto', maxHeight: '90vh', overflowY: 'auto', width: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+            <div>
+              <h3 className="font-serif" style={{ margin: '0 0 0.25rem', fontSize: '1.5rem', fontWeight: 400, color: INK }}>Client History</h3>
+              <p style={{ margin: 0, color: 'rgba(42,37,32,0.6)', fontSize: '0.85rem' }}>{historyCustomer.user?.firstName} {historyCustomer.user?.lastName} · {historyCustomer.membershipId}</p>
+            </div>
+            <button onClick={() => setShowHistoryModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={22} color={SAGE_DARK} /></button>
+          </div>
 
-                {/* Summary row */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                  {[
-                    { label: 'Plan', value: historyCustomer.subscription?.plan || '—' },
-                    { label: 'Pauses Used', value: historyCustomer.subscription?.pause?.history?.length || 0 },
-                    { label: 'Amount Paid', value: `₹${historyCustomer.totalPrice || historyCustomer.subscription?.amount || '—'}` },
-                  ].map(item => (
-                    <div key={item.label} style={{ ...cardStyle, padding: '0.85rem 1rem' }}>
-                      <p style={{ margin: '0 0 0.2rem', fontSize: '0.68rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: SAGE_DARK, fontWeight: 600 }}>{item.label}</p>
-                      <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: INK }}>{item.value}</p>
-                    </div>
-                  ))}
-                </div>
+          {/* Summary row — now pulled from the API, not the stale local order object */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            {[
+              { label: 'Plan', value: historyCustomer.subscription?.plan || '—' },
+              { label: 'Pauses / Renewals', value: `${summary.totalPauses ?? 0} / ${summary.totalRenewals ?? 0}` },
+              { label: 'Total Spent', value: `₹${summary.totalSpent ?? '—'}` },
+            ].map(item => (
+              <div key={item.label} style={{ ...cardStyle, padding: '0.85rem 1rem' }}>
+                <p style={{ margin: '0 0 0.2rem', fontSize: '0.68rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: SAGE_DARK, fontWeight: 600 }}>{item.label}</p>
+                <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: INK }}>{item.value}</p>
+              </div>
+            ))}
+          </div>
 
-                {/* Timeline */}
-                <h4 style={{ margin: '0 0 1rem', fontSize: '0.72rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: SAGE_DARK, fontWeight: 600 }}>Timeline</h4>
-                <div style={{ position: 'relative', paddingLeft: '1.5rem' }}>
-                  <div style={{ position: 'absolute', left: '0.65rem', top: 0, bottom: 0, width: 1, background: CARD_BORDER }} />
-                  {timeline.map((event, i) => (
-                    <div key={i} style={{ position: 'relative', marginBottom: '1.25rem', paddingLeft: '1.25rem' }}>
-                      <div style={{ position: 'absolute', left: '-1.5rem', top: '0.15rem', fontSize: '1rem' }}>{iconMap[event.type] || '●'}</div>
-                      <p style={{ margin: '0 0 0.1rem', fontWeight: 600, color: INK, fontSize: '0.9rem' }}>{event.label}</p>
-                      <p style={{ margin: '0 0 0.15rem', fontSize: '0.78rem', color: 'rgba(42,37,32,0.6)' }}>{event.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                      <p style={{ margin: 0, fontSize: '0.82rem', color: SAGE_DARK }}>{event.detail}</p>
-                    </div>
-                  ))}
-                </div>
+          {/* Timeline */}
+          <h4 style={{ margin: '0 0 1rem', fontSize: '0.72rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: SAGE_DARK, fontWeight: 600 }}>Timeline</h4>
 
-                {/* Action buttons */}
-                <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: `1px solid ${CARD_BORDER}`, display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <button onClick={() => { setShowHistoryModal(false); openInvoices(historyCustomer); }} style={{ ...ghostBtn, fontSize: '0.78rem', padding: '0.6rem 1rem' }}><FileText size={14} /> View Invoice</button>
-                  {canShowRenew(historyCustomer) && <button onClick={() => { setShowHistoryModal(false); openRenewModal(historyCustomer); }} style={{ ...accentBtn, fontSize: '0.78rem', padding: '0.6rem 1rem' }}><RefreshCcw size={14} /> Renew</button>}
-                  <button onClick={() => { setImpersonateTarget(historyCustomer); setShowImpersonateConfirm(true); }} style={{ ...primaryBtn, fontSize: '0.78rem', padding: '0.6rem 1rem' }}><Lock size={14} /> Login as Client</button>
+          {historyLoading && <p style={{ color: 'rgba(42,37,32,0.5)', padding: '0 0 1rem' }}>Loading history…</p>}
+          {!historyLoading && timeline.length === 0 && <p style={{ color: 'rgba(42,37,32,0.5)', padding: '0 0 1rem' }}>No history found.</p>}
+
+          {!historyLoading && timeline.length > 0 && (
+            <div style={{ position: 'relative', paddingLeft: '1.5rem' }}>
+              <div style={{ position: 'absolute', left: '0.65rem', top: 0, bottom: 0, width: 1, background: CARD_BORDER }} />
+              {timeline.map((event, i) => (
+                <div key={i} style={{ position: 'relative', marginBottom: '1.25rem', paddingLeft: '1.25rem' }}>
+                  <div style={{ position: 'absolute', left: '-1.5rem', top: '0.15rem', fontSize: '1rem' }}>{iconMap[event.type] || '●'}</div>
+                  <p style={{ margin: '0 0 0.1rem', fontWeight: 600, color: INK, fontSize: '0.9rem' }}>{event.label}</p>
+                  <p style={{ margin: '0 0 0.15rem', fontSize: '0.78rem', color: 'rgba(42,37,32,0.6)' }}>
+                    {new Date(event.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: SAGE_DARK }}>{event.detail}</p>
                 </div>
-              </motion.div>
-            </motion.div>
-          );
-        })()}
-      </AnimatePresence>
+              ))}
+            </div>
+          )}
+
+          {/* Action buttons */}
+          <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: `1px solid ${CARD_BORDER}`, display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button onClick={() => { setShowHistoryModal(false); openInvoices(historyCustomer); }} style={{ ...ghostBtn, fontSize: '0.78rem', padding: '0.6rem 1rem' }}><FileText size={14} /> View Invoice</button>
+            {canShowRenew(historyCustomer) && <button onClick={() => { setShowHistoryModal(false); openRenewModal(historyCustomer); }} style={{ ...accentBtn, fontSize: '0.78rem', padding: '0.6rem 1rem' }}><RefreshCcw size={14} /> Renew</button>}
+            <button onClick={() => { setImpersonateTarget(historyCustomer); setShowImpersonateConfirm(true); }} style={{ ...primaryBtn, fontSize: '0.78rem', padding: '0.6rem 1rem' }}><Lock size={14} /> Login as Client</button>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  })()}
+</AnimatePresence>
 
       {/* ══════════════════════════════════════════════
           IMPERSONATE CONFIRM MODAL

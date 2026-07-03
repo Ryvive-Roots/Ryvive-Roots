@@ -249,6 +249,7 @@ remarks: remarks || "",
       subscription: {
   plan,
  amount: totalPrice || selectedPlan.price,
+ originalAmount: totalPrice || selectedPlan.price, 
   durationMonths: months,
   activationAt,
   startDate,
@@ -1387,6 +1388,109 @@ router.post("/renew", async (req, res) => {
     // TEMP: leaking err.message to help you debug from the browser/network tab.
     // Remove `message: err.message` once this is confirmed working in production.
     res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/* ===========================
+   GET CLIENT HISTORY
+=========================== */
+router.get("/client-history/:membershipId", async (req, res) => {
+  try {
+    const { membershipId } = req.params;
+
+    const order = await Order.findOne({ membershipId }).lean();
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "No order found for this membership ID",
+      });
+    }
+
+    const timeline = [];
+
+    // Account created
+    timeline.push({
+      type: "joined",
+      date: order.createdAt,
+      label: "Account Created",
+      detail: `${order.subscription?.plan || "—"} · ₹${order.subscription?.amount || 0}`,
+    });
+
+    // Original subscription start
+    if (order.subscription?.startDate) {
+      timeline.push({
+        type: "started",
+        date: order.subscription.startDate,
+        label: "Subscription Started",
+        detail: `${order.subscription.plan} · ${order.subscription.durationMonths || 1} month(s)`,
+      });
+    }
+
+    // Pauses
+    (order.subscription?.pause?.history || []).forEach((p, i) => {
+      timeline.push({
+        type: "paused",
+        date: p.startDate,
+        label: `Pause #${i + 1}`,
+        detail: `${new Date(p.startDate).toLocaleDateString("en-GB")} → ${new Date(p.resumeDate).toLocaleDateString("en-GB")} · ${p.days || 0} day(s)`,
+      });
+      if (p.resumeDate) {
+        timeline.push({
+          type: "resumed",
+          date: p.resumeDate,
+          label: "Resumed",
+          detail: `After ${p.days || 0} day(s) pause`,
+        });
+      }
+    });
+
+    // Renewals
+    (order.subscription?.renewalHistory || []).forEach((r, i) => {
+      timeline.push({
+        type: "renewed",
+        date: r.date,
+        label: `Renewal #${i + 1}`,
+        detail: `${r.durationMonths} month(s) · ₹${r.amount} · ${r.paymentMethod || "—"} · New expiry ${r.endDate ? new Date(r.endDate).toLocaleDateString("en-GB") : "—"}`,
+      });
+    });
+
+    // Current expiry / expired status
+    if (order.subscription?.endDate) {
+      const expired = new Date(order.subscription.endDate) < new Date();
+      timeline.push({
+        type: expired ? "expired" : "ends",
+        date: order.subscription.endDate,
+        label: expired ? "Subscription Expired" : "Subscription Ends",
+        detail: new Date(order.subscription.endDate).toLocaleDateString("en-GB"),
+      });
+    }
+
+    timeline.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const totalPauses = order.subscription?.pause?.history?.length || 0;
+    const totalRenewals = order.subscription?.renewalHistory?.length || 0;
+   const totalSpent =
+  (order.subscription?.originalAmount ?? order.subscription?.amount ?? 0) +
+  (order.subscription?.renewalHistory || []).reduce((sum, r) => sum + (r.amount || 0), 0);
+
+    res.json({
+      success: true,
+      membershipId,
+      customer: order.user,
+      address: order.address,
+      currentOrder: order,
+      timeline,
+      summary: {
+        totalSpent,
+        totalPauses,
+        totalRenewals,
+        firstJoined: order.createdAt,
+      },
+    });
+  } catch (err) {
+    console.error("Failed to fetch client history:", err);
+    res.status(500).json({ success: false, message: "Server error fetching client history" });
   }
 });
 

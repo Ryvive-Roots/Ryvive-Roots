@@ -124,7 +124,7 @@ doc.text(`₹ ${order.subscription?.amount || 0}`, 490, 441);
   doc
     .fontSize(14)
     .font("Poppins")
-    .text(`₹ ${amount}`, 490, paymentY + 114);
+    .text(`₹ ${amount}`, 490, paymentY + 113);
 
   doc.fontSize(12);
 
