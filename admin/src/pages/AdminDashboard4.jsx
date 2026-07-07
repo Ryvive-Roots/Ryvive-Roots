@@ -75,12 +75,7 @@ const modalStyle = { background: CREAM, borderRadius: 4, padding: '2rem', maxWid
 
 // ── STATIC MOCK DATA (fallback / customer queries) ─────────────────────────
 
-const customerQueries = [
-  { id: 'Q001', customer: 'Priya Sharma', customerId: 'RR001', type: 'Complaint', subject: 'Late Delivery', message: 'My meal was delivered 2 hours late today. This is affecting my schedule.', date: '2024-05-15', time: '10:30 AM', status: 'Open', priority: 'High', assignedTo: null, response: null },
-  { id: 'Q002', customer: 'Amit Patel', customerId: 'RR002', type: 'Feedback', subject: 'Menu Suggestions', message: 'Would love to see more South Indian options in the menu.', date: '2024-05-14', time: '03:45 PM', status: 'In Progress', priority: 'Low', assignedTo: 'Sakshi', response: 'Thank you for the suggestion. We are working on expanding our menu.' },
-  { id: 'Q003', customer: 'Sneha Desai', customerId: 'RR003', type: 'Complaint', subject: 'Wrong Order Delivered', message: 'I received a sandwich instead of the salad I ordered.', date: '2024-05-14', time: '11:20 AM', status: 'Resolved', priority: 'High', assignedTo: 'Sakshi', response: 'We sincerely apologize. A replacement salad has been sent and one free meal credited.' },
-  { id: 'Q004', customer: 'Rahul Kumar', customerId: 'RR004', type: 'Query', subject: 'Pause Subscription', message: 'How do I pause my subscription for a week? I will be traveling.', date: '2024-05-13', time: '09:15 AM', status: 'Resolved', priority: 'Medium', assignedTo: 'Sakshi', response: 'You can pause from your dashboard. We have also paused it for you from May 20–27.' },
-];
+
 
 // ── COMPONENT ──────────────────────────────────────────────────────────────
 
@@ -151,6 +146,9 @@ export default function AdminDashboard4() {
   const [deliveryMenuText, setDeliveryMenuText] = useState('');
   const [deliveryWeekNo, setDeliveryWeekNo] = useState('');
 
+  const [customerQueries, setCustomerQueries] = useState([]);
+const [queryResponseDrafts, setQueryResponseDrafts] = useState({}); // { [queryId]: draft text }
+
   // ── Lifecycle ──
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -159,6 +157,7 @@ export default function AdminDashboard4() {
     fetchPendingPayments();
     fetchAuditLogs();
     fetchPauseRequests();
+      fetchQueries();          
   }, []);
 
   useEffect(() => { setMobileNavOpen(false); }, [activeView]);
@@ -188,6 +187,16 @@ export default function AdminDashboard4() {
       setLoading(false);
     }
   };
+
+  const fetchQueries = async () => {
+  try {
+    const res = await fetch("https://api.ryviveroots.com/api/admin/queries");
+    const data = await res.json();
+    if (data.success) setCustomerQueries(data.queries);
+  } catch (err) {
+    console.error("Failed to fetch queries", err);
+  }
+};
 
   const fetchPendingPayments = async () => {
     try {
@@ -705,6 +714,39 @@ const statusTone = (text) => {
     });
   } catch (_) {
     // Silent fail — UI already updated
+  }
+};
+
+const handleQueryStatusChange = async (id, newStatus) => {
+  setCustomerQueries(prev => prev.map(q => q._id === id ? { ...q, status: newStatus } : q)); // optimistic
+  try {
+    await fetch(`https://api.ryviveroots.com/api/admin/queries/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    });
+  } catch (err) {
+    console.error("Status update failed:", err);
+    fetchQueries(); // re-sync if the request failed
+  }
+};
+
+const handleSendQueryResponse = async (id) => {
+  const responseText = queryResponseDrafts[id];
+  if (!responseText || !responseText.trim()) return;
+  try {
+    const res = await fetch(`https://api.ryviveroots.com/api/admin/queries/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ response: responseText, status: "Resolved" }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setCustomerQueries(prev => prev.map(q => q._id === id ? data.query : q));
+      setQueryResponseDrafts(prev => ({ ...prev, [id]: "" }));
+    }
+  } catch (err) {
+    console.error("Failed to send response:", err);
   }
 };
 

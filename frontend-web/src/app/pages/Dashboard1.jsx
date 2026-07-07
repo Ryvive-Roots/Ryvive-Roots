@@ -57,30 +57,19 @@ const WEEKLY_MENU = {
 };
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
-// AFTER — derives max weeks from the real subscription length (24/72 days), not calendar months
-function getCurrentWeekNumber(activationDate, endDate) {
+function getCurrentWeekNumber(activationDate, durationMonths = 1) {
   if (!activationDate) return 1;
   const activation = new Date(activationDate);
   activation.setHours(0, 0, 0, 0);
-
   const dow = activation.getDay();
   const daysFromMon = dow === 0 ? 6 : dow - 1;
   const week1Monday = new Date(activation);
   week1Monday.setDate(activation.getDate() - daysFromMon);
-
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const diff = today.getTime() - week1Monday.getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-  // Derive the cap from the actual subscription length (24 or 72 days),
-  // instead of assuming calendar months.
-  const end = endDate ? new Date(endDate) : null;
-  const totalDurationDays = end
-    ? Math.round((end.getTime() - activation.getTime()) / (1000 * 60 * 60 * 24))
-    : 24; // fallback
-  const maxWeeks = Math.ceil(totalDurationDays / 7);
-
+  const maxWeeks = durationMonths === 3 ? 12 : 4;
   return Math.min(Math.floor(days / 7) + 1, maxWeeks);
 }
 
@@ -304,7 +293,8 @@ export default function Dashboard1() {
     });
     const plan = order.subscription?.plan?.split("_")[0]?.toUpperCase();
     if (["SILVER", "GOLD", "PLATINUM"].includes(plan)) setSelectedPlan(plan);
-    const wk = getCurrentWeekNumber(order.subscription?.activationAt, order.subscription?.endDate);
+    const dur = order.subscription?.durationMonths || 1;
+    const wk  = getCurrentWeekNumber(order.subscription?.activationAt, dur);
     setSelectedWeek(wk);
   }, [order]);
 
@@ -351,28 +341,31 @@ const isPausedDate = (date, pauseHistory) => {
   });
 };
 
-
-
-const MEAL_DAYS_PER_MONTH = 24;
-
-// Total is always the compulsory 24/72 — never derived from calendar span
-const totalDays = MEAL_DAYS_PER_MONTH * durationMonths;
+const getTotalMealDays = (startDate, endDate, pauseHistory) => {
+  if (!startDate || !endDate) return 0;
+  const start = new Date(startDate), end = new Date(endDate);
+  let count = 0; const cursor = new Date(start);
+  while (cursor <= end) {
+    if (cursor.getDay() !== 0 && !isPausedDate(cursor, pauseHistory)) count++;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return count;
+};
 
 const getCompletedMealDays = (startDate, endDate, pauseHistory) => {
   if (!startDate) return 0;
   const start = new Date(startDate), end = new Date(endDate), now = new Date();
-  start.setHours(0,0,0,0); end.setHours(0,0,0,0); now.setHours(0,0,0,0);
   const limit = now < end ? now : end;
   let count = 0; const cursor = new Date(start);
   while (cursor <= limit) {
     if (cursor.getDay() !== 0 && !isPausedDate(cursor, pauseHistory)) count++;
     cursor.setDate(cursor.getDate() + 1);
   }
-  return Math.min(count, totalDays); // never overshoot past a pause-extended tail
+  return count;
 };
 
+const totalDays     = getTotalMealDays(subscription.activationAt, subscription.endDate, subscription.pause?.history);
 const daysCompleted = getCompletedMealDays(subscription.activationAt, subscription.endDate, subscription.pause?.history);
-
 const remainingDays = getRemainingDays(subscription.endDate);
 const pct           = Math.round((daysCompleted / totalDays) * 100) || 0;
 
