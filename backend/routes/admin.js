@@ -23,7 +23,14 @@ function addMonthsSafe(date, months) {
   d.setMonth(d.getMonth() + months);
   if (d.getDate() < day) d.setDate(0);
   return d;
-} 
+}
+
+// Fixed-length cycle math — 1 month = 24 days, 3 months = 72 days, always.
+function addPlanDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + Number(days));
+  return d;
+}
 
 
 /* ===========================
@@ -199,17 +206,15 @@ if (req.body.startDate) {
 
 }
 
-// ✅ Ensure months is always a number
+
+const durationDays = Number(selectedPlan.durationDays) || (Number(selectedPlan.durationMonths) || 1) * 24;
 const months = Number(selectedPlan.durationMonths) || 1;
+const endDate = addPlanDays(startDate, durationDays);
 
-const endDate = new Date(startDate);
-endDate.setMonth(endDate.getMonth() + months);
-
-// 🧪 DEBUG (temporary – helps confirm)
 console.log("🧪 activationAt:", activationAt);
 console.log("🧪 startDate:", startDate);
 console.log("🧪 endDate:", endDate);
-console.log("🧪 months:", months);
+console.log("🧪 durationDays:", durationDays);
 
 
 
@@ -1228,7 +1233,8 @@ router.post("/renew", async (req, res) => {
     // instead of stacking onto a stale/past endDate.
     const extendFrom = baseEndDate > activationAt ? baseEndDate : activationAt;
 
-    const newEndDate = addMonthsSafe(extendFrom, duration);
+    const durationDays = selectedPlan.durationDays || duration * 24;
+const newEndDate = addPlanDays(extendFrom, durationDays);
 
     existingOrder.subscription.endDate = newEndDate;
 

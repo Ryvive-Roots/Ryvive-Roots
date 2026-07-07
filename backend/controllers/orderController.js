@@ -9,17 +9,17 @@ import generateReceiptNumber from "../utils/generateReceiptNumber.js";
 import TempPayment from "../models/TempPayment.js";
 
 
-function addMonthsSafe(date, months) {
+// Fixed-length cycle math — 1 month = 24 days, 3 months = 72 days, always.
+function addPlanDays(date, days) {
   const d = new Date(date);
-  const day = d.getDate();
-
-  d.setMonth(d.getMonth() + months);
-
-  if (d.getDate() < day) {
-    d.setDate(0); // clamp to last day
-  }
-
+  d.setDate(d.getDate() + Number(days));
   return d;
+}
+
+// For places where you only have "durationMonths" (e.g. admin renew form: 1 or 3)
+// and need to convert to the compulsory day-count.
+function monthsToPlanDays(months) {
+  return Number(months) * 24;
 }
 
 export const easebuzzSuccess = async (req, res) => {
@@ -370,9 +370,9 @@ Dombivli East, Maharashtra 421201, India
   ],
 });
 
-const previewEnd = addMonthsSafe(
+const previewEnd = addPlanDays(
   existingOrder.subscription.endDate,
-  tempPayment.durationMonths
+  monthsToPlanDays(tempPayment.durationMonths)
 );
 
   // ✅ Renewal Email to Company
@@ -422,10 +422,10 @@ if (tempPayment.isExistingCustomerPurchase) {
 
   const startDate = new Date(activationAt);
 
-  const endDate = addMonthsSafe(
-    startDate,
-    selectedPlan.durationMonths
-  );
+  const endDate = addPlanDays(
+  startDate,
+  selectedPlan.durationDays
+);
 
   const receiptNumber = await generateReceiptNumber(
     Order,
@@ -600,7 +600,7 @@ if (existingOrder) {
 // 5️⃣ Subscription dates
 const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 const startDate = new Date(activationAt);
-const endDate = addMonthsSafe(startDate, selectedPlan.durationMonths);
+const endDate = addPlanDays(startDate, selectedPlan.durationDays);
 
 // 6️⃣ Receipt
 

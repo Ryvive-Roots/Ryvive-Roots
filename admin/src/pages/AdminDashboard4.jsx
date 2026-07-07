@@ -37,9 +37,22 @@ const packageFeatures = [
 const CARD_BORDER = 'rgba(42,37,32,0.08)';
 
 const STATUS = {
-  active: { bg: 'rgba(107,117,96,0.14)', fg: SAGE_DARK },
-  paused: { bg: 'rgba(176,137,79,0.16)', fg: '#9a6a2e' },
-  expired: { bg: 'rgba(150,70,60,0.14)', fg: '#9a4a3e' },
+  active: {
+    bg: 'rgba(107,117,96,0.14)',
+    fg: "#15803D",          // Green
+  },
+  paused: {
+    bg: 'rgba(176,137,79,0.16)',
+    fg: '#9a6a2e',          // Orange
+  },
+  expired: {
+    bg: 'rgba(150,70,60,0.14)',
+    fg: '#9a4a3e',          // Dark Red
+  },
+  cancelled: {
+    bg: 'rgba(220,53,69,0.14)',
+    fg: '#DC3545',          // Bright Red
+  },
 };
 
 const cardStyle = {
@@ -440,24 +453,46 @@ const derivePauseRequestsFromOrders = (orderList) => {
   };
 
   // ── Helpers ──
-  const getPauseStatusText = (order) => {
-    if (order.subscription?.status === "EXPIRED") return "EXPIRED";
-    if (order.subscription?.status === "UNDER_PROCESS") return "UNDER PROCESS";
-    const pause = order.subscription?.pause;
-    if (!pause?.history?.length) return "ACTIVE";
-    const latest = pause.history[pause.history.length - 1];
-    const start = new Date(latest.startDate);
-    const resume = new Date(latest.resumeDate);
-    const days = latest.days || 1;
-    const today = new Date();
-    const startText = start.toLocaleDateString("en-IN");
-    const resumeText = resume.toLocaleDateString("en-IN");
-    if (today >= start && today <= resume) return days === 1 ? `PAUSED • ${startText} (1 day)` : `PAUSED • ${startText} → ${resumeText}`;
-    if (today < start) return days === 1 ? `ACTIVE • Pause scheduled ${startText} (1 day)` : `ACTIVE • Pause scheduled ${startText} → ${resumeText}`;
-    return "ACTIVE";
-  };
+const getPauseStatusText = (order) => {
+  if (order.subscription?.status === "CANCELLED") return "CANCELLED";
+  if (order.subscription?.status === "EXPIRED") return "EXPIRED";
+  if (order.subscription?.status === "UNDER_PROCESS") return "UNDER PROCESS";
 
-  const statusTone = (text) => text.includes('PAUSED') ? STATUS.paused : text.includes('EXPIRED') ? STATUS.expired : STATUS.active;
+  const pause = order.subscription?.pause;
+
+  if (!pause?.history?.length) return "ACTIVE";
+
+  const latest = pause.history[pause.history.length - 1];
+  const start = new Date(latest.startDate);
+  const resume = latest.resumeDate ? new Date(latest.resumeDate) : null;
+  const days = latest.days || 1;
+  const today = new Date();
+
+  const startText = start.toLocaleDateString("en-IN");
+  const resumeText = resume ? resume.toLocaleDateString("en-IN") : "";
+
+  if (resume && today >= start && today <= resume) {
+    return days === 1
+      ? `PAUSED • ${startText} (1 day)`
+      : `PAUSED • ${startText} → ${resumeText}`;
+  }
+
+  if (today < start) {
+    return days === 1
+      ? `ACTIVE • Pause scheduled ${startText} (1 day)`
+      : `ACTIVE • Pause scheduled ${startText} → ${resumeText}`;
+  }
+
+  return "ACTIVE";
+};
+
+const statusTone = (text) => {
+  if (text.includes("CANCELLED")) return STATUS.cancelled;
+  if (text.includes("PAUSED")) return STATUS.paused;
+  if (text.includes("EXPIRED")) return STATUS.expired;
+
+  return STATUS.active;
+};
 
   const canShowRenew = (order) => {
     if (!order?.subscription?.endDate) return false;

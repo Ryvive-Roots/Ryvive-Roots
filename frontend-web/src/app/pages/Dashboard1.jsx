@@ -57,19 +57,30 @@ const WEEKLY_MENU = {
 };
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
-function getCurrentWeekNumber(activationDate, durationMonths = 1) {
+// AFTER — derives max weeks from the real subscription length (24/72 days), not calendar months
+function getCurrentWeekNumber(activationDate, endDate) {
   if (!activationDate) return 1;
   const activation = new Date(activationDate);
   activation.setHours(0, 0, 0, 0);
+
   const dow = activation.getDay();
   const daysFromMon = dow === 0 ? 6 : dow - 1;
   const week1Monday = new Date(activation);
   week1Monday.setDate(activation.getDate() - daysFromMon);
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const diff = today.getTime() - week1Monday.getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const maxWeeks = durationMonths === 3 ? 12 : 4;
+
+  // Derive the cap from the actual subscription length (24 or 72 days),
+  // instead of assuming calendar months.
+  const end = endDate ? new Date(endDate) : null;
+  const totalDurationDays = end
+    ? Math.round((end.getTime() - activation.getTime()) / (1000 * 60 * 60 * 24))
+    : 24; // fallback
+  const maxWeeks = Math.ceil(totalDurationDays / 7);
+
   return Math.min(Math.floor(days / 7) + 1, maxWeeks);
 }
 
@@ -293,8 +304,7 @@ export default function Dashboard1() {
     });
     const plan = order.subscription?.plan?.split("_")[0]?.toUpperCase();
     if (["SILVER", "GOLD", "PLATINUM"].includes(plan)) setSelectedPlan(plan);
-    const dur = order.subscription?.durationMonths || 1;
-    const wk  = getCurrentWeekNumber(order.subscription?.activationAt, dur);
+    const wk = getCurrentWeekNumber(order.subscription?.activationAt, order.subscription?.endDate);
     setSelectedWeek(wk);
   }, [order]);
 
