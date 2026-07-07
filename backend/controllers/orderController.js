@@ -22,6 +22,19 @@ function monthsToPlanDays(months) {
   return Number(months) * 24;
 }
 
+// Adds `mealDays` delivery days (Mon–Sat only, skipping every Sunday).
+// Returns the calendar date on which the last delivery day falls.
+function addMealDays(startDate, mealDays) {
+  const d = new Date(startDate);
+  d.setHours(0, 0, 0, 0);
+  let count = d.getDay() !== 0 ? 1 : 0; // does the start date itself count as day 1?
+  while (count < mealDays) {
+    d.setDate(d.getDate() + 1);
+    if (d.getDay() !== 0) count++;
+  }
+  return d;
+}
+
 export const easebuzzSuccess = async (req, res) => {
    try {
     const {
@@ -422,10 +435,7 @@ if (tempPayment.isExistingCustomerPurchase) {
 
   const startDate = new Date(activationAt);
 
-  const endDate = addPlanDays(
-  startDate,
-  selectedPlan.durationDays
-);
+ const endDate = addMealDays(startDate, selectedPlan.durationDays);
 
   const receiptNumber = await generateReceiptNumber(
     Order,
@@ -600,7 +610,7 @@ if (existingOrder) {
 // 5️⃣ Subscription dates
 const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 const startDate = new Date(activationAt);
-const endDate = addPlanDays(startDate, selectedPlan.durationDays);
+const endDate = addMealDays(startDate, selectedPlan.durationDays);
 
 // 6️⃣ Receipt
 

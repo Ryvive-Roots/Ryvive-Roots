@@ -351,31 +351,28 @@ const isPausedDate = (date, pauseHistory) => {
   });
 };
 
-const getTotalMealDays = (startDate, endDate, pauseHistory) => {
-  if (!startDate || !endDate) return 0;
-  const start = new Date(startDate), end = new Date(endDate);
-  let count = 0; const cursor = new Date(start);
-  while (cursor <= end) {
-    if (cursor.getDay() !== 0 && !isPausedDate(cursor, pauseHistory)) count++;
-    cursor.setDate(cursor.getDate() + 1);
-  }
-  return count;
-};
+
+
+const MEAL_DAYS_PER_MONTH = 24;
+
+// Total is always the compulsory 24/72 — never derived from calendar span
+const totalDays = MEAL_DAYS_PER_MONTH * durationMonths;
 
 const getCompletedMealDays = (startDate, endDate, pauseHistory) => {
   if (!startDate) return 0;
   const start = new Date(startDate), end = new Date(endDate), now = new Date();
+  start.setHours(0,0,0,0); end.setHours(0,0,0,0); now.setHours(0,0,0,0);
   const limit = now < end ? now : end;
   let count = 0; const cursor = new Date(start);
   while (cursor <= limit) {
     if (cursor.getDay() !== 0 && !isPausedDate(cursor, pauseHistory)) count++;
     cursor.setDate(cursor.getDate() + 1);
   }
-  return count;
+  return Math.min(count, totalDays); // never overshoot past a pause-extended tail
 };
 
-const totalDays     = getTotalMealDays(subscription.activationAt, subscription.endDate, subscription.pause?.history);
 const daysCompleted = getCompletedMealDays(subscription.activationAt, subscription.endDate, subscription.pause?.history);
+
 const remainingDays = getRemainingDays(subscription.endDate);
 const pct           = Math.round((daysCompleted / totalDays) * 100) || 0;
 

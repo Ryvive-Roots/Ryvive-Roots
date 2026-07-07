@@ -32,6 +32,19 @@ function addPlanDays(date, days) {
   return d;
 }
 
+// Adds `mealDays` delivery days (Mon–Sat only, skipping every Sunday).
+// Returns the calendar date on which the last delivery day falls.
+function addMealDays(startDate, mealDays) {
+  const d = new Date(startDate);
+  d.setHours(0, 0, 0, 0);
+  let count = d.getDay() !== 0 ? 1 : 0; // does the start date itself count as day 1?
+  while (count < mealDays) {
+    d.setDate(d.getDate() + 1);
+    if (d.getDay() !== 0) count++;
+  }
+  return d;
+}
+
 
 /* ===========================
    GET ALL ORDERS (ADMIN)
@@ -209,7 +222,7 @@ if (req.body.startDate) {
 
 const durationDays = Number(selectedPlan.durationDays) || (Number(selectedPlan.durationMonths) || 1) * 24;
 const months = Number(selectedPlan.durationMonths) || 1;
-const endDate = addPlanDays(startDate, durationDays);
+const endDate = addMealDays(startDate, durationDays);
 
 console.log("🧪 activationAt:", activationAt);
 console.log("🧪 startDate:", startDate);
@@ -1234,7 +1247,7 @@ router.post("/renew", async (req, res) => {
     const extendFrom = baseEndDate > activationAt ? baseEndDate : activationAt;
 
     const durationDays = selectedPlan.durationDays || duration * 24;
-const newEndDate = addPlanDays(extendFrom, durationDays);
+const newEndDate = addMealDays(extendFrom, durationDays);
 
     existingOrder.subscription.endDate = newEndDate;
 
