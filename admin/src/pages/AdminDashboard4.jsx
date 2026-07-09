@@ -124,7 +124,7 @@ export default function AdminDashboard4() {
  const [pauseRequests, setPauseRequests] = useState([]);
 
   // ── Invoice & Delivery Log state ──
-  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false); 
   const [invoiceCustomer, setInvoiceCustomer] = useState(null);
   const [deliveryDate, setDeliveryDate] = useState(new Date().toISOString().split('T')[0]);
   const [deliveryLog, setDeliveryLog] = useState([]);

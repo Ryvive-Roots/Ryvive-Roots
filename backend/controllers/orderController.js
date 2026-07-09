@@ -36,7 +36,7 @@ function addMealDays(startDate, mealDays) {
 }
 
 export const easebuzzSuccess = async (req, res) => {
-   try {
+  try {
     const {
       status,
       txnid,
@@ -109,123 +109,118 @@ export const easebuzzSuccess = async (req, res) => {
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
     }
 
+    const { formData, plan } = tempPayment;
 
+    console.log("==== DEBUG PLAN ====");
+    console.log("RAW PLAN:", JSON.stringify(plan));
+    console.log("RAW LENGTH:", plan.length);
+    console.log(
+      "CHAR CODES:",
+      [...plan].map(c => c.charCodeAt(0))
+    );
+    console.log(
+      "ENUM:",
+      Order.schema.path("subscription.plan").enumValues
+    );
+    console.log("====================");
 
+    const cleanPlan = (value) => {
+      return String(value || "")
+        .normalize("NFKC")
+        .replace(/[\u200B-\u200D\uFEFF]/g, "")   // remove ALL zero-width characters
+        .replace(/\s+/g, "")                   // remove whitespace
+        .trim()
+        .toUpperCase();
+    };
 
+    const normalizedPlan = cleanPlan(plan);
 
+    // Validate against enum from Order schema (stronger than PLANS)
+    const allowedPlans = Order.schema.path("subscription.plan").enumValues;
 
-const { formData, plan } = tempPayment;
+    const exactPlan = allowedPlans.find(
+      p => cleanPlan(p) === normalizedPlan
+    );
 
-console.log("==== DEBUG PLAN ====");
-console.log("RAW PLAN:", JSON.stringify(plan));
-console.log("RAW LENGTH:", plan.length);
-console.log(
-  "CHAR CODES:",
-  [...plan].map(c => c.charCodeAt(0))
-);
-console.log(
-  "ENUM:",
-  Order.schema.path("subscription.plan").enumValues
-);
-console.log("====================");
+    if (!exactPlan) {
+      console.error("❌ Plan mismatch:", normalizedPlan);
+      throw new Error("Invalid subscription plan");
+    }
 
-const cleanPlan = (value) => {
-  return String(value || "")
-    .normalize("NFKC")
-    .replace(/[\u200B-\u200D\uFEFF]/g, "")   // remove ALL zero-width characters
-    .replace(/\s+/g, "")                   // remove whitespace
-    .trim()
-    .toUpperCase();
-};
+    const selectedPlan = PLANS[exactPlan];
 
-const normalizedPlan = cleanPlan(plan);
-
-// Validate against enum from Order schema (stronger than PLANS)
-const allowedPlans = Order.schema.path("subscription.plan").enumValues;
-
-const exactPlan = allowedPlans.find(
-  p => cleanPlan(p) === normalizedPlan
-);
-
-if (!exactPlan) {
-  console.error("❌ Plan mismatch:", normalizedPlan);
-  throw new Error("Invalid subscription plan");
-}
-
-const selectedPlan = PLANS[exactPlan];
-
-if (!selectedPlan) {
-  console.error("❌ Invalid plan from TempPayment:", normalizedPlan);
-  throw new Error("Plan not found in planConfig: " + normalizedPlan);
-}
+    if (!selectedPlan) {
+      console.error("❌ Invalid plan from TempPayment:", normalizedPlan);
+      throw new Error("Plan not found in planConfig: " + normalizedPlan);
+    }
 
     // =====================================================
-// 🔁 RENEWAL LOGIC (ADDED ONLY)
-// =====================================================
-if (tempPayment.isRenewal) {
+    // 🔁 RENEWAL LOGIC (same plan, extended duration)
+    // =====================================================
+    if (tempPayment.isRenewal) {
 
-  const existingOrder = await Order.findOne({
-    membershipId: tempPayment.membershipId,
-  });
+      const existingOrder = await Order.findOne({
+        membershipId: tempPayment.membershipId,
+      });
 
-  if (!existingOrder) {
-    return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
-  }
+      if (!existingOrder) {
+        return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+      }
 
- // DO NOT extend endDate immediately
+      // DO NOT extend endDate immediately
 
-const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+      const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
-existingOrder.subscription.renewal = {
-  pending: true,
-  durationMonths: tempPayment.durationMonths,
-};
+      existingOrder.subscription.renewal = {
+        pending: true,
+        durationMonths: tempPayment.durationMonths,
+      };
 
-// ⭐ IMPORTANT — dashboard depends on this
-existingOrder.subscription.durationMonths = tempPayment.durationMonths;
+      // ⭐ IMPORTANT — dashboard depends on this
+      existingOrder.subscription.durationMonths = tempPayment.durationMonths;
 
-existingOrder.subscription.activationAt = activationAt;
-existingOrder.subscription.status = "UNDER_PROCESS";
+      existingOrder.subscription.activationAt = activationAt;
+      existingOrder.subscription.status = "UNDER_PROCESS";
 
-await existingOrder.save();
+      await existingOrder.save();
 
-  // Update temp payment
-  tempPayment.status = "SUCCESS";
-  tempPayment.membershipId = existingOrder.membershipId;
-  await tempPayment.save();
+      // Update temp payment
+      tempPayment.status = "SUCCESS";
+      tempPayment.membershipId = existingOrder.membershipId;
+      await tempPayment.save();
 
-  // ✅ Generate new receipt for renewal
-const receiptNumber = await generateReceiptNumber(
-  Order,
-  tempPayment.amount
-);
+      // ✅ Generate new receipt for renewal
+      const receiptNumber = await generateReceiptNumber(
+        Order,
+        tempPayment.amount
+      );
 
-// Keep original plan exactly as stored
-existingOrder.subscription.plan = String(
-  existingOrder.subscription.plan
-).trim().toUpperCase();
+      // Keep original plan exactly as stored
+      existingOrder.subscription.plan = String(
+        existingOrder.subscription.plan
+      ).trim().toUpperCase();
 
-// ✅ Generate renewal invoice
-const invoicePath = await generateInvoice({
-  ...existingOrder.toObject(),
-  receiptNumber,
-  subscription: {
-    ...existingOrder.subscription,
-    amount: tempPayment.amount,
-  },
-});
+      // ✅ Generate renewal invoice
+      const invoicePath = await generateInvoice({
+        ...existingOrder.toObject(),
+        receiptNumber,
+        subscription: {
+          ...existingOrder.subscription,
+          amount: tempPayment.amount,
+        },
+      });
 
-existingOrder.invoiceUrl = invoicePath;
-await existingOrder.save(); 
+      existingOrder.invoiceUrl = invoicePath;
+      await existingOrder.save();
 
-const renewalPlan =
-  "RYVIVE " + String(existingOrder.subscription.plan).split("_")[0];
-  
-// ✅ Send Renewal Email WITH Invoice
-await sendEmail({
-  to: existingOrder.user.email,
-  subject: "You’re Back, And We’re Glad 🌿",
-  html: `
+      const renewalPlan =
+        "RYVIVE " + String(existingOrder.subscription.plan).split("_")[0];
+
+      // ✅ Send Renewal Email WITH Invoice
+      await sendEmail({
+        to: existingOrder.user.email,
+        subject: "You're Back, And We're Glad 🌿",
+        html: `
 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
 
   <h2>Hi ${existingOrder.user.firstName},</h2>
@@ -239,7 +234,7 @@ await sendEmail({
 
   <p>
     Thank you for continuing your wellness journey with us.
-    Here’s your renewal summary for your records:
+    Here's your renewal summary for your records:
   </p>
 
   <table style="border-collapse: collapse; margin-top: 10px;">
@@ -375,24 +370,24 @@ Dombivli East, Maharashtra 421201, India
 
 </div>
 `,
-  attachments: [
-    {
-      filename: `invoice-${receiptNumber}.pdf`,
-      path: invoicePath,
-    },
-  ],
-});
+        attachments: [
+          {
+            filename: `invoice-${receiptNumber}.pdf`,
+            path: invoicePath,
+          },
+        ],
+      });
 
-const previewEnd = addPlanDays(
-  existingOrder.subscription.endDate,
-  monthsToPlanDays(tempPayment.durationMonths)
-);
+      const previewEnd = addPlanDays(
+        existingOrder.subscription.endDate,
+        monthsToPlanDays(tempPayment.durationMonths)
+      );
 
-  // ✅ Renewal Email to Company
-await sendEmail({
-  to: process.env.COMPANY_EMAIL,
-  subject: `🔁 Subscription Renewed - ${existingOrder.membershipId}`,
-  html: `
+      // ✅ Renewal Email to Company
+      await sendEmail({
+        to: process.env.COMPANY_EMAIL,
+        subject: `🔁 Subscription Renewed - ${existingOrder.membershipId}`,
+        html: `
 <h2>Subscription Renewal Received</h2>
 
 <ul>
@@ -407,93 +402,111 @@ await sendEmail({
 </ul>
 
 `,
-  attachments: [
-    {
-      filename: `invoice-${receiptNumber}.pdf`,
-      path: invoicePath,
-    },
-  ],
-});
+        attachments: [
+          {
+            filename: `invoice-${receiptNumber}.pdf`,
+            path: invoicePath,
+          },
+        ],
+      });
 
-  return res.redirect(
-    `${process.env.FRONTEND_URL}/dashboard?renewal=success`
-  );
-}
-
-
-if (tempPayment.isExistingCustomerPurchase) {
-
-  const existingUser = await User.findOne({
-    membershipId: tempPayment.membershipId,
-  });
-
-  if (!existingUser) {
-    return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
-  }
-
-  const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-
-  const startDate = new Date(activationAt);
-
- const endDate = addMealDays(startDate, selectedPlan.durationDays);
-
-  const receiptNumber = await generateReceiptNumber(
-    Order,
-    tempPayment.amount
-  );
-
-  const order = await Order.create({
-    membershipId: existingUser.membershipId,
-
-    receiptNumber,
-
-    user: {
-      firstName: existingUser.firstName,
-      lastName: existingUser.lastName,
-      email: existingUser.email,
-      phone: existingUser.phone,
-    },
-
-    subscription: {
-      plan: exactPlan,
-      amount: tempPayment.amount,
-      durationMonths: selectedPlan.durationMonths,
-      activationAt,
-      startDate,
-      endDate,
-      pause: { used: 0, history: [] },
-      status: "UNDER_PROCESS",
-    },
-
-    paymentStatus: "PAID",
-
-    paymentMethod: "ONLINE",
-
-    paymentDetails: {
-      gateway: "EASEBUZZ",
-      txnid,
-      easepayid,
-    },
-  });
-
-  // ✅ Generate Invoice
-const invoicePath = await generateInvoice(order);
-
-order.invoiceUrl = invoicePath;
-
-await order.save();
-
-const formattedPlan =
-  `RYVIVE ${exactPlan.split("_")[0]}`;
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/dashboard?renewal=success`
+      );
+    }
 
 
-// ✅ CUSTOMER EMAIL
-await sendEmail({
-  to: existingUser.email,
+    // =====================================================
+    // 🔁 EXISTING CUSTOMER BUYING A NEW / DIFFERENT PLAN
+    // (FIXED — reuses the SAME Order document instead of
+    // creating a second one with the same membershipId)
+    // =====================================================
+    if (tempPayment.isExistingCustomerPurchase) {
 
-  subject: "Payment successful for RYVIVE ROOTS LLP",
+      const existingUser = await User.findOne({
+        membershipId: tempPayment.membershipId,
+      });
 
-  html: `
+      if (!existingUser) {
+        return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+      }
+
+      // ♻️ Reuse the customer's existing Order document — do NOT create
+      // a second document sharing the same membershipId.
+      const existingOrder = await Order.findOne({
+        membershipId: existingUser.membershipId,
+      }).sort({ updatedAt: -1 });
+
+      if (!existingOrder) {
+        return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+      }
+
+      const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+      const startDate = new Date(activationAt);
+
+      // Extend from whichever is later: their current endDate (if they still
+      // have active days left) or the new activation date.
+      const oldEndDate = existingOrder.subscription.endDate;
+      const baseEndDate = oldEndDate ? new Date(oldEndDate) : new Date(activationAt);
+      const extendFrom = baseEndDate > activationAt ? baseEndDate : activationAt;
+      const endDate = addMealDays(extendFrom, selectedPlan.durationDays);
+
+      const receiptNumber = await generateReceiptNumber(
+        Order,
+        tempPayment.amount
+      );
+
+      // 📝 Snapshot the OLD subscription into renewalHistory before overwriting —
+      // same shape used by the admin /renew route and manual-order.
+      existingOrder.subscription.renewalHistory = existingOrder.subscription.renewalHistory || [];
+      existingOrder.subscription.renewalHistory.push({
+        date: new Date(),
+        plan: existingOrder.subscription.plan,
+        durationMonths: existingOrder.subscription.durationMonths,
+        amount: existingOrder.subscription.amount,
+        paymentMethod: existingOrder.paymentMethod || "ONLINE",
+        startDate: existingOrder.subscription.startDate,
+        activationAt: existingOrder.subscription.activationAt,
+        endDate: oldEndDate,
+      });
+
+      // 🔄 Apply the new plan on top of the SAME document
+      existingOrder.subscription.plan = exactPlan;
+      existingOrder.subscription.amount = tempPayment.amount;
+      existingOrder.subscription.originalAmount = tempPayment.amount;
+      existingOrder.subscription.durationMonths = selectedPlan.durationMonths;
+      existingOrder.subscription.activationAt = activationAt;
+      existingOrder.subscription.startDate = startDate;
+      existingOrder.subscription.endDate = endDate;
+      existingOrder.subscription.status = "UNDER_PROCESS";
+      existingOrder.subscription.renewedAt = new Date();
+      existingOrder.subscription.renewalTriggeredBy = "CUSTOMER_ONLINE";
+
+      existingOrder.receiptNumber = receiptNumber;
+      existingOrder.paymentStatus = "PAID";
+      existingOrder.paymentMethod = "ONLINE";
+      existingOrder.paymentDetails = {
+        gateway: "EASEBUZZ",
+        txnid,
+        easepayid,
+      };
+
+      await existingOrder.save();
+
+      // ✅ Generate Invoice
+      const invoicePath = await generateInvoice(existingOrder);
+      existingOrder.invoiceUrl = invoicePath;
+      await existingOrder.save();
+
+      const formattedPlan = `RYVIVE ${exactPlan.split("_")[0]}`;
+
+      // ✅ CUSTOMER EMAIL
+      await sendEmail({
+        to: existingUser.email,
+
+        subject: "Payment successful for RYVIVE ROOTS LLP",
+
+        html: `
     <h2>Dear ${existingUser.firstName},</h2>
 
     <p>
@@ -511,22 +524,22 @@ await sendEmail({
     </p>
   `,
 
-  attachments: [
-    {
-      filename: `invoice-${receiptNumber}.pdf`,
-      path: invoicePath,
-    },
-  ],
-});
+        attachments: [
+          {
+            filename: `invoice-${receiptNumber}.pdf`,
+            path: invoicePath,
+          },
+        ],
+      });
 
 
-// ✅ COMPANY EMAIL
-await sendEmail({
-  to: process.env.COMPANY_EMAIL,
+      // ✅ COMPANY EMAIL
+      await sendEmail({
+        to: process.env.COMPANY_EMAIL,
 
-  subject: `🧾 Existing Customer Purchased New Plan - ${existingUser.membershipId}`,
+        subject: `🧾 Existing Customer Purchased New Plan - ${existingUser.membershipId}`,
 
-  html: `
+        html: `
     <h2>Existing Customer Purchased New Subscription</h2>
 
     <ul>
@@ -546,150 +559,153 @@ await sendEmail({
     </ul>
   `,
 
-  attachments: [
-    {
-      filename: `invoice-${receiptNumber}.pdf`,
-      path: invoicePath,
-    },
-  ],
-});
+        attachments: [
+          {
+            filename: `invoice-${receiptNumber}.pdf`,
+            path: invoicePath,
+          },
+        ],
+      });
 
-  tempPayment.status = "SUCCESS";
-  await tempPayment.save();
+      tempPayment.status = "SUCCESS";
+      await tempPayment.save();
 
-  return res.redirect(
-    `${process.env.FRONTEND_URL}/payment-success?membershipId=${existingUser.membershipId}`
-  );
-}
-
-
-  // 3️⃣ USER + MEMBERSHIP (SAFE VERSION)
-
-// 🔹 Find existing user first
-let user = await User.findOne({
-  $or: [{ phone: formData.phone }, { email: formData.email }],
-});
-
-let membershipId;
-
-if (user) {
-  // ✅ User already exists → reuse membershipId
-  membershipId = user.membershipId;
-} else {
-  // ❌ Create new user
-membershipId = await generateMembershipId(User); 
-
-// ensure unique membershipId
-let exists = await User.findOne({ membershipId });
-
-while (exists) {
- membershipId = await generateMembershipId(User); 
-  exists = await User.findOne({ membershipId });
-}
-
-user = await User.create({
-  firstName: formData.firstName,
-  lastName: formData.lastName,
-  email: formData.email,
-  phone: formData.phone,
-  membershipId,
-});
-}
-
-// 4️⃣ Prevent Duplicate Order (VERY IMPORTANT)
-const existingOrder = await Order.findOne({
-  "paymentDetails.txnid": txnid,
-});
-
-if (existingOrder) {
-  return res.redirect(
-    `${process.env.FRONTEND_URL}/subscription-success?membershipId=${existingOrder.membershipId}`
-  );
-}
-
-// 5️⃣ Subscription dates
-const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-const startDate = new Date(activationAt);
-const endDate = addMealDays(startDate, selectedPlan.durationDays);
-
-// 6️⃣ Receipt
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/payment-success?membershipId=${existingUser.membershipId}`
+      );
+    }
 
 
-// 7️⃣ CREATE ORDER
-let orderSaved = false;
-let order;
-let receiptNumber;
+    // 3️⃣ USER + MEMBERSHIP (SAFE VERSION)
 
-while (!orderSaved) {
-  try {
-    receiptNumber = await generateReceiptNumber(Order, tempPayment.amount);
-
-    order = new Order({
-      membershipId,
-      receiptNumber,
-      user: {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phone: formData.phone,
-        email: formData.email,
-        dob: new Date(formData.dob),
-      },
-      address: {
-        pincode: formData.pincode,
-        house: formData.house,
-        street: formData.street,
-        landmark: formData.landmark || "",
-        city: "Dombivli",
-        state: "Maharashtra",
-      },
-      deliverySlot: formData.slot,
-      subscription: {
-        plan: exactPlan,
-        amount: tempPayment.amount,
-        durationMonths: selectedPlan.durationMonths,
-        activationAt,
-        startDate,
-        endDate,
-        pause: { used: 0, history: [] },
-        status: "UNDER_PROCESS",
-      },
-      paymentStatus: "PAID",
-      paymentMethod: "ONLINE",
-      paymentDetails: {
-        gateway: "EASEBUZZ",
-        txnid,
-        easepayid,
-      },
+    // 🔹 Find existing user first
+    let user = await User.findOne({
+      $or: [
+        ...(formData.phone ? [{ phone: formData.phone }] : []),
+        ...(formData.email ? [{ email: formData.email }] : []),
+      ],
     });
 
+    let membershipId;
+
+    if (user) {
+      // ✅ User already exists → reuse membershipId
+      membershipId = user.membershipId;
+    } else {
+      // ❌ Create new user
+      membershipId = await generateMembershipId(User, tempPayment.amount);
+
+      // ensure unique membershipId
+      let exists = await User.findOne({ membershipId });
+
+      while (exists) {
+        membershipId = await generateMembershipId(User, tempPayment.amount);
+        exists = await User.findOne({ membershipId });
+      }
+
+      user = await User.create({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        membershipId,
+      });
+    }
+
+    // 4️⃣ Prevent Duplicate Order (VERY IMPORTANT)
+    const existingOrder = await Order.findOne({
+      "paymentDetails.txnid": txnid,
+    });
+
+    if (existingOrder) {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/subscription-success?membershipId=${existingOrder.membershipId}`
+      );
+    }
+
+    // 5️⃣ Subscription dates
+    const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+    const startDate = new Date(activationAt);
+    const endDate = addMealDays(startDate, selectedPlan.durationDays);
+
+    // 6️⃣ Receipt
+
+
+    // 7️⃣ CREATE ORDER
+    let orderSaved = false;
+    let order;
+    let receiptNumber;
+
+    while (!orderSaved) {
+      try {
+        receiptNumber = await generateReceiptNumber(Order, tempPayment.amount);
+
+        order = new Order({
+          membershipId,
+          receiptNumber,
+          user: {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            phone: formData.phone,
+            email: formData.email,
+            dob: new Date(formData.dob),
+          },
+          address: {
+            pincode: formData.pincode,
+            house: formData.house,
+            street: formData.street,
+            landmark: formData.landmark || "",
+            city: "Dombivli",
+            state: "Maharashtra",
+          },
+          deliverySlot: formData.slot,
+          subscription: {
+            plan: exactPlan,
+            amount: tempPayment.amount,
+            durationMonths: selectedPlan.durationMonths,
+            activationAt,
+            startDate,
+            endDate,
+            pause: { used: 0, history: [] },
+            status: "UNDER_PROCESS",
+          },
+          paymentStatus: "PAID",
+          paymentMethod: "ONLINE",
+          paymentDetails: {
+            gateway: "EASEBUZZ",
+            txnid,
+            easepayid,
+          },
+        });
+
+        await order.save();
+
+        orderSaved = true;
+
+      } catch (err) {
+        if (err.code === 11000) {
+          console.log("Duplicate receipt detected — retrying...");
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    // 🔹 Generate Invoice
+    const invoicePath = await generateInvoice(order);
+    order.invoiceUrl = invoicePath;
     await order.save();
 
-    orderSaved = true;
+    // 🔹 Update User (optional sync)
+    await User.findByIdAndUpdate(user._id, {
+      firstName: order.user.firstName,
+      lastName: order.user.lastName,
+      email: order.user.email,
+      phone: order.user.phone,
+    });
 
-  } catch (err) {
-    if (err.code === 11000) {
-      console.log("Duplicate receipt detected — retrying...");
-    } else {
-      throw err;
-    }
-  }
-}
-
-// 🔹 Generate Invoice
-const invoicePath = await generateInvoice(order);
-order.invoiceUrl = invoicePath;
-await order.save();
-
-// 🔹 Update User (optional sync)
-await User.findByIdAndUpdate(user._id, {
-  firstName: order.user.firstName,
-  lastName: order.user.lastName,
-  email: order.user.email,
-  phone: order.user.phone,
-});
-
-const rawPlan = order.subscription?.plan || "";
-const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
+    const rawPlan = order.subscription?.plan || "";
+    const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 
 
     // 7️⃣ SEND CUSTOMER EMAIL (AS-IT-IS)
@@ -704,13 +720,13 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 </h2>
 
   <p font-family: Arial, 'Times New Roman', serif; font-weight: bold; font-size:22px; margin-bottom:10px;>
-    We just wanted to say thank you so much! We’re genuinely thrilled to have you as part of the 
-    <b>Ryvive Roots family</b>, and we can’t wait to walk alongside you on this wonderful wellness journey.
+    We just wanted to say thank you so much! We're genuinely thrilled to have you as part of the 
+    <b>Ryvive Roots family</b>, and we can't wait to walk alongside you on this wonderful wellness journey.
   </p>
 
   <p>
     Your payment has gone through successfully and everything is all set on our end. 
-    Here’s a quick summary for your records:
+    Here's a quick summary for your records:
   </p>
 
 <table style="font-family: Arial, 'Times New Roman', serif;  font-size:15px; margin-bottom:10px;">
@@ -735,17 +751,17 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
   <br/>
 
   <p>
-    Keep an eye on your inbox. You’ll be hearing from us shortly with your 
+    Keep an eye on your inbox. You'll be hearing from us shortly with your 
     <b>membership number</b> and all the details to get you started. 
     The good stuff is just around the corner 😊
   </p>
 
   <p>
-  And hey, if you ever have a question, a concern, or just want to say hello, we’re always here for you. Reach out anytime at customersupport@ryviveroots.com and we’ll get back to you with a smile.
+  And hey, if you ever have a question, a concern, or just want to say hello, we're always here for you. Reach out anytime at customersupport@ryviveroots.com and we'll get back to you with a smile.
   </p>
 
   <p>
-    Here’s to a healthier, happier you. We’re so glad you’re here!
+    Here's to a healthier, happier you. We're so glad you're here!
   </p>
 
   <p>
@@ -856,9 +872,9 @@ Dombivli East, Maharashtra 421201, India
     });
 
     order.subscription.thankYouEmailSentAt = new Date();
-order.subscription.welcomeEmailSent = false;
+    order.subscription.welcomeEmailSent = false;
 
-await order.save();
+    await order.save();
 
 
     // 8️⃣ SEND COMPANY EMAIL (AS-IT-IS)
@@ -930,14 +946,14 @@ await order.save();
     });
 
     // 🔹 NOW mark TempPayment SUCCESS (AFTER everything works)
-tempPayment.status = "SUCCESS";
-tempPayment.membershipId = membershipId;
-await tempPayment.save();
+    tempPayment.status = "SUCCESS";
+    tempPayment.membershipId = membershipId;
+    await tempPayment.save();
 
     // 9️⃣ Redirect to success page
-   return res.redirect(
-`${process.env.FRONTEND_URL}/payment-success?membershipId=${membershipId}&plan=${formattedPlan}`
-);
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/payment-success?membershipId=${membershipId}&plan=${formattedPlan}`
+    );
   } catch (error) {
     console.error("Easebuzz success error:", error);
     return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
