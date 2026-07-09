@@ -116,11 +116,11 @@ router.get("/orders", async (req, res) => {
 
 /* ===========================
    CREATE MANUAL CASH ORDER
-   (handles BOTH new customers AND existing customers buying a new/renewed plan)
 =========================== */
 router.post("/manual-order", async (req, res) => {
   try {
-    const { user, address, plan, slot, paymentMethod, healthInfo, remarks, totalPrice } = req.body;
+   const { user, address, plan, slot, paymentMethod, healthInfo, remarks, totalPrice  } = req.body;
+
 
     if (!user?.firstName || !user?.phone) {
       return res.status(400).json({
@@ -151,210 +151,146 @@ router.post("/manual-order", async (req, res) => {
       });
     }
 
-    // ✅ Find existing customer — guard against empty-string phone/email
-    // both being "" and accidentally matching each other
-    const existingUser = await User.findOne({
-      $or: [
-        ...(user.phone ? [{ phone: user.phone }] : []),
-        ...(user.email ? [{ email: user.email }] : []),
-      ],
+    // ✅ Generate IDs
+    let existingUser = await User.findOne({
+  $or: [
+    { phone: user.phone },
+    { email: user.email }
+  ]
+});
+
+let membershipId;
+
+if (existingUser && existingUser.membershipId) {
+  // ♻️ reuse old membershipId
+  membershipId = existingUser.membershipId;
+} else {
+  // 🆕 generate new membershipId
+  membershipId = await generateMembershipId(Order);
+}
+
+// 🛑 Prevent accidental duplicate order (double click protection)
+const tenSecondsAgo = new Date(Date.now() - 10 * 1000);
+
+const recentOrder = await Order.findOne({
+  membershipId,
+  createdAt: { $gte: tenSecondsAgo },
+});
+
+if (recentOrder) {
+  return res.status(429).json({
+    success: false,
+    message: "Order already submitted. Please wait a few seconds.",
+  });
+}
+
+
+    const receiptNumber = await generateReceiptNumber(Order);
+
+    // ✅ Calculate Dates
+  // 🕒 CURRENT TIME
+const now = new Date();
+
+let startDate;
+let activationAt;
+let status = "UNDER_PROCESS";
+
+const today = new Date();
+today.setHours(0,0,0,0);
+
+if (req.body.startDate) {
+
+  startDate = new Date(req.body.startDate);
+  startDate.setHours(0,0,0,0);
+
+  activationAt = new Date(startDate); // ✅ SAME DATE
+
+  if (startDate <= today) {
+    status = "ACTIVE"; // ✅ today or past
+  } else {
+    status = "UNDER_PROCESS"; // future
+  }
+
+} else {
+
+  activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+  startDate = new Date(activationAt);
+  status = "UNDER_PROCESS";
+
+}
+
+
+const durationDays = Number(selectedPlan.durationDays) || (Number(selectedPlan.durationMonths) || 1) * 24;
+const months = Number(selectedPlan.durationMonths) || 1;
+const endDate = addMealDays(startDate, durationDays);
+
+console.log("🧪 activationAt:", activationAt);
+console.log("🧪 startDate:", startDate);
+console.log("🧪 endDate:", endDate);
+console.log("🧪 durationDays:", durationDays);
+
+
+
+
+
+    // ✅ Create Order
+    const order = await Order.create({
+      membershipId,
+      receiptNumber,
+
+      user: {
+        firstName: user.firstName,
+        lastName: user.lastName || "",
+        phone: user.phone,
+        email: user.email || "",
+        dob: user.dob || new Date("2000-01-01"),
+      },
+
+      healthInfo: {
+  allergies: healthInfo?.allergies || "N/A",
+  medicalConditions: healthInfo?.medicalConditions || "N/A",
+},
+
+remarks: remarks || "",
+
+     address: {
+  pincode: address.pincode,
+  house: address.house,
+  street: address.street,
+  landmark: address.landmark || "",
+  city: address.city || "Dombivli",
+  state: address.state || "Maharashtra",
+},
+
+      deliverySlot: slot,
+
+      subscription: {
+  plan,
+ amount: totalPrice || selectedPlan.price,
+ originalAmount: totalPrice || selectedPlan.price, 
+  durationMonths: months,
+  activationAt,
+  startDate,
+  endDate,
+  pause: { used: 0, history: [] },
+  status,   // optional
+},
+      paymentStatus: "PAID",
+     paymentMethod: paymentMethod || "CASH",
     });
 
-    let existingOrder = null;
-    if (existingUser?.membershipId) {
-      existingOrder = await Order.findOne({ membershipId: existingUser.membershipId });
-    }
+    console.log("✅ MANUAL ORDER SAVED:", order.membershipId);
 
-    // 🛑 Prevent accidental duplicate order (double click protection)
-    const tenSecondsAgo = new Date(Date.now() - 10 * 1000);
+  
+try {
+  await rebuildExcelFromMongo();
+  console.log("📊 Excel updated successfully");
+} catch (err) {
+  console.error("❌ Excel rebuild failed:", err.message);
+}
 
-    if (existingOrder) {
-      const recentOrder = await Order.findOne({
-        membershipId: existingOrder.membershipId,
-        updatedAt: { $gte: tenSecondsAgo },
-      });
-      if (recentOrder) {
-        return res.status(429).json({
-          success: false,
-          message: "Order already submitted. Please wait a few seconds.",
-        });
-      }
-    }
 
-    const durationDays =
-      Number(selectedPlan.durationDays) || (Number(selectedPlan.durationMonths) || 1) * 24;
-    const months = Number(selectedPlan.durationMonths) || 1;
-    const amount = totalPrice || selectedPlan.price;
 
-    // ✅ Calculate activation/start dates (same rule for both branches)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    let startDate;
-    let activationAt;
-    let status = "UNDER_PROCESS";
-
-    if (req.body.startDate) {
-      startDate = new Date(req.body.startDate);
-      startDate.setHours(0, 0, 0, 0);
-      activationAt = new Date(startDate);
-      status = startDate <= today ? "ACTIVE" : "UNDER_PROCESS";
-    } else {
-      activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-      startDate = new Date(activationAt);
-      status = "UNDER_PROCESS";
-    }
-
-    let order;
-    let isRenewal = false;
-
-    if (existingOrder) {
-      /* =====================================
-         ♻️ EXISTING CLIENT — reuse SAME Order document
-         Record the old subscription into renewalHistory
-      ===================================== */
-      isRenewal = true;
-
-      const oldPlan = existingOrder.subscription.plan;
-      const oldAmount = existingOrder.subscription.amount;
-      const oldDurationMonths = existingOrder.subscription.durationMonths;
-      const oldStartDate = existingOrder.subscription.startDate;
-      const oldActivationAt = existingOrder.subscription.activationAt;
-      const oldEndDate = existingOrder.subscription.endDate;
-
-      // Extend from whichever is later: existing endDate or new activation
-      const baseEndDate = oldEndDate ? new Date(oldEndDate) : new Date(activationAt);
-      const extendFrom = baseEndDate > activationAt ? baseEndDate : activationAt;
-      const newEndDate = addMealDays(extendFrom, durationDays);
-
-      const receiptNumber = await generateReceiptNumber(Order);
-
-      existingOrder.subscription.renewalHistory = existingOrder.subscription.renewalHistory || [];
-      existingOrder.subscription.renewalHistory.push({
-        date: new Date(),
-        plan: oldPlan,
-        durationMonths: oldDurationMonths,
-        amount: oldAmount,
-        paymentMethod: paymentMethod || "CASH",
-        startDate: oldStartDate,
-        activationAt: oldActivationAt,
-        endDate: oldEndDate,
-      });
-
-      // 🔄 Apply the new plan on top of the same document
-      existingOrder.subscription.plan = plan;
-      existingOrder.subscription.amount = amount;
-      existingOrder.subscription.originalAmount = amount;
-      existingOrder.subscription.durationMonths = months;
-      existingOrder.subscription.activationAt = activationAt;
-      existingOrder.subscription.startDate = startDate;
-      existingOrder.subscription.endDate = newEndDate;
-      existingOrder.subscription.status = status;
-      existingOrder.subscription.renewedAt = new Date();
-      existingOrder.subscription.renewalTriggeredBy = "ADMIN";
-
-      if (status === "ACTIVE") {
-        existingOrder.subscription.pause = { used: 0, history: existingOrder.subscription.pause?.history || [] };
-      }
-
-      existingOrder.receiptNumber = receiptNumber;
-      existingOrder.paymentMethod = paymentMethod || "CASH";
-      existingOrder.paymentStatus = "PAID";
-
-      // Update contact / address / health info with whatever was submitted
-      existingOrder.user.firstName = user.firstName;
-      existingOrder.user.lastName = user.lastName || existingOrder.user.lastName || "";
-      existingOrder.user.phone = user.phone;
-      existingOrder.user.email = user.email || existingOrder.user.email || "";
-      if (user.dob) existingOrder.user.dob = user.dob;
-
-      existingOrder.address = {
-        pincode: address.pincode,
-        house: address.house,
-        street: address.street,
-        landmark: address.landmark || existingOrder.address?.landmark || "",
-        city: address.city || existingOrder.address?.city || "Dombivli",
-        state: address.state || existingOrder.address?.state || "Maharashtra",
-      };
-
-      existingOrder.healthInfo = {
-        allergies: healthInfo?.allergies || existingOrder.healthInfo?.allergies || "N/A",
-        medicalConditions:
-          healthInfo?.medicalConditions || existingOrder.healthInfo?.medicalConditions || "N/A",
-      };
-
-      existingOrder.remarks = remarks || existingOrder.remarks || "";
-      existingOrder.deliverySlot = slot;
-
-      await existingOrder.save();
-      order = existingOrder;
-
-      console.log("♻️ EXISTING CLIENT RENEWED VIA MANUAL ORDER:", order.membershipId);
-    } else {
-      /* =====================================
-         🆕 TRUE NEW CUSTOMER — create a fresh Order document
-      ===================================== */
-      const membershipId = await generateMembershipId(Order, totalPrice);
-      const receiptNumber = await generateReceiptNumber(Order);
-      const endDate = addMealDays(startDate, durationDays);
-
-      order = await Order.create({
-        membershipId,
-        receiptNumber,
-
-        user: {
-          firstName: user.firstName,
-          lastName: user.lastName || "",
-          phone: user.phone,
-          email: user.email || "",
-          dob: user.dob || new Date("2000-01-01"),
-        },
-
-        healthInfo: {
-          allergies: healthInfo?.allergies || "N/A",
-          medicalConditions: healthInfo?.medicalConditions || "N/A",
-        },
-
-        remarks: remarks || "",
-
-        address: {
-          pincode: address.pincode,
-          house: address.house,
-          street: address.street,
-          landmark: address.landmark || "",
-          city: address.city || "Dombivli",
-          state: address.state || "Maharashtra",
-        },
-
-        deliverySlot: slot,
-
-        subscription: {
-          plan,
-          amount,
-          originalAmount: amount,
-          durationMonths: months,
-          activationAt,
-          startDate,
-          endDate,
-          pause: { used: 0, history: [] },
-          status,
-        },
-        paymentStatus: "PAID",
-        paymentMethod: paymentMethod || "CASH",
-      });
-
-      console.log("✅ NEW MANUAL ORDER SAVED:", order.membershipId);
-    }
-
-    // 📊 Rebuild Excel
-    try {
-      await rebuildExcelFromMongo();
-      console.log("📊 Excel updated successfully");
-    } catch (err) {
-      console.error("❌ Excel rebuild failed:", err.message);
-    }
-
-    // 🔗 Sync User collection (upsert on membershipId either way)
     await User.findOneAndUpdate(
       { membershipId: order.membershipId },
       {
@@ -368,71 +304,30 @@ router.post("/manual-order", async (req, res) => {
     );
 
     // 📄 Generate Invoice PDF
-    const invoicePath = await generateInvoice(order);
-    order.invoiceUrl = invoicePath;
-    await order.save();
-
-    const excelPath = path.join(__dirname, "..", "exports", "members.xlsx");
+   const invoicePath = await generateInvoice(order);
+order.invoiceUrl = invoicePath;  
+await order.save();                
+          const excelPath = path.join(
+  __dirname,
+  "..",
+  "exports",
+  "members.xlsx"
+);
+    
 
     // 📩 SEND CUSTOMER EMAIL
     if (order.user.email) {
-      const rawPlan = order.subscription?.plan || "";
-      const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 
-      await sendEmail({
-        to: order.user.email,
-        subject: isRenewal
-          ? "You're Back, And We're Glad 🌿"
-          : "Payment successful for RYVIVE ROOTS LLP",
-        html: isRenewal
-          ? `
-<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
 
-  <h2>Hi ${order.user.firstName},</h2>
+     const rawPlan = order.subscription?.plan || "";
+const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 
-  <p><b>Welcome back. We're glad you stayed.</b></p>
 
-  <p>
-    Thank you for continuing your wellness journey with us.
-    Here's your subscription summary for your records:
-  </p>
-
-  <table style="border-collapse: collapse; margin-top: 10px;">
-    <tr>
-      <td style="padding: 6px 10px;"><b>Receipt Number</b></td>
-      <td style="padding: 6px 10px;">: ${order.receiptNumber}</td>
-    </tr>
-    <tr>
-      <td style="padding: 6px 10px;"><b>Plan</b></td>
-      <td style="padding: 6px 10px;">: ${formattedPlan}</td>
-    </tr>
-    <tr>
-      <td style="padding: 6px 10px;"><b>Amount Paid</b></td>
-      <td style="padding: 6px 10px;">: ₹${order.subscription.amount}</td>
-    </tr>
-    <tr>
-      <td style="padding: 6px 10px;"><b>Payment Date</b></td>
-      <td style="padding: 6px 10px;">: ${new Date().toLocaleDateString("en-IN")}</td>
-    </tr>
-    <tr>
-      <td style="padding: 6px 10px;"><b>New Expiry Date</b></td>
-      <td style="padding: 6px 10px;">: ${new Date(order.subscription.endDate).toLocaleDateString("en-IN")}</td>
-    </tr>
-  </table>
-
-  <br/>
-
-  <p>Your membership ID remains <b>${order.membershipId}</b>.</p>
-
-  <p>
-    If you ever have a question or concern, reach out anytime at
-    customersupport@ryviveroots.com.
-  </p>
-
-  <p>Warmly,<br/><b>Team Ryvive Roots</b></p>
-</div>
-`
-          : `
+   
+    await sendEmail({
+      to: order.user.email,
+      subject: "Payment successful for RYVIVE ROOTS LLP",
+      html:  `
 <div style="font-family: Arial, sans-serif; line-height: 1.6;">
 
 <h2 style="font-family: Georgia, 'Times New Roman', serif;  font-size:16px; margin-bottom:2px;">
@@ -440,13 +335,13 @@ router.post("/manual-order", async (req, res) => {
 </h2>
 
   <p font-family: Arial, 'Times New Roman', serif; font-weight: bold; font-size:22px; margin-bottom:10px;>
-    We just wanted to say thank you so much! We're genuinely thrilled to have you as part of the 
-    <b>Ryvive Roots family</b>, and we can't wait to walk alongside you on this wonderful wellness journey.
+    We just wanted to say thank you so much! We’re genuinely thrilled to have you as part of the 
+    <b>Ryvive Roots family</b>, and we can’t wait to walk alongside you on this wonderful wellness journey.
   </p>
 
   <p>
     Your payment has gone through successfully and everything is all set on our end. 
-    Here's a quick summary for your records:
+    Here’s a quick summary for your records:
   </p>
 
 <table style="font-family: Arial, 'Times New Roman', serif;  font-size:15px; margin-bottom:10px;">
@@ -471,53 +366,145 @@ router.post("/manual-order", async (req, res) => {
   <br/>
 
   <p>
-    Keep an eye on your inbox. You'll be hearing from us shortly with your 
+    Keep an eye on your inbox. You’ll be hearing from us shortly with your 
     <b>membership number</b> and all the details to get you started. 
     The good stuff is just around the corner.
   </p>
 
   <p>
-  And hey, if you ever have a question, a concern, or just want to say hello, we're always here for you. Reach out anytime at customersupport@ryviveroots.com and we'll get back to you with a smile.
+  And hey, if you ever have a question, a concern, or just want to say hello, we’re always here for you. Reach out anytime at customersupport@ryviveroots.com and we’ll get back to you with a smile.
   </p>
 
   <p>
-    Here's to a healthier, happier you. We're so glad you're here!
+    Here’s to a healthier, happier you. We’re so glad you’re here!
   </p>
 
   <p>
     Warmly,<br/>
     <b>Team Ryvive Roots</b>
   </p>
+
+<style>
+@media only screen and (max-width:600px) {
+  .footer-table td {
+    display:block !important;
+    width:100% !important;
+    text-align:center !important;
+    margin-bottom:15px;
+  }
+
+  .footer-icons img{
+    margin:0 6px !important;
+  }
+}
+</style>
+
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; border-spacing:0;">
+
+<tr>
+<td align="center">
+
+<table style="text-align:center; border-spacing:0;">
+
+<tr>
+<td style="padding:6px 0;">
+<img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots Logo" style="border:none;">
+</td>
+</tr>
+
+<tr>
+<td style="padding:6px 0; font-size:13px; color:#333; line-height:1.5; text-align:center;">
+You're receiving this email because you recently activated a Ryvive Roots membership.<br>
+If you have any concerns, please contact us at 
+<a href="mailto:customersupport@ryviveroots.com" style="text-decoration:none;">
+customersupport@ryviveroots.com
+</a>.
+</td>
+</tr>
+
+<tr>
+<td style="padding:8px 0; text-align:center;">
+<a href="https://www.instagram.com/ryvive_roots/" style="margin-right:12px; text-decoration:none;">
+<img src="https://cdn-icons-png.flaticon.com/512/1400/1400829.png" width="22" alt="Instagram" style="vertical-align:middle; border:none;">
+</a>
+
+<a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="text-decoration:none;">
+<img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" width="22" alt="LinkedIn" style="vertical-align:middle; border:none;">
+</a>
+</td>
+</tr>
+
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
++91 9076000468 / 97656 00701
+</td>
+</tr>
+
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
+<a href="https://www.ryviveroots.com" style="text-decoration:none;">
+www.ryviveroots.com
+</a>
+</td>
+</tr>
+
+<tr>
+<td style="padding:6px 0; text-align:center;">
+<a href="https://ryviveroots.com/privacy-policy" style="text-decoration:none;">
+Privacy Policy
+</a>
+</td>
+</tr>
+
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
+Dombivli East, Maharashtra 421201, India
+</td>
+</tr>
+
+<tr>
+<td style="padding-top:10px; font-size:13px; color:#333; text-align:center;">
+© 2026 RYVIVE ROOTS All Rights Reserved.
+</td>
+</tr>
+
+</table>
+
+</td>
+</tr>
+
+</table>
+
+
 </div>
 `,
-        attachments: [
-          {
-            filename: `invoice-${order.receiptNumber}.pdf`,
-            path: invoicePath,
-          },
-        ],
-      });
+      attachments: [
+        {
+          filename: `invoice-${order.receiptNumber}.pdf`,
+          path: invoicePath,
+        },
+      ],
+    });
 
-      order.subscription.thankYouEmailSentAt = new Date();
-      order.subscription.welcomeEmailSent = false;
-      await order.save();
+       order.subscription.thankYouEmailSentAt = new Date();
+order.subscription.welcomeEmailSent = false;
+
+await order.save();
     }
 
     // 📩 SEND COMPANY EMAIL
     await sendEmail({
       to: process.env.COMPANY_EMAIL,
-      subject: isRenewal
-        ? `🔁 Manual Renewal - ${order.membershipId}`
-        : `🧾 Manual Membership Added - ${order.membershipId}`,
+      subject: `🧾 Manual Membership Added - ${order.membershipId}`,
       html: `
-        <h2>${isRenewal ? "Existing Member Renewed (Manual)" : "New Walk-in Member Added"}</h2>
+        <h2>New Walk-in Member Added</h2>
 
         <p><b>Name:</b> ${order.user.firstName} ${order.user.lastName}</p>
         <p><b>Phone:</b> ${order.user.phone}</p>
         <p><b>Email:</b> ${order.user.email || "N/A"}</p>
         <p><b> Allergies:</b> ${order.healthInfo?.allergies || "N/A"}</p>
-        <p><b> Medical Conditions:</b> ${order.healthInfo?.medicalConditions || "N/A"}</p>
-        <p><b>📝 Remarks:</b> ${order.remarks || "—"}</p>
+<p><b> Medical Conditions:</b> ${order.healthInfo?.medicalConditions || "N/A"}</p>
+<p><b>📝 Remarks:</b> ${order.remarks || "—"}</p>
 
         <p><b>Plan:</b> ${order.subscription.plan}</p>
         <p><b>Amount:</b> ₹${order.subscription.amount}</p>
@@ -533,22 +520,22 @@ router.post("/manual-order", async (req, res) => {
 
         <p>🕒 Created: ${new Date().toLocaleString("en-IN")}</p>
       `,
-      attachments: [
-        {
-          filename: "members.xlsx",
-          path: excelPath,
-        },
-        {
-          filename: `invoice-${order.receiptNumber}.pdf`,
-          path: invoicePath,
-        },
-      ],
+     attachments: [
+  {
+    filename: "members.xlsx",
+    path: excelPath,
+  },
+  {
+    filename: `invoice-${order.receiptNumber}.pdf`,
+    path: invoicePath,
+  },
+],
+
     });
 
     return res.json({
       success: true,
       order,
-      renewed: isRenewal,
     });
   } catch (error) {
     console.error("❌ MANUAL ORDER ERROR:", error);
