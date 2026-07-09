@@ -17,7 +17,7 @@ import createAdminIfNotExists from "./utils/createAdmin.js";
 import cron from "node-cron";
 import { renewalReminderJob } from "./cron/renewalReminderJob.js";
 import { welcomeEmailJob } from "./cron/welcomeEmailJob.js";
-import adminQueryRoutes from "./routes/AdminQuery.js";  
+import adminQueryRoutes from "./routes/Adminquery.js";  
 
 // App Config
 const app = express();
