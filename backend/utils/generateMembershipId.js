@@ -1,4 +1,3 @@
-
 const generateMembershipId = async (Model, amount) => {
   const now = new Date();
 
@@ -45,3 +44,5 @@ const generateMembershipId = async (Model, amount) => {
 };
 
 export default generateMembershipId;
+
+
