@@ -138,6 +138,12 @@ export default function AdminDashboard4() {
   const [clientHistoryData, setClientHistoryData] = useState(null);   // ← ADD
   const [historyLoading, setHistoryLoading] = useState(false);         // ← ADD
 
+  const [showNoDeliveryModal, setShowNoDeliveryModal] = useState(false);
+const [noDeliveryDate, setNoDeliveryDate] = useState(new Date().toISOString().split('T')[0]);
+const [noDeliveryReason, setNoDeliveryReason] = useState('');
+const [selectedNoDeliveryClients, setSelectedNoDeliveryClients] = useState({});
+const [submittingNoDelivery, setSubmittingNoDelivery] = useState(false);
+
   // ── Impersonate / Login-as-client state ──
   const [showImpersonateConfirm, setShowImpersonateConfirm] = useState(false);
   const [impersonateTarget, setImpersonateTarget] = useState(null);
@@ -163,7 +169,7 @@ const [queryResponseDrafts, setQueryResponseDrafts] = useState({}); // { [queryI
   useEffect(() => { setMobileNavOpen(false); }, [activeView]);
 
   useEffect(() => {
-    const anyModal = showPasskeyModal || showBroadcastModal || showCustomerDetail || showIndividualMessage || showRenew || showPaymentModal || showInvoiceModal || showHistoryModal || showImpersonateConfirm || mobileNavOpen;
+   const anyModal = showPasskeyModal || showBroadcastModal || showCustomerDetail || showIndividualMessage || showRenew || showPaymentModal || showInvoiceModal || showHistoryModal || showImpersonateConfirm || showNoDeliveryModal || mobileNavOpen;
     document.body.style.overflow = anyModal ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [showPasskeyModal, showBroadcastModal, showCustomerDetail, showIndividualMessage, showRenew, showPaymentModal, showInvoiceModal, showHistoryModal, showImpersonateConfirm, mobileNavOpen]);
@@ -360,6 +366,59 @@ const derivePauseRequestsFromOrders = (orderList) => {
     URL.revokeObjectURL(url);
   };
 
+  const openNoDeliveryModal = () => {
+  setNoDeliveryDate(new Date().toISOString().split('T')[0]);
+  setNoDeliveryReason('');
+  setSelectedNoDeliveryClients({});
+  setShowNoDeliveryModal(true);
+};
+
+const toggleNoDeliveryClient = (id) => {
+  setSelectedNoDeliveryClients(prev => ({ ...prev, [id]: !prev[id] }));
+};
+
+const selectAllActiveForNoDelivery = () => {
+  const all = {};
+  activeOrdersForDelivery.forEach(o => { all[o._id] = true; });
+  setSelectedNoDeliveryClients(all);
+};
+
+const clearNoDeliverySelection = () => setSelectedNoDeliveryClients({});
+
+const submitNoDeliveryDay = async () => {
+  const ids = Object.keys(selectedNoDeliveryClients).filter(id => selectedNoDeliveryClients[id]);
+  if (ids.length === 0) { alert('Select at least one client.'); return; }
+  if (!noDeliveryReason.trim()) { alert('Please add a reason (e.g. Red alert / heavy rain).'); return; }
+
+  setSubmittingNoDelivery(true);
+  try {
+    const res = await fetch('https://api.ryviveroots.com/api/admin/no-delivery', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        date: noDeliveryDate,
+        reason: noDeliveryReason.trim(),
+        orderIds: ids,
+        appliedBy: 'Admin',
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || 'Failed to apply no-delivery day');
+
+    let msg = `No-delivery day recorded for ${data.updated.length} client(s). Their subscription end date has been extended by 1 day.`;
+    if (data.skipped?.length) {
+      msg += ` ${data.skipped.length} client(s) already had this date logged and were skipped.`;
+    }
+    alert(msg);
+    setShowNoDeliveryModal(false);
+    fetchOrders();
+  } catch (err) {
+    alert(err.message || 'Failed to record no-delivery day.');
+  } finally {
+    setSubmittingNoDelivery(false);
+  }
+};
+
   // ── Open client history modal ──
 // ── Open client history modal ──
   const openHistory = async (order) => {
@@ -516,6 +575,11 @@ const statusTone = (text) => {
     const expiry = new Date(order.subscription.endDate);
     return Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
   };
+
+  const activeOrdersForDelivery = orders.filter(o => {
+  const st = o.subscription?.status;
+  return st !== 'CANCELLED' && st !== 'EXPIRED' && st !== 'UNDER_PROCESS';
+});
 
   const calculateTotalMeals = (dur, mealsPerWeek) => {
     const weeks = dur === '1-month' ? 4 : dur === '2-month' ? 8 : dur === '3-month' ? 12 : dur === '6-month' ? 24 : 0;
@@ -1547,6 +1611,9 @@ const handleSendQueryResponse = async (id) => {
                 <button onClick={exportDeliveryLog} disabled={!deliveryLog.length} style={{ ...ghostBtn, padding: '0.7rem 1.1rem', opacity: !deliveryLog.length ? 0.45 : 1 }}>
                   <Download size={15} /> Export CSV (Excel)
                 </button>
+                <button onClick={openNoDeliveryModal} style={{ ...ghostBtn, padding: '0.7rem 1.1rem', borderColor: '#9a4a3e', color: '#9a4a3e' }}>
+  <AlertCircle size={15} /> Mark No-Delivery Day
+</button>
               </div>
 
               {/* Menu + Week fields — match your Google Sheet */}
@@ -2181,6 +2248,69 @@ const handleSendQueryResponse = async (id) => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── NO-DELIVERY DAY MODAL ── */}
+<AnimatePresence>
+  {showNoDeliveryModal && (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ ...overlayStyle, alignItems: 'flex-start', padding: '1.5rem', overflowY: 'auto' }}>
+      <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }} style={{ ...modalStyle, maxWidth: 560, margin: 'auto', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1.5rem' }}>
+          <div>
+            <h3 className="font-serif" style={{ margin: '0 0 0.35rem', fontSize: '1.4rem', fontWeight: 400, color: INK }}>Mark No-Delivery Day</h3>
+            <p style={{ margin: 0, color: 'rgba(42,37,32,0.6)', fontSize: '0.85rem' }}>Selected clients' subscription end date will move forward by 1 day.</p>
+          </div>
+          <button onClick={() => setShowNoDeliveryModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+            <X size={20} color={SAGE_DARK} />
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+          <div>
+            <label style={labelStyle}>Date</label>
+            <input type="date" value={noDeliveryDate} onChange={e => setNoDeliveryDate(e.target.value)} style={inputStyle} />
+          </div>
+          <div>
+            <label style={labelStyle}>Reason</label>
+            <input type="text" placeholder="e.g. Red alert – heavy rain" value={noDeliveryReason} onChange={e => setNoDeliveryReason(e.target.value)} style={inputStyle} />
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+          <label style={{ ...labelStyle, marginBottom: 0 }}>Active Clients ({activeOrdersForDelivery.length})</label>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button onClick={selectAllActiveForNoDelivery} style={{ background: 'transparent', border: 'none', color: SAGE_DARK, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Select All</button>
+            <button onClick={clearNoDeliverySelection} style={{ background: 'transparent', border: 'none', color: 'rgba(42,37,32,0.5)', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Clear</button>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gap: '0.5rem', maxHeight: 280, overflowY: 'auto', marginBottom: '1.5rem', border: `1px solid ${CARD_BORDER}`, borderRadius: 4, padding: '0.5rem' }}>
+          {activeOrdersForDelivery.length === 0 && (
+            <p style={{ margin: '0.5rem', color: 'rgba(42,37,32,0.5)', fontSize: '0.85rem' }}>No active clients found.</p>
+          )}
+          {activeOrdersForDelivery.map(o => {
+            const checked = !!selectedNoDeliveryClients[o._id];
+            return (
+              <label key={o._id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.65rem 0.75rem', borderRadius: 3, background: checked ? 'rgba(107,117,96,0.08)' : CREAM_2, cursor: 'pointer' }}>
+                <input type="checkbox" checked={checked} onChange={() => toggleNoDeliveryClient(o._id)} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: INK }}>{o.user?.firstName} {o.user?.lastName}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'rgba(42,37,32,0.55)' }}>{o.membershipId} · {o.subscription?.plan || '—'}</div>
+                </div>
+              </label>
+            );
+          })}
+        </div>
+
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button onClick={submitNoDeliveryDay} disabled={submittingNoDelivery} style={{ ...primaryBtn, flex: 1, justifyContent: 'center', padding: '0.9rem', opacity: submittingNoDelivery ? 0.5 : 1 }}>
+            {submittingNoDelivery ? 'Applying…' : 'Confirm No-Delivery Day'}
+          </button>
+          <button onClick={() => setShowNoDeliveryModal(false)} style={{ ...ghostBtn, flex: 1, padding: '0.9rem' }}>Cancel</button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
 
     </div>
   );

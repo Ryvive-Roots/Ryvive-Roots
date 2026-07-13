@@ -13,6 +13,7 @@ import AdminDashboard1 from "./pages/AdminDashboard1";
 import AdminDashboard2 from "./pages/AdminDashboard2";
 import AdminDashboard3 from "./pages/AdminDashboard3";
 import AdminDashboard4 from "./pages/AdminDashboard4";
+import RyviveDeliveryAdmin from "./pages/ryvive-delivery-admin";
 
 
 function App() {
@@ -31,6 +32,10 @@ function App() {
         <Route
           path="/admin-dashboard"
           element={token ? <AdminDashboard4  /> : <Navigate to="/" />}
+        />
+          <Route
+          path="/adminTest"
+          element={token ? <RyviveDeliveryAdmin  /> : <Navigate to="/" />}
         />
           <Route
           path="/adminD"

@@ -1,6 +1,7 @@
 import express from "express";
 import Order from "../models/order.js";
 import Notification from "../models/Notification.js";
+import AuditLog from "../models/AuditLog.js";
 import sendEmail from "../utils/sendEmail.js";
 import generateInvoice from "../utils/generateInvoice.js";
 import generateReceiptNumber from "../utils/generateReceiptNumber.js";
@@ -1118,6 +1119,93 @@ try {
   }
 });
 
+/* ===========================
+   MARK NO-DELIVERY DAY (extends endDate by 1 day)
+=========================== */
+router.post("/no-delivery", async (req, res) => {
+  try {
+    const { date, reason, orderIds, appliedBy } = req.body;
+
+    if (!date || !reason || !Array.isArray(orderIds) || orderIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "date, reason, and at least one orderId are required.",
+      });
+    }
+
+    const noDeliveryDate = new Date(date);
+    noDeliveryDate.setHours(0, 0, 0, 0);
+
+    const results = { updated: [], skipped: [] };
+
+    for (const orderId of orderIds) {
+      const order = await Order.findById(orderId);
+      if (!order) {
+        results.skipped.push({ orderId, reason: "Order not found" });
+        continue;
+      }
+
+      // Prevent applying the same no-delivery date twice to the same order
+      const alreadyLogged = (order.subscription?.noDeliveryHistory || []).some(
+        (entry) =>
+          new Date(entry.date).toDateString() === noDeliveryDate.toDateString()
+      );
+      if (alreadyLogged) {
+        results.skipped.push({ orderId, reason: "Already logged for this date" });
+        continue;
+      }
+
+      // Log the no-delivery entry
+      order.subscription.noDeliveryHistory = order.subscription.noDeliveryHistory || [];
+      order.subscription.noDeliveryHistory.push({
+        date: noDeliveryDate,
+        reason,
+        daysAdded: 1,
+        appliedBy: appliedBy || "Admin",
+        appliedAt: new Date(),
+      });
+
+      // Extend the subscription end date by 1 calendar day
+      if (order.subscription.endDate) {
+        const newEnd = new Date(order.subscription.endDate);
+        newEnd.setDate(newEnd.getDate() + 1);
+        order.subscription.endDate = newEnd;
+      }
+
+      await order.save();
+      results.updated.push(orderId);
+
+      // Audit log entry — non-blocking, matches your pattern elsewhere
+      try {
+        await AuditLog.create({
+          customerName: `${order.user?.firstName || ""} ${order.user?.lastName || ""}`.trim(),
+          action: "NO_DELIVERY_EXTENSION",
+          details: `No-delivery day on ${noDeliveryDate.toLocaleDateString("en-IN")} — reason: ${reason}. Subscription extended by 1 day (new expiry: ${order.subscription.endDate?.toLocaleDateString("en-IN")}).`,
+          performedBy: appliedBy || "Admin",
+        });
+      } catch (logErr) {
+        console.error("❌ Audit log failed (non-blocking):", logErr.message);
+      }
+    }
+
+    // Rebuild Excel to reflect updated end dates — matches your pattern in other routes
+    try {
+      await rebuildExcelFromMongo();
+    } catch (err) {
+      console.error("❌ Excel rebuild failed:", err.message);
+    }
+
+    return res.json({
+      success: true,
+      message: `No-delivery day applied to ${results.updated.length} order(s).`,
+      updated: results.updated,
+      skipped: results.skipped,
+    });
+  } catch (err) {
+    console.error("❌ No-delivery route error:", err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 router.get("/excel", (req, res) => {
   try {

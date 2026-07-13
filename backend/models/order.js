@@ -189,7 +189,21 @@ renewal: {
     default: false,
   },
   durationMonths: Number,
-},},
+},
+
+noDeliveryHistory: [
+  {
+    date: { type: Date, required: true },
+    reason: { type: String, required: true },
+    daysAdded: { type: Number, default: 1 },
+    appliedBy: { type: String },
+    appliedAt: { type: Date, default: Date.now },
+  }
+],
+
+},
+
+
 
 
     
