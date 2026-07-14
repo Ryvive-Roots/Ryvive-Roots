@@ -12,6 +12,7 @@ import { rebuildExcelFromMongo } from "../utils/excelHelper.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import { impersonateUser } from "../controllers/adminController.js";
 
 
 const router = express.Router();
@@ -46,6 +47,7 @@ function addMealDays(startDate, mealDays) {
   return d;
 }
 
+router.post("/impersonate", impersonateUser);
 
 /* ===========================
    GET ALL ORDERS (ADMIN)

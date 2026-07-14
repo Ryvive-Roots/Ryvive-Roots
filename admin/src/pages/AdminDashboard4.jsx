@@ -73,10 +73,6 @@ const ghostBtn = { background: 'transparent', color: INK, border: `1px solid rgb
 const overlayStyle = { position: 'fixed', inset: 0, background: 'rgba(20,17,15,0.7)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' };
 const modalStyle = { background: CREAM, borderRadius: 4, padding: '2rem', maxWidth: 480, width: '100%', boxShadow: '0 24px 60px rgba(20,17,15,0.35)', border: `1px solid ${CARD_BORDER}` };
 
-// ── STATIC MOCK DATA (fallback / customer queries) ─────────────────────────
-
-
-
 // ── COMPONENT ──────────────────────────────────────────────────────────────
 
 export default function AdminDashboard4() {
@@ -131,18 +127,22 @@ export default function AdminDashboard4() {
   const [deliveryLogLoading, setDeliveryLogLoading] = useState(false);
   const [savingDelivery, setSavingDelivery] = useState(false);
 
+  // ── Delivery sub-tab state (Daily Log / Non-Delivery Extension / Client Overview) ──
+  const [deliverySubTab, setDeliverySubTab] = useState('log'); // 'log' | 'extend' | 'overview'
+
  // ── Client History state ──
   const [historyCustomer, setHistoryCustomer] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historySearch, setHistorySearch] = useState('');
-  const [clientHistoryData, setClientHistoryData] = useState(null);   // ← ADD
-  const [historyLoading, setHistoryLoading] = useState(false);         // ← ADD
+  const [clientHistoryData, setClientHistoryData] = useState(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
+  // ── No-Delivery / Extension state (used by both quick modal and Extend tab) ──
   const [showNoDeliveryModal, setShowNoDeliveryModal] = useState(false);
-const [noDeliveryDate, setNoDeliveryDate] = useState(new Date().toISOString().split('T')[0]);
-const [noDeliveryReason, setNoDeliveryReason] = useState('');
-const [selectedNoDeliveryClients, setSelectedNoDeliveryClients] = useState({});
-const [submittingNoDelivery, setSubmittingNoDelivery] = useState(false);
+  const [noDeliveryDate, setNoDeliveryDate] = useState(new Date().toISOString().split('T')[0]);
+  const [noDeliveryReason, setNoDeliveryReason] = useState('');
+  const [selectedNoDeliveryClients, setSelectedNoDeliveryClients] = useState({});
+  const [submittingNoDelivery, setSubmittingNoDelivery] = useState(false);
 
   // ── Impersonate / Login-as-client state ──
   const [showImpersonateConfirm, setShowImpersonateConfirm] = useState(false);
@@ -153,7 +153,7 @@ const [submittingNoDelivery, setSubmittingNoDelivery] = useState(false);
   const [deliveryWeekNo, setDeliveryWeekNo] = useState('');
 
   const [customerQueries, setCustomerQueries] = useState([]);
-const [queryResponseDrafts, setQueryResponseDrafts] = useState({}); // { [queryId]: draft text }
+  const [queryResponseDrafts, setQueryResponseDrafts] = useState({}); // { [queryId]: draft text }
 
   // ── Lifecycle ──
   useEffect(() => {
@@ -163,23 +163,24 @@ const [queryResponseDrafts, setQueryResponseDrafts] = useState({}); // { [queryI
     fetchPendingPayments();
     fetchAuditLogs();
     fetchPauseRequests();
-      fetchQueries();          
+    fetchQueries();
   }, []);
 
   useEffect(() => { setMobileNavOpen(false); }, [activeView]);
 
   useEffect(() => {
-   const anyModal = showPasskeyModal || showBroadcastModal || showCustomerDetail || showIndividualMessage || showRenew || showPaymentModal || showInvoiceModal || showHistoryModal || showImpersonateConfirm || showNoDeliveryModal || mobileNavOpen;
+    const anyModal = showPasskeyModal || showBroadcastModal || showCustomerDetail || showIndividualMessage || showRenew || showPaymentModal || showInvoiceModal || showHistoryModal || showImpersonateConfirm || showNoDeliveryModal || mobileNavOpen;
     document.body.style.overflow = anyModal ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
-  }, [showPasskeyModal, showBroadcastModal, showCustomerDetail, showIndividualMessage, showRenew, showPaymentModal, showInvoiceModal, showHistoryModal, showImpersonateConfirm, mobileNavOpen]);
+  }, [showPasskeyModal, showBroadcastModal, showCustomerDetail, showIndividualMessage, showRenew, showPaymentModal, showInvoiceModal, showHistoryModal, showImpersonateConfirm, showNoDeliveryModal, mobileNavOpen]);
 
 
   useEffect(() => {
-  if (orders.length > 0) {
-    derivePauseRequestsFromOrders(orders);
-  }
-}, [orders]);
+    if (orders.length > 0) {
+      derivePauseRequestsFromOrders(orders);
+    }
+  }, [orders]);
+
   // ── API calls ──
   const fetchOrders = async () => {
     setLoading(true);
@@ -195,14 +196,14 @@ const [queryResponseDrafts, setQueryResponseDrafts] = useState({}); // { [queryI
   };
 
   const fetchQueries = async () => {
-  try {
-    const res = await fetch("https://api.ryviveroots.com/api/admin/queries");
-    const data = await res.json();
-    if (data.success) setCustomerQueries(data.queries);
-  } catch (err) {
-    console.error("Failed to fetch queries", err);
-  }
-};
+    try {
+      const res = await fetch("https://api.ryviveroots.com/api/admin/queries");
+      const data = await res.json();
+      if (data.success) setCustomerQueries(data.queries);
+    } catch (err) {
+      console.error("Failed to fetch queries", err);
+    }
+  };
 
   const fetchPendingPayments = async () => {
     try {
@@ -215,55 +216,55 @@ const [queryResponseDrafts, setQueryResponseDrafts] = useState({}); // { [queryI
   };
 
   const fetchPauseRequests = async () => {
-  // First try a dedicated endpoint
-  try {
-    const res = await fetch("https://api.ryviveroots.com/api/admin/pause-requests");
-    const data = await res.json();
-    if (data.success && data.pauseRequests?.length) {
-      setPauseRequests(data.pauseRequests.map(r => ({
-        id: r._id,
-        customer: r.customerName || `${r.user?.firstName} ${r.user?.lastName}`,
-        memberId: r.membershipId,
-        requestDate: new Date(r.createdAt).toLocaleDateString('en-IN'),
-        pauseFrom: new Date(r.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
-        pauseTo: new Date(r.resumeDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
-        reason: r.reason || 'Not specified',
-        status: r.status === 'APPROVED' ? 'Approved' : r.status === 'REJECTED' ? 'Rejected' : 'Pending',
-        days: r.days,
-      })));
-      return;
-    }
-  } catch (_) {}
+    // First try a dedicated endpoint
+    try {
+      const res = await fetch("https://api.ryviveroots.com/api/admin/pause-requests");
+      const data = await res.json();
+      if (data.success && data.pauseRequests?.length) {
+        setPauseRequests(data.pauseRequests.map(r => ({
+          id: r._id,
+          customer: r.customerName || `${r.user?.firstName} ${r.user?.lastName}`,
+          memberId: r.membershipId,
+          requestDate: new Date(r.createdAt).toLocaleDateString('en-IN'),
+          pauseFrom: new Date(r.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+          pauseTo: new Date(r.resumeDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+          reason: r.reason || 'Not specified',
+          status: r.status === 'APPROVED' ? 'Approved' : r.status === 'REJECTED' ? 'Rejected' : 'Pending',
+          days: r.days,
+        })));
+        return;
+      }
+    } catch (_) {}
 
-  // Fallback: derive from orders already in state
-  derivePauseRequestsFromOrders(orders);
-};
+    // Fallback: derive from orders already in state
+    derivePauseRequestsFromOrders(orders);
+  };
 
-const derivePauseRequestsFromOrders = (orderList) => {
-  const requests = [];
-  orderList.forEach(order => {
-    const history = order.subscription?.pause?.history || [];
-    history.forEach((entry, idx) => {
-      const start = new Date(entry.startDate);
-      const resume = new Date(entry.resumeDate);
-      requests.push({
-        id: `${order._id}-${idx}`,
-        customer: `${order.user?.firstName} ${order.user?.lastName}`,
-        memberId: order.membershipId,
-        requestDate: entry.requestedAt
-          ? new Date(entry.requestedAt).toLocaleDateString('en-IN')
-          : start.toLocaleDateString('en-IN'),
-        pauseFrom: start.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
-        pauseTo: resume.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
-        reason: entry.reason || 'Not specified',
-        status: entry.status === 'ACTIVE' || !entry.status ? 'Approved' : entry.status,
-        days: entry.days,
+  const derivePauseRequestsFromOrders = (orderList) => {
+    const requests = [];
+    orderList.forEach(order => {
+      const history = order.subscription?.pause?.history || [];
+      history.forEach((entry, idx) => {
+        const start = new Date(entry.startDate);
+        const resume = new Date(entry.resumeDate);
+        requests.push({
+          id: `${order._id}-${idx}`,
+          customer: `${order.user?.firstName} ${order.user?.lastName}`,
+          memberId: order.membershipId,
+          requestDate: entry.requestedAt
+            ? new Date(entry.requestedAt).toLocaleDateString('en-IN')
+            : start.toLocaleDateString('en-IN'),
+          pauseFrom: start.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+          pauseTo: resume.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+          reason: entry.reason || 'Not specified',
+          status: entry.status === 'ACTIVE' || !entry.status ? 'Approved' : entry.status,
+          days: entry.days,
+        });
       });
     });
-  });
-  // Sort newest first
-  setPauseRequests(requests.reverse());
-};
+    // Sort newest first
+    setPauseRequests(requests.reverse());
+  };
 
   const fetchAuditLogs = async () => {
     try {
@@ -337,8 +338,6 @@ const derivePauseRequestsFromOrders = (orderList) => {
 
   // ── Export delivery log as CSV / Excel-compatible ──
   const exportDeliveryLog = () => {
-    // Match your exact Google Sheet column structure:
-    // Date, Subscriber ID, Name, Plan Type, Slot, Meal Given (Yes/No/Paused), Reason if no (Paused), Menu, Week No., Weekday No., Staff Initials
     const headers = ['Date', 'Subscriber ID', 'Name', 'Plan Type', 'Slot', 'Meal Given (Yes/No/Paused)', 'Reason if no (Paused)', 'Menu', 'Week No.', 'Weekday No.', 'Staff Initials'];
     const date = new Date(deliveryDate);
     const weekday = date.getDay(); // 0=Sun, 1=Mon...
@@ -366,61 +365,61 @@ const derivePauseRequestsFromOrders = (orderList) => {
     URL.revokeObjectURL(url);
   };
 
+  // ── No-Delivery / Extension handlers ──
   const openNoDeliveryModal = () => {
-  setNoDeliveryDate(new Date().toISOString().split('T')[0]);
-  setNoDeliveryReason('');
-  setSelectedNoDeliveryClients({});
-  setShowNoDeliveryModal(true);
-};
+    setNoDeliveryDate(new Date().toISOString().split('T')[0]);
+    setNoDeliveryReason('');
+    setSelectedNoDeliveryClients({});
+    setShowNoDeliveryModal(true);
+  };
 
-const toggleNoDeliveryClient = (id) => {
-  setSelectedNoDeliveryClients(prev => ({ ...prev, [id]: !prev[id] }));
-};
+  const toggleNoDeliveryClient = (id) => {
+    setSelectedNoDeliveryClients(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
-const selectAllActiveForNoDelivery = () => {
-  const all = {};
-  activeOrdersForDelivery.forEach(o => { all[o._id] = true; });
-  setSelectedNoDeliveryClients(all);
-};
+  const selectAllActiveForNoDelivery = () => {
+    const all = {};
+    activeOrdersForDelivery.forEach(o => { all[o._id] = true; });
+    setSelectedNoDeliveryClients(all);
+  };
 
-const clearNoDeliverySelection = () => setSelectedNoDeliveryClients({});
+  const clearNoDeliverySelection = () => setSelectedNoDeliveryClients({});
 
-const submitNoDeliveryDay = async () => {
-  const ids = Object.keys(selectedNoDeliveryClients).filter(id => selectedNoDeliveryClients[id]);
-  if (ids.length === 0) { alert('Select at least one client.'); return; }
-  if (!noDeliveryReason.trim()) { alert('Please add a reason (e.g. Red alert / heavy rain).'); return; }
+  const submitNoDeliveryDay = async () => {
+    const ids = Object.keys(selectedNoDeliveryClients).filter(id => selectedNoDeliveryClients[id]);
+    if (ids.length === 0) { alert('Select at least one client.'); return; }
+    if (!noDeliveryReason.trim()) { alert('Please add a reason (e.g. Red alert / heavy rain).'); return; }
 
-  setSubmittingNoDelivery(true);
-  try {
-    const res = await fetch('https://api.ryviveroots.com/api/admin/no-delivery', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        date: noDeliveryDate,
-        reason: noDeliveryReason.trim(),
-        orderIds: ids,
-        appliedBy: 'Admin',
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) throw new Error(data.message || 'Failed to apply no-delivery day');
+    setSubmittingNoDelivery(true);
+    try {
+      const res = await fetch('https://api.ryviveroots.com/api/admin/no-delivery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: noDeliveryDate,
+          reason: noDeliveryReason.trim(),
+          orderIds: ids,
+          appliedBy: 'Admin',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || 'Failed to apply no-delivery day');
 
-    let msg = `No-delivery day recorded for ${data.updated.length} client(s). Their subscription end date has been extended by 1 day.`;
-    if (data.skipped?.length) {
-      msg += ` ${data.skipped.length} client(s) already had this date logged and were skipped.`;
+      let msg = `No-delivery day recorded for ${data.updated.length} client(s). Their subscription end date has been extended by 1 day.`;
+      if (data.skipped?.length) {
+        msg += ` ${data.skipped.length} client(s) already had this date logged and were skipped.`;
+      }
+      alert(msg);
+      setShowNoDeliveryModal(false);
+      fetchOrders();
+    } catch (err) {
+      alert(err.message || 'Failed to record no-delivery day.');
+    } finally {
+      setSubmittingNoDelivery(false);
     }
-    alert(msg);
-    setShowNoDeliveryModal(false);
-    fetchOrders();
-  } catch (err) {
-    alert(err.message || 'Failed to record no-delivery day.');
-  } finally {
-    setSubmittingNoDelivery(false);
-  }
-};
+  };
 
   // ── Open client history modal ──
-// ── Open client history modal ──
   const openHistory = async (order) => {
     setHistoryCustomer(order);
     setShowHistoryModal(true);
@@ -469,11 +468,9 @@ const submitNoDeliveryDay = async () => {
       });
       const data = await res.json();
       if (data.success && data.token) {
-        // Store current admin token so we can return
         localStorage.setItem('adminToken_backup', localStorage.getItem('adminToken'));
         localStorage.setItem('membershipId', impersonateTarget.membershipId);
         localStorage.setItem('membershipId_impersonated', 'true');
-        // Open client dashboard in new tab
         const clientUrl = `/dashboard?token=${data.token}&membershipId=${impersonateTarget.membershipId}`;
         window.open(clientUrl, '_blank');
         setShowImpersonateConfirm(false);
@@ -521,46 +518,46 @@ const submitNoDeliveryDay = async () => {
   };
 
   // ── Helpers ──
-const getPauseStatusText = (order) => {
-  if (order.subscription?.status === "CANCELLED") return "CANCELLED";
-  if (order.subscription?.status === "EXPIRED") return "EXPIRED";
-  if (order.subscription?.status === "UNDER_PROCESS") return "UNDER PROCESS";
+  const getPauseStatusText = (order) => {
+    if (order.subscription?.status === "CANCELLED") return "CANCELLED";
+    if (order.subscription?.status === "EXPIRED") return "EXPIRED";
+    if (order.subscription?.status === "UNDER_PROCESS") return "UNDER PROCESS";
 
-  const pause = order.subscription?.pause;
+    const pause = order.subscription?.pause;
 
-  if (!pause?.history?.length) return "ACTIVE";
+    if (!pause?.history?.length) return "ACTIVE";
 
-  const latest = pause.history[pause.history.length - 1];
-  const start = new Date(latest.startDate);
-  const resume = latest.resumeDate ? new Date(latest.resumeDate) : null;
-  const days = latest.days || 1;
-  const today = new Date();
+    const latest = pause.history[pause.history.length - 1];
+    const start = new Date(latest.startDate);
+    const resume = latest.resumeDate ? new Date(latest.resumeDate) : null;
+    const days = latest.days || 1;
+    const today = new Date();
 
-  const startText = start.toLocaleDateString("en-IN");
-  const resumeText = resume ? resume.toLocaleDateString("en-IN") : "";
+    const startText = start.toLocaleDateString("en-IN");
+    const resumeText = resume ? resume.toLocaleDateString("en-IN") : "";
 
-  if (resume && today >= start && today <= resume) {
-    return days === 1
-      ? `PAUSED • ${startText} (1 day)`
-      : `PAUSED • ${startText} → ${resumeText}`;
-  }
+    if (resume && today >= start && today <= resume) {
+      return days === 1
+        ? `PAUSED • ${startText} (1 day)`
+        : `PAUSED • ${startText} → ${resumeText}`;
+    }
 
-  if (today < start) {
-    return days === 1
-      ? `ACTIVE • Pause scheduled ${startText} (1 day)`
-      : `ACTIVE • Pause scheduled ${startText} → ${resumeText}`;
-  }
+    if (today < start) {
+      return days === 1
+        ? `ACTIVE • Pause scheduled ${startText} (1 day)`
+        : `ACTIVE • Pause scheduled ${startText} → ${resumeText}`;
+    }
 
-  return "ACTIVE";
-};
+    return "ACTIVE";
+  };
 
-const statusTone = (text) => {
-  if (text.includes("CANCELLED")) return STATUS.cancelled;
-  if (text.includes("PAUSED")) return STATUS.paused;
-  if (text.includes("EXPIRED")) return STATUS.expired;
+  const statusTone = (text) => {
+    if (text.includes("CANCELLED")) return STATUS.cancelled;
+    if (text.includes("PAUSED")) return STATUS.paused;
+    if (text.includes("EXPIRED")) return STATUS.expired;
 
-  return STATUS.active;
-};
+    return STATUS.active;
+  };
 
   const canShowRenew = (order) => {
     if (!order?.subscription?.endDate) return false;
@@ -576,10 +573,11 @@ const statusTone = (text) => {
     return Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
   };
 
+  // Active clients = not cancelled / expired / under-process (used across Daily Delivery Log tabs)
   const activeOrdersForDelivery = orders.filter(o => {
-  const st = o.subscription?.status;
-  return st !== 'CANCELLED' && st !== 'EXPIRED' && st !== 'UNDER_PROCESS';
-});
+    const st = o.subscription?.status;
+    return st !== 'CANCELLED' && st !== 'EXPIRED' && st !== 'UNDER_PROCESS';
+  });
 
   const calculateTotalMeals = (dur, mealsPerWeek) => {
     const weeks = dur === '1-month' ? 4 : dur === '2-month' ? 8 : dur === '3-month' ? 12 : dur === '6-month' ? 24 : 0;
@@ -761,58 +759,58 @@ const statusTone = (text) => {
     } catch (err) { alert("Failed"); }
   };
 
- const handlePauseAction = async (id, action) => {
-  // Optimistically update UI
-  setPauseRequests(prev =>
-    prev.map(r => r.id === id
-      ? { ...r, status: action === 'approve' ? 'Approved' : 'Rejected' }
-      : r
-    )
-  );
+  const handlePauseAction = async (id, action) => {
+    // Optimistically update UI
+    setPauseRequests(prev =>
+      prev.map(r => r.id === id
+        ? { ...r, status: action === 'approve' ? 'Approved' : 'Rejected' }
+        : r
+      )
+    );
 
-  // Try to persist to backend (won't break if endpoint doesn't exist yet)
-  try {
-    await fetch(`https://api.ryviveroots.com/api/admin/pause-requests/${id}/${action}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (_) {
-    // Silent fail — UI already updated
-  }
-};
-
-const handleQueryStatusChange = async (id, newStatus) => {
-  setCustomerQueries(prev => prev.map(q => q._id === id ? { ...q, status: newStatus } : q)); // optimistic
-  try {
-    await fetch(`https://api.ryviveroots.com/api/admin/queries/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
-    });
-  } catch (err) {
-    console.error("Status update failed:", err);
-    fetchQueries(); // re-sync if the request failed
-  }
-};
-
-const handleSendQueryResponse = async (id) => {
-  const responseText = queryResponseDrafts[id];
-  if (!responseText || !responseText.trim()) return;
-  try {
-    const res = await fetch(`https://api.ryviveroots.com/api/admin/queries/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ response: responseText, status: "Resolved" }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      setCustomerQueries(prev => prev.map(q => q._id === id ? data.query : q));
-      setQueryResponseDrafts(prev => ({ ...prev, [id]: "" }));
+    // Try to persist to backend (won't break if endpoint doesn't exist yet)
+    try {
+      await fetch(`https://api.ryviveroots.com/api/admin/pause-requests/${id}/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (_) {
+      // Silent fail — UI already updated
     }
-  } catch (err) {
-    console.error("Failed to send response:", err);
-  }
-};
+  };
+
+  const handleQueryStatusChange = async (id, newStatus) => {
+    setCustomerQueries(prev => prev.map(q => q._id === id ? { ...q, status: newStatus } : q)); // optimistic
+    try {
+      await fetch(`https://api.ryviveroots.com/api/admin/queries/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+    } catch (err) {
+      console.error("Status update failed:", err);
+      fetchQueries(); // re-sync if the request failed
+    }
+  };
+
+  const handleSendQueryResponse = async (id) => {
+    const responseText = queryResponseDrafts[id];
+    if (!responseText || !responseText.trim()) return;
+    try {
+      const res = await fetch(`https://api.ryviveroots.com/api/admin/queries/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ response: responseText, status: "Resolved" }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCustomerQueries(prev => prev.map(q => q._id === id ? data.query : q));
+        setQueryResponseDrafts(prev => ({ ...prev, [id]: "" }));
+      }
+    } catch (err) {
+      console.error("Failed to send response:", err);
+    }
+  };
 
   const handleVerifyPayment = (pending) => {
     setSelectedPending(pending);
@@ -1587,168 +1585,302 @@ const handleSendQueryResponse = async (id) => {
             </motion.div>
           )}
 
-          {/* ── DAILY DELIVERY LOG ── */}
+          {/* ══════════════════════════════════════════════
+              DAILY DELIVERY LOG — Three sub-tabs:
+              1) Daily Delivery Log
+              2) Non-Delivery / Extension
+              3) Client Overview
+          ══════════════════════════════════════════════ */}
           {activeView === 'delivery' && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
               <div style={{ marginBottom: '1.5rem' }}>
                 <div style={eyebrowStyle}>— Operations</div>
                 <h2 className="font-serif" style={{ ...h2Style, marginTop: '0.5rem' }}>Daily Delivery Log</h2>
-                <p style={{ margin: '0.35rem 0 0', color: 'rgba(42,37,32,0.6)', fontSize: '0.9rem' }}>Track every delivery — mark status, add notes, export to Excel</p>
+                <p style={{ margin: '0.35rem 0 0', color: 'rgba(42,37,32,0.6)', fontSize: '0.9rem' }}>Track every delivery — mark status, apply non-delivery extensions, and review client activity</p>
               </div>
 
-              {/* Date picker + controls */}
-              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: CREAM, padding: '0.7rem 1.1rem', borderRadius: 3, border: `1px solid ${CARD_BORDER}` }}>
-                  <Calendar size={16} color={SAGE_DARK} />
-                  <input type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} style={{ border: 'none', outline: 'none', fontSize: '0.9rem', background: 'transparent', color: INK, fontFamily: 'Inter, sans-serif' }} />
-                </div>
-                <button onClick={() => fetchDeliveryLog(deliveryDate)} style={{ ...primaryBtn, padding: '0.7rem 1.1rem' }}>
-                  <ClipboardList size={15} /> Load Log
-                </button>
-                <button onClick={saveDeliveryLog} disabled={savingDelivery || !deliveryLog.length} style={{ ...accentBtn, padding: '0.7rem 1.1rem', opacity: (savingDelivery || !deliveryLog.length) ? 0.45 : 1 }}>
-                  <CheckCircle2 size={15} /> {savingDelivery ? 'Saving…' : 'Save Log'}
-                </button>
-                <button onClick={exportDeliveryLog} disabled={!deliveryLog.length} style={{ ...ghostBtn, padding: '0.7rem 1.1rem', opacity: !deliveryLog.length ? 0.45 : 1 }}>
-                  <Download size={15} /> Export CSV (Excel)
-                </button>
-                <button onClick={openNoDeliveryModal} style={{ ...ghostBtn, padding: '0.7rem 1.1rem', borderColor: '#9a4a3e', color: '#9a4a3e' }}>
-  <AlertCircle size={15} /> Mark No-Delivery Day
-</button>
+              {/* Sub-tabs */}
+              <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.5rem', borderBottom: `1px solid ${CARD_BORDER}`, flexWrap: 'wrap' }}>
+                {[
+                  { key: 'log', label: 'Daily Delivery Log' },
+                  { key: 'extend', label: 'Non-Delivery / Extension' },
+                  { key: 'overview', label: 'Client Overview' },
+                ].map(t => (
+                  <button
+                    key={t.key}
+                    onClick={() => setDeliverySubTab(t.key)}
+                    style={{
+                      padding: '0.75rem 1.25rem',
+                      border: 'none',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      color: deliverySubTab === t.key ? INK : 'rgba(42,37,32,0.45)',
+                      borderBottom: deliverySubTab === t.key ? `2px solid ${SAGE_DARK}` : '2px solid transparent',
+                      marginBottom: -1,
+                      fontFamily: 'Inter, sans-serif',
+                    }}
+                  >
+                    {t.label}
+                  </button>
+                ))}
               </div>
 
-              {/* Menu + Week fields — match your Google Sheet */}
-              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                <div style={{ flex: 2, minWidth: 240 }}>
-                  <label style={labelStyle}>Today's Menu</label>
-                  <input
-                    type="text"
-                    value={deliveryMenuText}
-                    onChange={e => setDeliveryMenuText(e.target.value)}
-                    placeholder="e.g. Avocado Paneer Royal Grill + Dr. Carrot"
-                    style={{ ...inputStyle }}
-                  />
-                </div>
-                <div style={{ flex: 1, minWidth: 100 }}>
-                  <label style={labelStyle}>Week No.</label>
-                  <input
-                    type="number"
-                    value={deliveryWeekNo}
-                    onChange={e => setDeliveryWeekNo(e.target.value)}
-                    placeholder="e.g. 7"
-                    style={{ ...inputStyle }}
-                  />
-                </div>
-              </div>
-
-              {/* Stats strip */}
-              {deliveryLog.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-                  {[
-                    { label: 'Total', value: deliveryLog.length, color: INK },
-                    { label: 'Delivered', value: deliveryLog.filter(r => r.status === 'Delivered').length, color: '#3a6e1e' },
-                    { label: 'Pending', value: deliveryLog.filter(r => r.status === 'Pending').length, color: '#9a6a2e' },
-                    { label: 'Paused', value: deliveryLog.filter(r => r.status === 'Paused').length, color: '#9a4a3e' },
-                  ].map(stat => (
-                    <div key={stat.label} style={{ ...cardStyle, padding: '1rem 1.25rem' }}>
-                      <p style={{ margin: '0 0 0.3rem', fontSize: '0.68rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: SAGE_DARK, fontWeight: 600 }}>{stat.label}</p>
-                      <p className="font-serif" style={{ margin: 0, fontSize: '2rem', fontWeight: 300, color: stat.color }}>{stat.value}</p>
+              {/* ── SUB-TAB 1: DAILY DELIVERY LOG ── */}
+              {deliverySubTab === 'log' && (
+                <>
+                  {/* Date picker + controls */}
+                  <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: CREAM, padding: '0.7rem 1.1rem', borderRadius: 3, border: `1px solid ${CARD_BORDER}` }}>
+                      <Calendar size={16} color={SAGE_DARK} />
+                      <input type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} style={{ border: 'none', outline: 'none', fontSize: '0.9rem', background: 'transparent', color: INK, fontFamily: 'Inter, sans-serif' }} />
                     </div>
-                  ))}
-                </div>
+                    <button onClick={() => fetchDeliveryLog(deliveryDate)} style={{ ...primaryBtn, padding: '0.7rem 1.1rem' }}>
+                      <ClipboardList size={15} /> Load Log
+                    </button>
+                    <button onClick={saveDeliveryLog} disabled={savingDelivery || !deliveryLog.length} style={{ ...accentBtn, padding: '0.7rem 1.1rem', opacity: (savingDelivery || !deliveryLog.length) ? 0.45 : 1 }}>
+                      <CheckCircle2 size={15} /> {savingDelivery ? 'Saving…' : 'Save Log'}
+                    </button>
+                    <button onClick={exportDeliveryLog} disabled={!deliveryLog.length} style={{ ...ghostBtn, padding: '0.7rem 1.1rem', opacity: !deliveryLog.length ? 0.45 : 1 }}>
+                      <Download size={15} /> Export CSV (Excel)
+                    </button>
+                    <button onClick={openNoDeliveryModal} style={{ ...ghostBtn, padding: '0.7rem 1.1rem', borderColor: '#9a4a3e', color: '#9a4a3e' }}>
+                      <AlertCircle size={15} /> Mark No-Delivery Day
+                    </button>
+                  </div>
+
+                  {/* Menu + Week fields — match your Google Sheet */}
+                  <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 2, minWidth: 240 }}>
+                      <label style={labelStyle}>Today's Menu</label>
+                      <input
+                        type="text"
+                        value={deliveryMenuText}
+                        onChange={e => setDeliveryMenuText(e.target.value)}
+                        placeholder="e.g. Avocado Paneer Royal Grill + Dr. Carrot"
+                        style={{ ...inputStyle }}
+                      />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 100 }}>
+                      <label style={labelStyle}>Week No.</label>
+                      <input
+                        type="number"
+                        value={deliveryWeekNo}
+                        onChange={e => setDeliveryWeekNo(e.target.value)}
+                        placeholder="e.g. 7"
+                        style={{ ...inputStyle }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Stats strip */}
+                  {deliveryLog.length > 0 && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                      {[
+                        { label: 'Total', value: deliveryLog.length, color: INK },
+                        { label: 'Delivered', value: deliveryLog.filter(r => r.status === 'Delivered').length, color: '#3a6e1e' },
+                        { label: 'Pending', value: deliveryLog.filter(r => r.status === 'Pending').length, color: '#9a6a2e' },
+                        { label: 'Paused', value: deliveryLog.filter(r => r.status === 'Paused').length, color: '#9a4a3e' },
+                      ].map(stat => (
+                        <div key={stat.label} style={{ ...cardStyle, padding: '1rem 1.25rem' }}>
+                          <p style={{ margin: '0 0 0.3rem', fontSize: '0.68rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: SAGE_DARK, fontWeight: 600 }}>{stat.label}</p>
+                          <p className="font-serif" style={{ margin: 0, fontSize: '2rem', fontWeight: 300, color: stat.color }}>{stat.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {deliveryLogLoading && <p style={{ color: 'rgba(42,37,32,0.5)' }}>Loading delivery log…</p>}
+
+                  {!deliveryLogLoading && deliveryLog.length === 0 && (
+                    <div style={{ ...cardStyle, padding: '3rem', textAlign: 'center' }}>
+                      <Truck size={32} color={SAGE_DARK} style={{ marginBottom: '1rem', opacity: 0.4 }} />
+                      <h3 className="font-serif" style={{ margin: '0 0 0.5rem', color: INK, fontWeight: 400, fontSize: '1.4rem' }}>No Log Yet</h3>
+                      <p style={{ margin: '0 0 1.5rem', color: 'rgba(42,37,32,0.6)' }}>Select a date and click "Load Log" to populate from active subscribers</p>
+                      <button onClick={() => fetchDeliveryLog(deliveryDate)} style={{ ...primaryBtn }}>
+                        <ClipboardList size={15} /> Load Today's Log
+                      </button>
+                    </div>
+                  )}
+
+                  {!deliveryLogLoading && deliveryLog.length > 0 && (
+                    <div style={{ ...cardStyle, overflow: 'hidden' }}>
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 860 }}>
+                          <thead>
+                            <tr style={{ background: CREAM_2 }}>
+                              {['#', 'Name', 'Subscriber ID', 'Plan Type', 'Slot', 'Meal Given', 'Reason if Paused/No', 'Menu', 'Staff', 'Actions'].map(h => (
+                                <th key={h} style={{ padding: '0.95rem 1rem', textAlign: 'left', fontSize: '0.68rem', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, color: SAGE_DARK }}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {deliveryLog.map((row, idx) => {
+                              const statusColor = row.status === 'Delivered' ? STATUS.active : row.status === 'Paused' ? STATUS.expired : STATUS.paused;
+                              return (
+                                <tr key={row.orderId || idx} style={{ borderBottom: idx < deliveryLog.length - 1 ? `1px solid ${CARD_BORDER}` : 'none', background: idx % 2 === 0 ? 'transparent' : CREAM_2 }}>
+                                  <td style={{ padding: '0.75rem 1rem', fontSize: '0.82rem', color: 'rgba(42,37,32,0.5)', fontWeight: 600 }}>{idx + 1}</td>
+                                  <td style={{ padding: '0.75rem 1rem', fontWeight: 600, color: INK, fontSize: '0.88rem', minWidth: 160 }}>{row.name}</td>
+                                  <td style={{ padding: '0.75rem 1rem', fontSize: '0.8rem', color: 'rgba(42,37,32,0.6)' }}>{row.membershipId}</td>
+                                  <td style={{ padding: '0.75rem 1rem' }}>
+                                    <span style={{ background: 'rgba(107,117,96,0.12)', color: SAGE_DARK, padding: '0.2rem 0.6rem', borderRadius: 3, fontSize: '0.72rem', fontWeight: 600 }}>{row.plan}</span>
+                                  </td>
+                                  <td style={{ padding: '0.75rem 1rem', fontSize: '0.82rem', color: 'rgba(42,37,32,0.65)', minWidth: 90 }}>{row.slot}</td>
+                                  {/* Meal Given — matches "Meal Given (Yes/No/Paused)" column */}
+                                  <td style={{ padding: '0.75rem 0.5rem' }}>
+                                    <select
+                                      value={row.status}
+                                      onChange={e => setDeliveryLog(prev => prev.map((r, i) => i === idx ? { ...r, status: e.target.value } : r))}
+                                      style={{ background: statusColor.bg, color: statusColor.fg, border: 'none', borderRadius: 3, padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+                                    >
+                                      <option value="Delivered">Yes</option>
+                                      <option value="Pending">No</option>
+                                      <option value="Paused">Paused</option>
+                                    </select>
+                                  </td>
+                                  {/* Reason if Paused/No — matches "Reason if no (Paused)" */}
+                                  <td style={{ padding: '0.75rem 0.5rem', minWidth: 140 }}>
+                                    <input
+                                      type="text"
+                                      value={row.notes || ''}
+                                      placeholder={row.status === 'Paused' ? 'Reason for pause…' : row.status === 'Pending' ? 'Reason not served…' : ''}
+                                      disabled={row.status === 'Delivered'}
+                                      onChange={e => setDeliveryLog(prev => prev.map((r, i) => i === idx ? { ...r, notes: e.target.value } : r))}
+                                      style={{ border: `1px solid ${CARD_BORDER}`, borderRadius: 3, padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: INK, background: row.status === 'Delivered' ? 'transparent' : CREAM, fontFamily: 'Inter, sans-serif', minWidth: 130, outline: 'none', opacity: row.status === 'Delivered' ? 0.35 : 1 }}
+                                    />
+                                  </td>
+                                  {/* Menu — shared across all rows, pulled from top input */}
+                                  <td style={{ padding: '0.75rem 0.5rem', fontSize: '0.78rem', color: 'rgba(42,37,32,0.55)', maxWidth: 180 }}>
+                                    {row.customisation && row.customisation !== '—' ? <span style={{ color: '#9a4a3e', fontWeight: 600 }}>✎ {row.customisation}</span> : <span style={{ opacity: 0.4 }}>{deliveryMenuText || 'Set menu above'}</span>}
+                                  </td>
+                                  {/* Staff initials */}
+                                  <td style={{ padding: '0.75rem 0.5rem', minWidth: 80 }}>
+                                    <input
+                                      type="text"
+                                      value={row.staffInitials || ''}
+                                      placeholder="YW"
+                                      maxLength={4}
+                                      onChange={e => setDeliveryLog(prev => prev.map((r, i) => i === idx ? { ...r, staffInitials: e.target.value.toUpperCase() } : r))}
+                                      style={{ border: `1px solid ${CARD_BORDER}`, borderRadius: 3, padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: INK, background: CREAM, fontFamily: 'Inter, sans-serif', width: 52, outline: 'none', textAlign: 'center' }}
+                                    />
+                                  </td>
+                                  <td style={{ padding: '0.75rem 0.5rem' }}>
+                                    <button onClick={() => openHistory(orders.find(o => o.membershipId === row.membershipId))} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: SAGE_DARK, fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                      <Activity size={13} /> History
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div style={{ padding: '1rem 1.5rem', borderTop: `1px solid ${CARD_BORDER}`, display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                        <button onClick={saveDeliveryLog} disabled={savingDelivery} style={{ ...primaryBtn }}>
+                          <CheckCircle2 size={15} /> {savingDelivery ? 'Saving…' : 'Save Changes'}
+                        </button>
+                        <button onClick={exportDeliveryLog} style={{ ...ghostBtn }}>
+                          <Download size={15} /> Export CSV
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
-              {deliveryLogLoading && <p style={{ color: 'rgba(42,37,32,0.5)' }}>Loading delivery log…</p>}
+              {/* ── SUB-TAB 2: NON-DELIVERY / EXTENSION ── */}
+              {deliverySubTab === 'extend' && (
+                <div style={{ ...cardStyle, padding: 'clamp(1.5rem, 4vw, 2rem)' }}>
+                  <p style={{ margin: '0 0 1.5rem', fontSize: '0.88rem', color: 'rgba(42,37,32,0.65)', lineHeight: 1.6 }}>
+                    Use this when delivery couldn't go out for a reason like a red alert or heavy rain. Selected clients' subscription end date moves forward by 1 day automatically — nobody loses a day of their plan.
+                  </p>
 
-              {!deliveryLogLoading && deliveryLog.length === 0 && (
-                <div style={{ ...cardStyle, padding: '3rem', textAlign: 'center' }}>
-                  <Truck size={32} color={SAGE_DARK} style={{ marginBottom: '1rem', opacity: 0.4 }} />
-                  <h3 className="font-serif" style={{ margin: '0 0 0.5rem', color: INK, fontWeight: 400, fontSize: '1.4rem' }}>No Log Yet</h3>
-                  <p style={{ margin: '0 0 1.5rem', color: 'rgba(42,37,32,0.6)' }}>Select a date and click "Load Log" to populate from active subscribers</p>
-                  <button onClick={() => fetchDeliveryLog(deliveryDate)} style={{ ...primaryBtn }}>
-                    <ClipboardList size={15} /> Load Today's Log
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '1.5rem', maxWidth: 600 }}>
+                    <div>
+                      <label style={labelStyle}>Non-Delivery Date</label>
+                      <input type="date" value={noDeliveryDate} onChange={e => setNoDeliveryDate(e.target.value)} style={inputStyle} />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Reason</label>
+                      <input type="text" placeholder="e.g. Red alert – heavy rain" value={noDeliveryReason} onChange={e => setNoDeliveryReason(e.target.value)} style={inputStyle} />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <label style={{ ...labelStyle, marginBottom: 0 }}>Active Clients ({activeOrdersForDelivery.length})</label>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button onClick={selectAllActiveForNoDelivery} style={{ background: 'transparent', border: 'none', color: SAGE_DARK, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Select All</button>
+                      <button onClick={clearNoDeliverySelection} style={{ background: 'transparent', border: 'none', color: 'rgba(42,37,32,0.5)', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Clear</button>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gap: '0.5rem', maxHeight: 360, overflowY: 'auto', marginBottom: '1.5rem', border: `1px solid ${CARD_BORDER}`, borderRadius: 4, padding: '0.5rem' }}>
+                    {activeOrdersForDelivery.length === 0 && (
+                      <p style={{ margin: '0.5rem', color: 'rgba(42,37,32,0.5)', fontSize: '0.85rem' }}>No active clients found.</p>
+                    )}
+                    {activeOrdersForDelivery.map(o => {
+                      const checked = !!selectedNoDeliveryClients[o._id];
+                      return (
+                        <label key={o._id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.65rem 0.75rem', borderRadius: 3, background: checked ? 'rgba(107,117,96,0.08)' : CREAM_2, cursor: 'pointer' }}>
+                          <input type="checkbox" checked={checked} onChange={() => toggleNoDeliveryClient(o._id)} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '0.88rem', fontWeight: 600, color: INK }}>{o.user?.firstName} {o.user?.lastName}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'rgba(42,37,32,0.55)' }}>{o.membershipId} · {o.subscription?.plan || '—'}</div>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  <button onClick={submitNoDeliveryDay} disabled={submittingNoDelivery} style={{ ...primaryBtn, opacity: submittingNoDelivery ? 0.5 : 1 }}>
+                    {submittingNoDelivery ? 'Applying…' : 'Apply Extension'}
                   </button>
                 </div>
               )}
 
-              {!deliveryLogLoading && deliveryLog.length > 0 && (
+              {/* ── SUB-TAB 3: CLIENT OVERVIEW ── */}
+              {deliverySubTab === 'overview' && (
                 <div style={{ ...cardStyle, overflow: 'hidden' }}>
                   <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 860 }}>
                       <thead>
                         <tr style={{ background: CREAM_2 }}>
-                          {['#', 'Name', 'Subscriber ID', 'Plan Type', 'Slot', 'Meal Given', 'Reason if Paused/No', 'Menu', 'Staff', 'Actions'].map(h => (
+                          {['Client', 'Plan', 'Pauses Used', 'No-Delivery Extensions', 'End Date', 'Days Left', 'Status'].map(h => (
                             <th key={h} style={{ padding: '0.95rem 1rem', textAlign: 'left', fontSize: '0.68rem', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, color: SAGE_DARK }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
-                        {deliveryLog.map((row, idx) => {
-                          const statusColor = row.status === 'Delivered' ? STATUS.active : row.status === 'Paused' ? STATUS.expired : STATUS.paused;
+                        {activeOrdersForDelivery.map((o, idx) => {
+                          const st = getPauseStatusText(o);
+                          const tone = statusTone(st);
+                          const pauseCount = o.subscription?.pause?.history?.length || 0;
+                          const extCount = o.subscription?.noDeliveryHistory?.length || 0;
+                          const dl = o.subscription?.endDate ? daysLeft(o) : null;
                           return (
-                            <tr key={row.orderId || idx} style={{ borderBottom: idx < deliveryLog.length - 1 ? `1px solid ${CARD_BORDER}` : 'none', background: idx % 2 === 0 ? 'transparent' : CREAM_2 }}>
-                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.82rem', color: 'rgba(42,37,32,0.5)', fontWeight: 600 }}>{idx + 1}</td>
-                              <td style={{ padding: '0.75rem 1rem', fontWeight: 600, color: INK, fontSize: '0.88rem', minWidth: 160 }}>{row.name}</td>
-                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.8rem', color: 'rgba(42,37,32,0.6)' }}>{row.membershipId}</td>
-                              <td style={{ padding: '0.75rem 1rem' }}>
-                                <span style={{ background: 'rgba(107,117,96,0.12)', color: SAGE_DARK, padding: '0.2rem 0.6rem', borderRadius: 3, fontSize: '0.72rem', fontWeight: 600 }}>{row.plan}</span>
+                            <tr key={o._id} style={{ borderBottom: idx < activeOrdersForDelivery.length - 1 ? `1px solid ${CARD_BORDER}` : 'none', background: idx % 2 === 0 ? 'transparent' : CREAM_2 }}>
+                              <td style={{ padding: '1rem', fontWeight: 600, color: INK }}>{o.user?.firstName} {o.user?.lastName}</td>
+                              <td style={{ padding: '1rem', fontSize: '0.82rem', color: 'rgba(42,37,32,0.7)' }}>{o.subscription?.plan || '—'}</td>
+                              <td style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, color: pauseCount > 0 ? '#9a6a2e' : 'rgba(42,37,32,0.4)' }}>{pauseCount}</td>
+                              <td style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, color: extCount > 0 ? SAGE_DARK : 'rgba(42,37,32,0.4)' }}>{extCount > 0 ? `+${extCount} day${extCount > 1 ? 's' : ''}` : '—'}</td>
+                              <td style={{ padding: '1rem', fontSize: '0.82rem', color: 'rgba(42,37,32,0.65)' }}>{o.subscription?.endDate ? new Date(o.subscription.endDate).toLocaleDateString('en-GB') : '—'}</td>
+                              <td style={{ padding: '1rem' }}>
+                                {dl !== null ? <span style={{ fontWeight: 700, color: dl < 0 ? '#9a4a3e' : dl <= 7 ? '#9a6a2e' : SAGE_DARK, fontSize: '0.85rem' }}>{dl < 0 ? 'Expired' : `${dl}d`}</span> : '—'}
                               </td>
-                              <td style={{ padding: '0.75rem 1rem', fontSize: '0.82rem', color: 'rgba(42,37,32,0.65)', minWidth: 90 }}>{row.slot}</td>
-                              {/* Meal Given — matches "Meal Given (Yes/No/Paused)" column */}
-                              <td style={{ padding: '0.75rem 0.5rem' }}>
-                                <select
-                                  value={row.status}
-                                  onChange={e => setDeliveryLog(prev => prev.map((r, i) => i === idx ? { ...r, status: e.target.value } : r))}
-                                  style={{ background: statusColor.bg, color: statusColor.fg, border: 'none', borderRadius: 3, padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
-                                >
-                                  <option value="Delivered">Yes</option>
-                                  <option value="Pending">No</option>
-                                  <option value="Paused">Paused</option>
-                                </select>
-                              </td>
-                              {/* Reason if Paused/No — matches "Reason if no (Paused)" */}
-                              <td style={{ padding: '0.75rem 0.5rem', minWidth: 140 }}>
-                                <input
-                                  type="text"
-                                  value={row.notes || ''}
-                                  placeholder={row.status === 'Paused' ? 'Reason for pause…' : row.status === 'Pending' ? 'Reason not served…' : ''}
-                                  disabled={row.status === 'Delivered'}
-                                  onChange={e => setDeliveryLog(prev => prev.map((r, i) => i === idx ? { ...r, notes: e.target.value } : r))}
-                                  style={{ border: `1px solid ${CARD_BORDER}`, borderRadius: 3, padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: INK, background: row.status === 'Delivered' ? 'transparent' : CREAM, fontFamily: 'Inter, sans-serif', minWidth: 130, outline: 'none', opacity: row.status === 'Delivered' ? 0.35 : 1 }}
-                                />
-                              </td>
-                              {/* Menu — shared across all rows, pulled from top input */}
-                              <td style={{ padding: '0.75rem 0.5rem', fontSize: '0.78rem', color: 'rgba(42,37,32,0.55)', maxWidth: 180 }}>
-                                {row.customisation && row.customisation !== '—' ? <span style={{ color: '#9a4a3e', fontWeight: 600 }}>✎ {row.customisation}</span> : <span style={{ opacity: 0.4 }}>{deliveryMenuText || 'Set menu above'}</span>}
-                              </td>
-                              {/* Staff initials */}
-                              <td style={{ padding: '0.75rem 0.5rem', minWidth: 80 }}>
-                                <input
-                                  type="text"
-                                  value={row.staffInitials || ''}
-                                  placeholder="YW"
-                                  maxLength={4}
-                                  onChange={e => setDeliveryLog(prev => prev.map((r, i) => i === idx ? { ...r, staffInitials: e.target.value.toUpperCase() } : r))}
-                                  style={{ border: `1px solid ${CARD_BORDER}`, borderRadius: 3, padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: INK, background: CREAM, fontFamily: 'Inter, sans-serif', width: 52, outline: 'none', textAlign: 'center' }}
-                                />
-                              </td>
-                              <td style={{ padding: '0.75rem 0.5rem' }}>
-                                <button onClick={() => openHistory(orders.find(o => o.membershipId === row.membershipId))} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: SAGE_DARK, fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                  <Activity size={13} /> History
-                                </button>
+                              <td style={{ padding: '1rem' }}>
+                                <span style={{ background: tone.bg, color: tone.fg, padding: '0.25rem 0.7rem', borderRadius: 3, fontSize: '0.7rem', fontWeight: 600 }}>{st.split('•')[0].trim()}</span>
                               </td>
                             </tr>
                           );
                         })}
+                        {activeOrdersForDelivery.length === 0 && (
+                          <tr><td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'rgba(42,37,32,0.5)' }}>No active clients.</td></tr>
+                        )}
                       </tbody>
                     </table>
-                  </div>
-                  <div style={{ padding: '1rem 1.5rem', borderTop: `1px solid ${CARD_BORDER}`, display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                    <button onClick={saveDeliveryLog} disabled={savingDelivery} style={{ ...primaryBtn }}>
-                      <CheckCircle2 size={15} /> {savingDelivery ? 'Saving…' : 'Save Changes'}
-                    </button>
-                    <button onClick={exportDeliveryLog} style={{ ...ghostBtn }}>
-                      <Download size={15} /> Export CSV
-                    </button>
                   </div>
                 </div>
               )}
@@ -2249,68 +2381,68 @@ const handleSendQueryResponse = async (id) => {
         )}
       </AnimatePresence>
 
-      {/* ── NO-DELIVERY DAY MODAL ── */}
-<AnimatePresence>
-  {showNoDeliveryModal && (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ ...overlayStyle, alignItems: 'flex-start', padding: '1.5rem', overflowY: 'auto' }}>
-      <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }} style={{ ...modalStyle, maxWidth: 560, margin: 'auto', maxHeight: '90vh', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1.5rem' }}>
-          <div>
-            <h3 className="font-serif" style={{ margin: '0 0 0.35rem', fontSize: '1.4rem', fontWeight: 400, color: INK }}>Mark No-Delivery Day</h3>
-            <p style={{ margin: 0, color: 'rgba(42,37,32,0.6)', fontSize: '0.85rem' }}>Selected clients' subscription end date will move forward by 1 day.</p>
-          </div>
-          <button onClick={() => setShowNoDeliveryModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
-            <X size={20} color={SAGE_DARK} />
-          </button>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
-          <div>
-            <label style={labelStyle}>Date</label>
-            <input type="date" value={noDeliveryDate} onChange={e => setNoDeliveryDate(e.target.value)} style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>Reason</label>
-            <input type="text" placeholder="e.g. Red alert – heavy rain" value={noDeliveryReason} onChange={e => setNoDeliveryReason(e.target.value)} style={inputStyle} />
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <label style={{ ...labelStyle, marginBottom: 0 }}>Active Clients ({activeOrdersForDelivery.length})</label>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button onClick={selectAllActiveForNoDelivery} style={{ background: 'transparent', border: 'none', color: SAGE_DARK, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Select All</button>
-            <button onClick={clearNoDeliverySelection} style={{ background: 'transparent', border: 'none', color: 'rgba(42,37,32,0.5)', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Clear</button>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gap: '0.5rem', maxHeight: 280, overflowY: 'auto', marginBottom: '1.5rem', border: `1px solid ${CARD_BORDER}`, borderRadius: 4, padding: '0.5rem' }}>
-          {activeOrdersForDelivery.length === 0 && (
-            <p style={{ margin: '0.5rem', color: 'rgba(42,37,32,0.5)', fontSize: '0.85rem' }}>No active clients found.</p>
-          )}
-          {activeOrdersForDelivery.map(o => {
-            const checked = !!selectedNoDeliveryClients[o._id];
-            return (
-              <label key={o._id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.65rem 0.75rem', borderRadius: 3, background: checked ? 'rgba(107,117,96,0.08)' : CREAM_2, cursor: 'pointer' }}>
-                <input type="checkbox" checked={checked} onChange={() => toggleNoDeliveryClient(o._id)} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: INK }}>{o.user?.firstName} {o.user?.lastName}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'rgba(42,37,32,0.55)' }}>{o.membershipId} · {o.subscription?.plan || '—'}</div>
+      {/* ── QUICK NO-DELIVERY DAY MODAL (shortcut, mirrors Extend tab) ── */}
+      <AnimatePresence>
+        {showNoDeliveryModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ ...overlayStyle, alignItems: 'flex-start', padding: '1.5rem', overflowY: 'auto' }}>
+            <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }} style={{ ...modalStyle, maxWidth: 560, margin: 'auto', maxHeight: '90vh', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1.5rem' }}>
+                <div>
+                  <h3 className="font-serif" style={{ margin: '0 0 0.35rem', fontSize: '1.4rem', fontWeight: 400, color: INK }}>Mark No-Delivery Day</h3>
+                  <p style={{ margin: 0, color: 'rgba(42,37,32,0.6)', fontSize: '0.85rem' }}>Selected clients' subscription end date will move forward by 1 day.</p>
                 </div>
-              </label>
-            );
-          })}
-        </div>
+                <button onClick={() => setShowNoDeliveryModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                  <X size={20} color={SAGE_DARK} />
+                </button>
+              </div>
 
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button onClick={submitNoDeliveryDay} disabled={submittingNoDelivery} style={{ ...primaryBtn, flex: 1, justifyContent: 'center', padding: '0.9rem', opacity: submittingNoDelivery ? 0.5 : 1 }}>
-            {submittingNoDelivery ? 'Applying…' : 'Confirm No-Delivery Day'}
-          </button>
-          <button onClick={() => setShowNoDeliveryModal(false)} style={{ ...ghostBtn, flex: 1, padding: '0.9rem' }}>Cancel</button>
-        </div>
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+                <div>
+                  <label style={labelStyle}>Date</label>
+                  <input type="date" value={noDeliveryDate} onChange={e => setNoDeliveryDate(e.target.value)} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Reason</label>
+                  <input type="text" placeholder="e.g. Red alert – heavy rain" value={noDeliveryReason} onChange={e => setNoDeliveryReason(e.target.value)} style={inputStyle} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                <label style={{ ...labelStyle, marginBottom: 0 }}>Active Clients ({activeOrdersForDelivery.length})</label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button onClick={selectAllActiveForNoDelivery} style={{ background: 'transparent', border: 'none', color: SAGE_DARK, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Select All</button>
+                  <button onClick={clearNoDeliverySelection} style={{ background: 'transparent', border: 'none', color: 'rgba(42,37,32,0.5)', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Clear</button>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gap: '0.5rem', maxHeight: 280, overflowY: 'auto', marginBottom: '1.5rem', border: `1px solid ${CARD_BORDER}`, borderRadius: 4, padding: '0.5rem' }}>
+                {activeOrdersForDelivery.length === 0 && (
+                  <p style={{ margin: '0.5rem', color: 'rgba(42,37,32,0.5)', fontSize: '0.85rem' }}>No active clients found.</p>
+                )}
+                {activeOrdersForDelivery.map(o => {
+                  const checked = !!selectedNoDeliveryClients[o._id];
+                  return (
+                    <label key={o._id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.65rem 0.75rem', borderRadius: 3, background: checked ? 'rgba(107,117,96,0.08)' : CREAM_2, cursor: 'pointer' }}>
+                      <input type="checkbox" checked={checked} onChange={() => toggleNoDeliveryClient(o._id)} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.88rem', fontWeight: 600, color: INK }}>{o.user?.firstName} {o.user?.lastName}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'rgba(42,37,32,0.55)' }}>{o.membershipId} · {o.subscription?.plan || '—'}</div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button onClick={submitNoDeliveryDay} disabled={submittingNoDelivery} style={{ ...primaryBtn, flex: 1, justifyContent: 'center', padding: '0.9rem', opacity: submittingNoDelivery ? 0.5 : 1 }}>
+                  {submittingNoDelivery ? 'Applying…' : 'Confirm No-Delivery Day'}
+                </button>
+                <button onClick={() => setShowNoDeliveryModal(false)} style={{ ...ghostBtn, flex: 1, padding: '0.9rem' }}>Cancel</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

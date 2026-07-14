@@ -750,9 +750,28 @@ const pct           = Math.round((daysCompleted / totalDays) * 100) || 0;
                     <div style={{ width: 8, height: 8, borderRadius: "50%", background: SAGE_DARK, margin: "8px auto" }} />
                   </div>
                   <div>
-                    <p style={{ fontWeight: 600, color: INK, fontSize: ".9rem", margin: 0, letterSpacing: "0.04em" }}>
-                      Subscription expiring in {remainingDays} day{remainingDays !== 1 ? "s" : ""}
-                    </p>
+                    <p
+  style={{
+    fontSize: ".72rem",
+    letterSpacing: "0.15em",
+    textTransform: "uppercase",
+    color: "rgba(42,37,32,0.6)",
+    margin: 0,
+  }}
+>
+  Renewal Date
+</p>
+
+<p
+  style={{
+    fontWeight: 600,
+    color: INK,
+    fontSize: "1rem",
+    margin: "4px 0 0",
+  }}
+>
+  {formatDate(subscription.endDate)}
+</p>
                     <p style={{ fontSize: ".8rem", color: "rgba(42,37,32,0.6)", margin: ".2rem 0 0 0" }}>
                       Renew now to continue your wellness journey
                     </p>
