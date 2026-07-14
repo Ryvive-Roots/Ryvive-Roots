@@ -460,28 +460,33 @@ export default function AdminDashboard4() {
 
   // ── Impersonate / Login as client ──
   const handleImpersonate = async () => {
-    try {
-      const res = await fetch('https://api.ryviveroots.com/api/admin/impersonate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
-        body: JSON.stringify({ membershipId: impersonateTarget.membershipId }),
-      });
-      const data = await res.json();
-      if (data.success && data.token) {
-        localStorage.setItem('adminToken_backup', localStorage.getItem('adminToken'));
-        localStorage.setItem('membershipId', impersonateTarget.membershipId);
-        localStorage.setItem('membershipId_impersonated', 'true');
-        const clientUrl = `/dashboard?token=${data.token}&membershipId=${impersonateTarget.membershipId}`;
-        window.open(clientUrl, '_blank');
-        setShowImpersonateConfirm(false);
-        setImpersonateTarget(null);
-      } else {
-        alert(data.message || 'Failed to generate client session');
-      }
-    } catch {
-      alert('Server error. Please try again.');
+  try {
+    const res = await fetch('https://api.ryviveroots.com/api/admin/impersonate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
+      body: JSON.stringify({ membershipId: impersonateTarget.membershipId }),
+    });
+    const data = await res.json();
+    if (data.success && data.token) {
+      localStorage.setItem('adminToken_backup', localStorage.getItem('adminToken'));
+      localStorage.setItem('membershipId', impersonateTarget.membershipId);
+      localStorage.setItem('membershipId_impersonated', 'true');
+
+      // Absolute URL — must point at the customer site's own domain,
+      // not wherever the admin panel happens to be hosted.
+      const clientUrl = `https://ryviveroots.com/dashboard?token=${data.token}&membershipId=${impersonateTarget.membershipId}`;
+      window.open(clientUrl, '_blank');
+
+      setShowImpersonateConfirm(false);
+      setImpersonateTarget(null);
+    } else {
+      alert(data.message || 'Failed to generate client session');
     }
-  };
+  } catch (err) {
+    console.error('Impersonate error:', err);
+    alert(`Server error: ${err.message}`);
+  }
+};
 
   // ── Open invoice modal for a customer ──
   const openInvoices = (order) => { setInvoiceCustomer(order); setShowInvoiceModal(true); };
