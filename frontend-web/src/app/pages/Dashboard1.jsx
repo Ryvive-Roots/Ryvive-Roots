@@ -358,20 +358,54 @@ const MEAL_DAYS_PER_MONTH = 24;
 // Total is always the compulsory 24/72 — never derived from calendar span
 const totalDays = MEAL_DAYS_PER_MONTH * durationMonths;
 
-const getCompletedMealDays = (startDate, endDate, pauseHistory) => {
-  if (!startDate) return 0;
-  const start = new Date(startDate), end = new Date(endDate), now = new Date();
-  start.setHours(0,0,0,0); end.setHours(0,0,0,0); now.setHours(0,0,0,0);
-  const limit = now < end ? now : end;
-  let count = 0; const cursor = new Date(start);
-  while (cursor <= limit) {
-    if (cursor.getDay() !== 0 && !isPausedDate(cursor, pauseHistory)) count++;
-    cursor.setDate(cursor.getDate() + 1);
-  }
-  return Math.min(count, totalDays); // never overshoot past a pause-extended tail
+const isNoDeliveryDate = (date, noDeliveryHistory) => {
+  if (!noDeliveryHistory?.length) return false;
+
+  return noDeliveryHistory.some((item) => {
+    const noDelivery = new Date(item.date);
+    noDelivery.setHours(0, 0, 0, 0);
+
+    return date.getTime() === noDelivery.getTime();
+  });
 };
 
-const daysCompleted = getCompletedMealDays(subscription.activationAt, subscription.endDate, subscription.pause?.history);
+const getCompletedMealDays = (
+  startDate,
+  endDate,
+  pauseHistory,
+  noDeliveryHistory
+) => {
+  if (!startDate) return 0;
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const now = new Date();
+
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+  now.setHours(0, 0, 0, 0);
+
+  const limit = now < end ? now : end;
+
+  let count = 0;
+  const cursor = new Date(start);
+
+  while (cursor <= limit) {
+    if (
+      cursor.getDay() !== 0 &&
+      !isPausedDate(cursor, pauseHistory) &&
+      !isNoDeliveryDate(cursor, noDeliveryHistory)
+    ) {
+      count++;
+    }
+
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return Math.min(count, totalDays);
+};
+
+const daysCompleted = getCompletedMealDays(subscription.activationAt, subscription.endDate, subscription.pause?.history, subscription.noDeliveryHistory);
 
 const remainingDays = getRemainingDays(subscription.endDate);
 const pct           = Math.round((daysCompleted / totalDays) * 100) || 0;
