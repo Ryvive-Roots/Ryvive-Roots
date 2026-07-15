@@ -476,11 +476,27 @@ const pct           = Math.round((daysCompleted / totalDays) * 100) || 0;
   const backendStatus = subscription.status;
   const pauseStatus   = getSubscriptionStatus();
   const isExpired     = new Date() > new Date(subscription.endDate);
-  const finalStatus   =
-    backendStatus === "UNDER_PROCESS" ? "UNDER_PROCESS"
-    : isExpired                       ? "EXPIRED"
-    : pauseStatus === "PAUSED"        ? "PAUSED"
+ const finalStatus =
+  backendStatus === "CANCELLED"
+    ? "CANCELLED"
+    : backendStatus === "UNDER_PROCESS"
+    ? "UNDER_PROCESS"
+    : isExpired
+    ? "EXPIRED"
+    : pauseStatus === "PAUSED"
+    ? "PAUSED"
     : "ACTIVE";
+
+    const statusColors = {
+  ACTIVE: "#2e7d32",        // Green
+  PAUSED: "#c8860f",        // Orange
+  EXPIRED: "#c62828",       // Red
+  UNDER_PROCESS: "#e65100", // Orange
+  CANCELLED: "#d32f2f",     // Dark Red
+};
+
+const statusColor = statusColors[finalStatus] || "#666";
+
   const isLocked = remainingPauseCount === 0 || finalStatus === "UNDER_PROCESS" || finalStatus === "EXPIRED";
 
   const latestPause  = subscription.pause?.history?.length > 0 ? subscription.pause.history[subscription.pause.history.length - 1] : null;
@@ -589,8 +605,7 @@ const pct           = Math.round((daysCompleted / totalDays) * 100) || 0;
   const isAddressWindowOpen = (istDay === 5 && istTime >= 11 * 60) || (istDay === 6 && istTime < 17 * 60);
   const isAddressDisabled   = addressLocked || !isAddressWindowOpen;
 
-  const statusColors = { ACTIVE: "#2e7d32", PAUSED: "#c8860f", EXPIRED: "#c62828", UNDER_PROCESS: "#e65100" };
-  const statusColor  = statusColors[finalStatus] || "#666";
+  
 
   const transactions = orders.map((o) => ({
     id: o.receiptNumber || "-", date: o.createdAt ? new Date(o.createdAt).toLocaleDateString("en-IN") : "-",
