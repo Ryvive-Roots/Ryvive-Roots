@@ -341,13 +341,30 @@ export default function Dashboard1() {
 
 // ── Meal day calculations ──────────────────────────────────────────────────
 const isPausedDate = (date, pauseHistory) => {
-  if (!pauseHistory || pauseHistory.length === 0) return false;
-  return pauseHistory.some((p) => {
-    const pStart = new Date(p.startDate);
-    const pEnd   = new Date(p.resumeDate);
-    pStart.setHours(0, 0, 0, 0);
-    pEnd.setHours(0, 0, 0, 0);
-    return date >= pStart && date <= pEnd;
+  if (!pauseHistory?.length) return false;
+
+  const current = new Date(date);
+  current.setHours(0, 0, 0, 0);
+
+  return pauseHistory.some((pause) => {
+    const start = new Date(pause.startDate);
+    start.setHours(0, 0, 0, 0);
+
+    let end;
+
+    if (pause.resumeDate) {
+      end = new Date(pause.resumeDate);
+      end.setHours(0, 0, 0, 0);
+
+      // Resume date is NOT a pause day
+      end.setDate(end.getDate() - 1);
+    } else {
+      // Still paused
+      end = new Date();
+      end.setHours(0, 0, 0, 0);
+    }
+
+    return current >= start && current <= end;
   });
 };
 
