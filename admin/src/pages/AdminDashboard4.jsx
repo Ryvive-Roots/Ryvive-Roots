@@ -1717,7 +1717,7 @@ export default function AdminDashboard4() {
                         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 860 }}>
                           <thead>
                             <tr style={{ background: CREAM_2 }}>
-                              {['#', 'Name', 'Subscriber ID', 'Plan Type', 'Slot', 'Meal Given', 'Reason if Paused/No', 'Menu', 'Staff', 'Actions'].map(h => (
+                              {['#', 'Name', 'Subscriber ID', 'Plan Type', 'Slot', 'Meal Given', 'Reason if Paused/No'].map(h => (
                                 <th key={h} style={{ padding: '0.95rem 1rem', textAlign: 'left', fontSize: '0.68rem', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, color: SAGE_DARK }}>{h}</th>
                               ))}
                             </tr>
@@ -1757,26 +1757,9 @@ export default function AdminDashboard4() {
                                       style={{ border: `1px solid ${CARD_BORDER}`, borderRadius: 3, padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: INK, background: row.status === 'Delivered' ? 'transparent' : CREAM, fontFamily: 'Inter, sans-serif', minWidth: 130, outline: 'none', opacity: row.status === 'Delivered' ? 0.35 : 1 }}
                                     />
                                   </td>
-                                  {/* Menu — shared across all rows, pulled from top input */}
-                                  <td style={{ padding: '0.75rem 0.5rem', fontSize: '0.78rem', color: 'rgba(42,37,32,0.55)', maxWidth: 180 }}>
-                                    {row.customisation && row.customisation !== '—' ? <span style={{ color: '#9a4a3e', fontWeight: 600 }}>✎ {row.customisation}</span> : <span style={{ opacity: 0.4 }}>{deliveryMenuText || 'Set menu above'}</span>}
-                                  </td>
-                                  {/* Staff initials */}
-                                  <td style={{ padding: '0.75rem 0.5rem', minWidth: 80 }}>
-                                    <input
-                                      type="text"
-                                      value={row.staffInitials || ''}
-                                      placeholder="YW"
-                                      maxLength={4}
-                                      onChange={e => setDeliveryLog(prev => prev.map((r, i) => i === idx ? { ...r, staffInitials: e.target.value.toUpperCase() } : r))}
-                                      style={{ border: `1px solid ${CARD_BORDER}`, borderRadius: 3, padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: INK, background: CREAM, fontFamily: 'Inter, sans-serif', width: 52, outline: 'none', textAlign: 'center' }}
-                                    />
-                                  </td>
-                                  <td style={{ padding: '0.75rem 0.5rem' }}>
-                                    <button onClick={() => openHistory(orders.find(o => o.membershipId === row.membershipId))} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: SAGE_DARK, fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                      <Activity size={13} /> History
-                                    </button>
-                                  </td>
+                                
+                                 
+                               
                                 </tr>
                               );
                             })}

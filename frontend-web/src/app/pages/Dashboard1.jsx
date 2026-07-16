@@ -390,7 +390,8 @@ const getCompletedMealDays = (
   startDate,
   endDate,
   pauseHistory,
-  noDeliveryHistory
+  noDeliveryHistory,
+  deliverySlot
 ) => {
   if (!startDate) return 0;
 
@@ -400,9 +401,31 @@ const getCompletedMealDays = (
 
   start.setHours(0, 0, 0, 0);
   end.setHours(0, 0, 0, 0);
-  now.setHours(0, 0, 0, 0);
 
-  const limit = now < end ? now : end;
+  // Last day to count
+  const limit = new Date(now < end ? now : end);
+  limit.setHours(0, 0, 0, 0);
+
+  // -----------------------------
+  // Don't count today's meal until
+  // the delivery slot has finished.
+  // -----------------------------
+  let slotEndHour = 0;
+
+  if (deliverySlot?.includes("08:00 – 09:00 AM")) slotEndHour = 9;
+  else if (deliverySlot?.includes("09:00 – 10:00 AM")) slotEndHour = 10;
+  else if (deliverySlot?.includes("10:00 – 11:00 AM")) slotEndHour = 11;
+  else if (deliverySlot?.includes("05:00 – 06:00 PM")) slotEndHour = 18;
+  else if (deliverySlot?.includes("06:00 – 07:00 PM")) slotEndHour = 19;
+  else if (deliverySlot?.includes("07:00 – 08:00 PM")) slotEndHour = 20;
+  else if (deliverySlot?.includes("08:00 – 09:00 PM")) slotEndHour = 21;
+
+  if (
+    now.toDateString() === limit.toDateString() &&
+    now.getHours() < slotEndHour
+  ) {
+    limit.setDate(limit.getDate() - 1);
+  }
 
   let count = 0;
   const cursor = new Date(start);
@@ -422,7 +445,13 @@ const getCompletedMealDays = (
   return Math.min(count, totalDays);
 };
 
-const daysCompleted = getCompletedMealDays(subscription.activationAt, subscription.endDate, subscription.pause?.history, subscription.noDeliveryHistory);
+const daysCompleted = getCompletedMealDays(
+  subscription.activationAt,
+  subscription.endDate,
+  subscription.pause?.history,
+  subscription.noDeliveryHistory,
+  order.deliverySlot
+);
 
 const remainingDays = getRemainingDays(subscription.endDate);
 const pct           = Math.round((daysCompleted / totalDays) * 100) || 0;
