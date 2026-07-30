@@ -453,8 +453,20 @@ const daysCompleted = getCompletedMealDays(
   order.deliverySlot
 );
 
-const remainingDays = getRemainingDays(subscription.endDate);
-const pct           = Math.round((daysCompleted / totalDays) * 100) || 0;
+// Remaining Meal Days (NOT Calendar Days)
+const remainingDays = Math.max(totalDays - daysCompleted, 0);
+
+// Current Meal Day
+const mealDay =
+  daysCompleted >= totalDays
+    ? totalDays
+    : daysCompleted + 1;
+
+// Progress Percentage
+const pct =
+  totalDays > 0
+    ? Math.round((daysCompleted / totalDays) * 100)
+    : 0;
 
   // ── Pause logic ───────────────────────────────────────────────────────────
   const canModify          = basePlan === "GOLD" || basePlan === "PLATINUM" || (basePlan === "SILVER" && durationMonths === 3);

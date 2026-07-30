@@ -11,7 +11,7 @@ import story1 from "@/app/images/Story-1.JPG";
 import menu4 from "@/app/images/Menu-4.jpeg";
 import salad from "@/app/images/salad.JPG";
 import sandwich from "@/app/images/sandwich.JPG";
-import soup from "@/app/images/soup.JPG";
+import soup from "@/app/images/soup.JPG";1
 import wrap from "@/app/images/wrap.JPG";
 import pasta from "@/app/images/pasta.JPG";
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';

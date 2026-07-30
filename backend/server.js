@@ -18,6 +18,7 @@ import cron from "node-cron";
 import { renewalReminderJob } from "./cron/renewalReminderJob.js";
 import { welcomeEmailJob } from "./cron/welcomeEmailJob.js";
 import adminQueryRoutes from "./routes/Adminquery.js";  
+import deliveryLogRoutes from "./routes/deliveryLogRoutes.js";
 
 // App Config
 const app = express();
@@ -57,6 +58,7 @@ app.use(
   "/api/admin",
   pendingPaymentRoutes
 );
+app.use("/api/admin", deliveryLogRoutes);
 app.use("/invoices", express.static("invoices"));
 app.use(express.static("public"));
 

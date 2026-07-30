@@ -277,47 +277,49 @@ export default function AdminDashboard4() {
   };
 
   // ── Fetch delivery log for a given date ──
-  const fetchDeliveryLog = async (date) => {
-    setDeliveryLogLoading(true);
-    try {
-      const res = await fetch(`https://api.ryviveroots.com/api/admin/delivery-log?date=${date}`);
-      const data = await res.json();
-      if (data.success && data.log?.length) {
-        setDeliveryLog(data.log);
-      } else {
-        // Build from active orders as a starting template
-        const active = orders.filter(o =>
-          o.subscription?.status !== 'EXPIRED' && o.subscription?.status !== 'UNDER_PROCESS'
-        );
-        setDeliveryLog(active.map(o => ({
-          orderId: o._id,
-          membershipId: o.membershipId,
-          name: `${o.user?.firstName} ${o.user?.lastName}`,
-          plan: o.subscription?.plan || '—',
-          slot: o.deliverySlot || '—',
-          customisation: o.healthInfo?.allergies || '—',
-          status: getPauseStatusText(o).includes('PAUSED') ? 'Paused' : 'Pending',
-          notes: '',
-        })));
-      }
-    } catch {
-      const active = orders.filter(o =>
-        o.subscription?.status !== 'EXPIRED' && o.subscription?.status !== 'UNDER_PROCESS'
-      );
-      setDeliveryLog(active.map(o => ({
-        orderId: o._id,
-        membershipId: o.membershipId,
-        name: `${o.user?.firstName} ${o.user?.lastName}`,
-        plan: o.subscription?.plan || '—',
-        slot: o.deliverySlot || '—',
-        customisation: o.healthInfo?.allergies || '—',
-        status: getPauseStatusText(o).includes('PAUSED') ? 'Paused' : 'Pending',
-        notes: '',
-      })));
-    } finally {
-      setDeliveryLogLoading(false);
+ const fetchDeliveryLog = async (date) => {
+  setDeliveryLogLoading(true);
+  try {
+    const res = await fetch(`https://api.ryviveroots.com/api/admin/delivery-log?date=${date}`);
+    const data = await res.json();
+
+    const buildRow = (o) => ({
+      orderId: o._id,
+      membershipId: o.membershipId,
+      name: `${o.user?.firstName} ${o.user?.lastName}`,
+      plan: o.subscription?.plan || '—',
+      slot: o.deliverySlot || '—',
+      customisation: o.healthInfo?.allergies || '—',
+      status: getPauseStatusText(o).includes('PAUSED') ? 'Paused' : 'Pending',
+      notes: '',
+    });
+
+    if (data.success && data.log?.length) {
+      // Merge saved log with any client missing from it, so nobody's ever hidden
+      const existingIds = new Set(data.log.map(r => r.orderId));
+      const missing = orders.filter(o => !existingIds.has(o._id)).map(buildRow);
+      setDeliveryLog([...data.log, ...missing]);
+    } else {
+      // No saved log yet — build fresh from every client
+      setDeliveryLog(orders.map(buildRow));
     }
-  };
+  } catch {
+    // Network/API failure — still build from every client so the log isn't empty
+    const buildRow = (o) => ({
+      orderId: o._id,
+      membershipId: o.membershipId,
+      name: `${o.user?.firstName} ${o.user?.lastName}`,
+      plan: o.subscription?.plan || '—',
+      slot: o.deliverySlot || '—',
+      customisation: o.healthInfo?.allergies || '—',
+      status: getPauseStatusText(o).includes('PAUSED') ? 'Paused' : 'Pending',
+      notes: '',
+    });
+    setDeliveryLog(orders.map(buildRow));
+  } finally {
+    setDeliveryLogLoading(false);
+  }
+};
 
   // ── Save delivery log ──
   const saveDeliveryLog = async () => {
@@ -459,7 +461,7 @@ export default function AdminDashboard4() {
   };
 
   // ── Impersonate / Login as client ──
-  const handleImpersonate = async () => {
+const handleImpersonate = async () => {
   try {
     const res = await fetch('https://api.ryviveroots.com/api/admin/impersonate', {
       method: 'POST',
@@ -472,9 +474,9 @@ export default function AdminDashboard4() {
       localStorage.setItem('membershipId', impersonateTarget.membershipId);
       localStorage.setItem('membershipId_impersonated', 'true');
 
-      // Absolute URL — must point at the customer site's own domain,
-      // not wherever the admin panel happens to be hosted.
-      const clientUrl = `https://ryviveroots.com/dashboard?token=${data.token}&membershipId=${impersonateTarget.membershipId}`;
+      // force=1 tells the client dashboard: ignore any existing session in this
+      // browser and hydrate auth strictly from the URL token below.
+      const clientUrl = `https://ryviveroots.com/dashboard?token=${data.token}&membershipId=${impersonateTarget.membershipId}&force=1`;
       window.open(clientUrl, '_blank');
 
       setShowImpersonateConfirm(false);
