@@ -8,7 +8,6 @@ import generateInvoice from "../utils/generateInvoice.js";
 import generateReceiptNumber from "../utils/generateReceiptNumber.js";
 import TempPayment from "../models/TempPayment.js";
 
-
 // Fixed-length cycle math — 1 month = 24 days, 3 months = 72 days, always.
 function addPlanDays(date, days) {
   const d = new Date(date);
@@ -34,6 +33,484 @@ function addMealDays(startDate, mealDays) {
   }
   return d;
 }
+
+const cleanPlan = (value) => {
+  return String(value || "")
+    .normalize("NFKC")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "") // remove ALL zero-width characters
+    .replace(/\s+/g, "") // remove whitespace
+    .trim()
+    .toUpperCase();
+};
+
+// =====================================================
+// EMAIL TEMPLATES (unchanged from original — kept as-is)
+// =====================================================
+
+function renewalCustomerEmailHtml({ firstName, receiptNumber, renewalPlan, durationMonths, amount }) {
+  return `
+<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+
+  <h2>Hi ${firstName},</h2>
+
+  <p><b>Welcome back. We're glad you stayed.</b></p>
+
+  <p>
+    Your renewal is a reminder of the commitment we made when we started
+    <b>Ryvive Roots</b> — to support your health with sincerity and consistency.
+  </p>
+
+  <p>
+    Thank you for continuing your wellness journey with us.
+    Here's your renewal summary for your records:
+  </p>
+
+  <table style="border-collapse: collapse; margin-top: 10px;">
+    <tr>
+      <td style="padding: 6px 10px;"><b>Receipt Number</b></td>
+      <td style="padding: 6px 10px;">: ${receiptNumber}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Plan Renewed</b></td>
+    <td style="padding: 6px 10px;">: ${renewalPlan}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Renewal Duration</b></td>
+      <td style="padding: 6px 10px;">: ${durationMonths} Month${durationMonths > 1 ? "s" : ""}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Amount Paid</b></td>
+      <td style="padding: 6px 10px;">: ₹${amount}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 10px;"><b>Payment Date</b></td>
+      <td style="padding: 6px 10px;">: ${new Date().toLocaleDateString("en-IN")}</td>
+    </tr>
+  </table>
+
+  <br/>
+
+  <p>
+    Your subscription will be active within <b>48 hours</b>,
+    and your first parcel will be on its way to you within the same timeframe.
+    Keep an eye out for it!
+  </p>
+
+  <p>
+    If you ever have questions or need support, our team is always happy to help —
+    reach us at <b>customersupport@ryviveroots.com</b>.
+  </p>
+
+  <br/>
+
+  <p>
+    Stay Healthy, Stay Vibrant,<br/>
+    <b>The Ryvive Roots Team</b>
+  </p>
+
+${footerHtml()}
+</div>
+`;
+}
+
+function footerHtml() {
+  return `
+<style>
+@media only screen and (max-width:600px) {
+  .footer-table td {
+    display:block !important;
+    width:100% !important;
+    text-align:center !important;
+    margin-bottom:15px;
+  }
+
+  .footer-icons img{
+    margin:0 6px !important;
+  }
+}
+</style>
+
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; border-spacing:0;">
+
+<tr>
+<td align="center">
+
+<table style="text-align:center; border-spacing:0;">
+
+<tr>
+<td style="padding:6px 0;">
+<img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots Logo" style="border:none;">
+</td>
+</tr>
+
+<tr>
+<td style="padding:6px 0; font-size:13px; color:#333; line-height:1.5; text-align:center;">
+You're receiving this email because you recently activated a Ryvive Roots membership.<br>
+If you have any concerns, please contact us at 
+<a href="mailto:customersupport@ryviveroots.com" style="text-decoration:none;">
+customersupport@ryviveroots.com
+</a>.
+</td>
+</tr>
+
+<tr>
+<td style="padding:8px 0; text-align:center;">
+<a href="https://www.instagram.com/ryvive_roots/" style="margin-right:12px; text-decoration:none;">
+<img src="https://cdn-icons-png.flaticon.com/512/1400/1400829.png" width="22" alt="Instagram" style="vertical-align:middle; border:none;">
+</a>
+
+<a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="text-decoration:none;">
+<img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" width="22" alt="LinkedIn" style="vertical-align:middle; border:none;">
+</a>
+</td>
+</tr>
+
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
++91 9076000468 / 97656 00701
+</td>
+</tr>
+
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
+<a href="https://www.ryviveroots.com" style="text-decoration:none;">
+www.ryviveroots.com
+</a>
+</td>
+</tr>
+
+<tr>
+<td style="padding:6px 0; text-align:center;">
+<a href="https://ryviveroots.com/privacy-policy" style="text-decoration:none;">
+Privacy Policy
+</a>
+</td>
+</tr>
+
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
+Dombivli East, Maharashtra 421201, India
+</td>
+</tr>
+
+<tr>
+<td style="padding-top:10px; font-size:13px; color:#333; text-align:center;">
+© 2026 RYVIVE ROOTS All Rights Reserved.
+</td>
+</tr>
+
+</table>
+
+</td>
+</tr>
+
+</table>
+`;
+}
+
+function newOrderCustomerEmailHtml({ firstName, receiptNumber, formattedPlan, amount, paymentDate }) {
+  return `
+<div style="font-family: Arial, sans-serif; line-height: 1.6;">
+
+<h2 style="font-family: Georgia, 'Times New Roman', serif; font-size:16px; margin-bottom:2px;">
+  Dear ${firstName},
+</h2>
+
+  <p font-family: Arial, 'Times New Roman', serif; font-weight: bold; font-size:22px; margin-bottom:10px;>
+    We just wanted to say thank you so much! We're genuinely thrilled to have you as part of the 
+    <b>Ryvive Roots family</b>, and we can't wait to walk alongside you on this wonderful wellness journey.
+  </p>
+
+  <p>
+    Your payment has gone through successfully and everything is all set on our end. 
+    Here's a quick summary for your records:
+  </p>
+
+<table style="font-family: Arial, 'Times New Roman', serif; font-size:15px; margin-bottom:10px;">
+  <tr>
+    <td><b>Receipt Number</b></td>
+    <td>: <b>${receiptNumber}</b></td>
+  </tr>
+  <tr>
+    <td><b>Your Plan</b></td>
+    <td>: <b>${formattedPlan}</b></td>
+  </tr>
+  <tr>
+    <td><b>Amount Paid</b></td>
+    <td>: <b>₹${amount}</b></td>
+  </tr>
+  <tr>
+    <td><b>Payment Date</b></td>
+    <td>: <b>${paymentDate}</b></td>
+  </tr>
+</table>
+
+  <br/>
+
+  <p>
+    Keep an eye on your inbox. You'll be hearing from us shortly with your 
+    <b>membership number</b> and all the details to get you started. 
+    The good stuff is just around the corner 😊
+  </p>
+
+  <p>
+  And hey, if you ever have a question, a concern, or just want to say hello, we're always here for you. Reach out anytime at customersupport@ryviveroots.com and we'll get back to you with a smile.
+  </p>
+
+  <p>
+    Here's to a healthier, happier you. We're so glad you're here!
+  </p>
+
+  <p>
+    Warmly,<br/>
+    <b>Team Ryvive Roots</b>
+  </p>
+
+${footerHtml()}
+</div>
+`;
+}
+
+function companyEmailHtmlSimple({ heading, firstName, lastName, phone, email, formattedPlan, amount, receiptNumber, membershipId, extraLine = "" }) {
+  return `
+<h2>${heading}</h2>
+
+<ul>
+  <li><b>Name:</b> ${firstName} ${lastName}</li>
+  <li><b>Phone:</b> ${phone}</li>
+  <li><b>Email:</b> ${email}</li>
+  <li><b>Plan:</b> ${formattedPlan}</li>
+  <li><b>Amount:</b> ₹${amount}</li>
+  ${extraLine}
+  <li><b>Membership ID:</b> ${membershipId}</li>
+  <li><b>Receipt No:</b> ${receiptNumber}</li>
+</ul>
+`;
+}
+
+function newOrderCompanyEmailHtml({ order, formattedPlan }) {
+  return `
+<h2>New Customer Subscription Received</h2>
+
+<ul>
+  <li><b>Name:</b> <b>${order.user.firstName} ${order.user.lastName}</b></li>
+  <li><b>Phone:</b> <b>${order.user.phone}</b></li>
+  <li><b>Email:</b> <b>${order.user.email}</b></li>
+  <li><b>Plan:</b> <b>${formattedPlan}</b></li>
+  <li><b>Amount:</b> <b>₹${order.subscription.amount}</b></li>
+  <li><b>Slot:</b> <b>${order.deliverySlot}</b></li>
+  <li><b>Receipt No:</b> <b>${order.receiptNumber}</b></li>
+  <li><b>Membership ID:</b> <b>${order.membershipId}</b></li>
+</ul>
+
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
+  <tr>
+
+    <!-- LEFT SIDE -->
+    <td style="width:33.33%; vertical-align:middle;">
+      <h2 style="margin:0; font-weight:bold; font-size:22px; color:#243E36;">
+        Ryvive Roots
+      </h2>
+
+      <p style="margin:3px 0 15px 0; color:#555;">
+        Live | Relive | Believe
+      </p>
+
+      <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
+        <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
+      </a>
+
+      <a href="https://www.instagram.com/ryvive_roots/">
+        <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram"/>
+      </a>
+    </td>
+
+    <!-- CENTER LOGO -->
+    <td style="width:33.33%; text-align:center; vertical-align:middle;">
+      <img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots"/>
+    </td>
+
+    <!-- RIGHT SIDE -->
+    <td style="width:33.33%; vertical-align:middle; font-size:14px; color:#333;">
+      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
+      <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
+      <p style="margin:5px 0;">www.ryviveroots.com</p>
+      <p style="margin:5px 0;">
+        Dombivli East, Maharashtra 421201, India
+      </p>
+    </td>
+
+  </tr>
+</table>
+`;
+}
+
+// =====================================================
+// BACKGROUND JOBS — these run AFTER the response has
+// already been sent to the browser. Nothing in here can
+// cause a 504, because the request/response cycle is
+// already closed by the time these run.
+//
+// IMPORTANT: because the redirect has already fired, any
+// error here can NOT be turned into a "payment-failed"
+// redirect. We only log it. The order/payment record
+// itself is the source of truth — these are side effects
+// (PDF + email) layered on top of an already-successful
+// payment.
+// =====================================================
+
+async function runRenewalBackgroundJob({ existingOrder, tempPayment }) {
+  try {
+    const receiptNumber = await generateReceiptNumber(Order, tempPayment.amount);
+
+    // Keep original plan exactly as stored
+    existingOrder.subscription.plan = String(existingOrder.subscription.plan).trim().toUpperCase();
+
+    const invoicePath = await generateInvoice({
+      ...existingOrder.toObject(),
+      receiptNumber,
+      subscription: {
+        ...existingOrder.subscription,
+        amount: tempPayment.amount,
+      },
+    });
+
+    existingOrder.invoiceUrl = invoicePath;
+    existingOrder.receiptNumber = receiptNumber;
+    await existingOrder.save();
+
+    const renewalPlan = "RYVIVE " + String(existingOrder.subscription.plan).split("_")[0];
+
+    await sendEmail({
+      to: existingOrder.user.email,
+      subject: "You're Back, And We're Glad 🌿",
+      html: renewalCustomerEmailHtml({
+        firstName: existingOrder.user.firstName,
+        receiptNumber,
+        renewalPlan,
+        durationMonths: tempPayment.durationMonths,
+        amount: tempPayment.amount,
+      }),
+      attachments: [{ filename: `invoice-${receiptNumber}.pdf`, path: invoicePath }],
+    });
+
+    const previewEnd = addPlanDays(
+      existingOrder.subscription.endDate,
+      monthsToPlanDays(tempPayment.durationMonths)
+    );
+
+    await sendEmail({
+      to: process.env.COMPANY_EMAIL,
+      subject: `🔁 Subscription Renewed - ${existingOrder.membershipId}`,
+      html: `
+<h2>Subscription Renewal Received</h2>
+
+<ul>
+  <li><b>Name:</b> ${existingOrder.user.firstName} ${existingOrder.user.lastName}</li>
+  <li><b>Phone:</b> ${existingOrder.user.phone}</li>
+  <li><b>Email:</b> ${existingOrder.user.email}</li>
+ <li><b>Plan:</b> ${renewalPlan}</li>
+  <li><b>Amount:</b> ₹${tempPayment.amount}</li>
+  <li><b>New Expiry:</b> ${previewEnd.toLocaleDateString("en-IN")}</li>
+  <li><b>Membership ID:</b> ${existingOrder.membershipId}</li>
+  <li><b>Receipt No:</b> ${receiptNumber}</li>
+</ul>
+`,
+      attachments: [{ filename: `invoice-${receiptNumber}.pdf`, path: invoicePath }],
+    });
+  } catch (err) {
+    console.error(
+      `[background:renewal] invoice/email failed for membershipId=${existingOrder?.membershipId}:`,
+      err
+    );
+  }
+}
+
+async function runExistingCustomerBackgroundJob({ existingOrder, existingUser, tempPayment, receiptNumber }) {
+  try {
+    const invoicePath = await generateInvoice(existingOrder);
+    existingOrder.invoiceUrl = invoicePath;
+    await existingOrder.save();
+
+    const formattedPlan = `RYVIVE ${existingOrder.subscription.plan.split("_")[0]}`;
+
+    await sendEmail({
+      to: existingUser.email,
+      subject: "Payment successful for RYVIVE ROOTS LLP",
+      html: newOrderCustomerEmailHtml({
+        firstName: existingUser.firstName,
+        receiptNumber,
+        formattedPlan,
+        amount: tempPayment.amount,
+        paymentDate: new Date().toLocaleDateString("en-IN"),
+      }),
+      attachments: [{ filename: `invoice-${receiptNumber}.pdf`, path: invoicePath }],
+    });
+
+    await sendEmail({
+      to: process.env.COMPANY_EMAIL,
+      subject: `🧾 Existing Customer Purchased New Plan - ${existingUser.membershipId}`,
+      html: companyEmailHtmlSimple({
+        heading: "Existing Customer Purchased New Subscription",
+        firstName: existingUser.firstName,
+        lastName: existingUser.lastName,
+        phone: existingUser.phone,
+        email: existingUser.email,
+        formattedPlan,
+        amount: tempPayment.amount,
+        receiptNumber,
+        membershipId: existingUser.membershipId,
+      }),
+      attachments: [{ filename: `invoice-${receiptNumber}.pdf`, path: invoicePath }],
+    });
+  } catch (err) {
+    console.error(
+      `[background:existingCustomerPurchase] invoice/email failed for membershipId=${existingUser?.membershipId}:`,
+      err
+    );
+  }
+}
+
+async function runNewOrderBackgroundJob({ order, formattedPlan }) {
+  try {
+    const invoicePath = await generateInvoice(order);
+    order.invoiceUrl = invoicePath;
+
+    await sendEmail({
+      to: order.user.email,
+      subject: "Payment successful for RYVIVE ROOTS LLP",
+      html: newOrderCustomerEmailHtml({
+        firstName: order.user.firstName,
+        receiptNumber: order.receiptNumber,
+        formattedPlan,
+        amount: order.subscription.amount,
+        paymentDate: order.createdAt.toLocaleDateString("en-IN"),
+      }),
+      attachments: [{ filename: `invoice-${order.receiptNumber}.pdf`, path: invoicePath }],
+    });
+
+    order.subscription.thankYouEmailSentAt = new Date();
+    order.subscription.welcomeEmailSent = false;
+    await order.save();
+
+    await sendEmail({
+      to: process.env.COMPANY_EMAIL,
+      subject: `🧾 New Subscription Order - ${order.membershipId}`,
+      html: newOrderCompanyEmailHtml({ order, formattedPlan }),
+      attachments: [{ filename: `invoice-${order.receiptNumber}.pdf`, path: invoicePath }],
+    });
+  } catch (err) {
+    console.error(
+      `[background:newOrder] invoice/email failed for membershipId=${order?.membershipId}:`,
+      err
+    );
+  }
+}
+
+// =====================================================
+// MAIN HANDLER
+// =====================================================
 
 export const easebuzzSuccess = async (req, res) => {
   try {
@@ -95,52 +572,20 @@ export const easebuzzSuccess = async (req, res) => {
       process.env.EASEBUZZ_MERCHANT_KEY,
     ].join("|");
 
-    const expectedHash = crypto
-      .createHash("sha512")
-      .update(hashString)
-      .digest("hex");
+    const expectedHash = crypto.createHash("sha512").update(hashString).digest("hex");
 
     if (expectedHash !== receivedHash) {
-      console.error("Easebuzz SUCCESS hash mismatch", {
-        expectedHash,
-        receivedHash,
-        txnid,
-      });
+      console.error("Easebuzz SUCCESS hash mismatch", { expectedHash, receivedHash, txnid });
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
     }
 
     const { formData, plan } = tempPayment;
 
-    console.log("==== DEBUG PLAN ====");
-    console.log("RAW PLAN:", JSON.stringify(plan));
-    console.log("RAW LENGTH:", plan.length);
-    console.log(
-      "CHAR CODES:",
-      [...plan].map(c => c.charCodeAt(0))
-    );
-    console.log(
-      "ENUM:",
-      Order.schema.path("subscription.plan").enumValues
-    );
-    console.log("====================");
-
-    const cleanPlan = (value) => {
-      return String(value || "")
-        .normalize("NFKC")
-        .replace(/[\u200B-\u200D\uFEFF]/g, "")   // remove ALL zero-width characters
-        .replace(/\s+/g, "")                   // remove whitespace
-        .trim()
-        .toUpperCase();
-    };
-
     const normalizedPlan = cleanPlan(plan);
 
     // Validate against enum from Order schema (stronger than PLANS)
     const allowedPlans = Order.schema.path("subscription.plan").enumValues;
-
-    const exactPlan = allowedPlans.find(
-      p => cleanPlan(p) === normalizedPlan
-    );
+    const exactPlan = allowedPlans.find((p) => cleanPlan(p) === normalizedPlan);
 
     if (!exactPlan) {
       console.error("❌ Plan mismatch:", normalizedPlan);
@@ -158,17 +603,13 @@ export const easebuzzSuccess = async (req, res) => {
     // 🔁 RENEWAL LOGIC (same plan, extended duration)
     // =====================================================
     if (tempPayment.isRenewal) {
-
-      const existingOrder = await Order.findOne({
-        membershipId: tempPayment.membershipId,
-      });
+      const existingOrder = await Order.findOne({ membershipId: tempPayment.membershipId });
 
       if (!existingOrder) {
         return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
       }
 
       // DO NOT extend endDate immediately
-
       const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
       existingOrder.subscription.renewal = {
@@ -178,261 +619,37 @@ export const easebuzzSuccess = async (req, res) => {
 
       // ⭐ IMPORTANT — dashboard depends on this
       existingOrder.subscription.durationMonths = tempPayment.durationMonths;
-
       existingOrder.subscription.activationAt = activationAt;
       existingOrder.subscription.status = "UNDER_PROCESS";
 
       await existingOrder.save();
 
-      // Update temp payment
       tempPayment.status = "SUCCESS";
       tempPayment.membershipId = existingOrder.membershipId;
       await tempPayment.save();
 
-      // ✅ Generate new receipt for renewal
-      const receiptNumber = await generateReceiptNumber(
-        Order,
-        tempPayment.amount
-      );
+      // 🚀 Respond immediately — invoice + emails happen in the background
+      res.redirect(`${process.env.FRONTEND_URL}/dashboard?renewal=success`);
 
-      // Keep original plan exactly as stored
-      existingOrder.subscription.plan = String(
-        existingOrder.subscription.plan
-      ).trim().toUpperCase();
-
-      // ✅ Generate renewal invoice
-      const invoicePath = await generateInvoice({
-        ...existingOrder.toObject(),
-        receiptNumber,
-        subscription: {
-          ...existingOrder.subscription,
-          amount: tempPayment.amount,
-        },
+      setImmediate(() => {
+        runRenewalBackgroundJob({ existingOrder, tempPayment });
       });
 
-      existingOrder.invoiceUrl = invoicePath;
-      await existingOrder.save();
-
-      const renewalPlan =
-        "RYVIVE " + String(existingOrder.subscription.plan).split("_")[0];
-
-      // ✅ Send Renewal Email WITH Invoice
-      await sendEmail({
-        to: existingOrder.user.email,
-        subject: "You're Back, And We're Glad 🌿",
-        html: `
-<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-
-  <h2>Hi ${existingOrder.user.firstName},</h2>
-
-  <p><b>Welcome back. We're glad you stayed.</b></p>
-
-  <p>
-    Your renewal is a reminder of the commitment we made when we started
-    <b>Ryvive Roots</b> — to support your health with sincerity and consistency.
-  </p>
-
-  <p>
-    Thank you for continuing your wellness journey with us.
-    Here's your renewal summary for your records:
-  </p>
-
-  <table style="border-collapse: collapse; margin-top: 10px;">
-    <tr>
-      <td style="padding: 6px 10px;"><b>Receipt Number</b></td>
-      <td style="padding: 6px 10px;">: ${receiptNumber}</td>
-    </tr>
-    <tr>
-      <td style="padding: 6px 10px;"><b>Plan Renewed</b></td>
-    <td style="padding: 6px 10px;">: ${renewalPlan}</td>
-    </tr>
-    <tr>
-      <td style="padding: 6px 10px;"><b>Renewal Duration</b></td>
-      <td style="padding: 6px 10px;">: ${tempPayment.durationMonths} Month${tempPayment.durationMonths > 1 ? "s" : ""}</td>
-    </tr>
-    <tr>
-      <td style="padding: 6px 10px;"><b>Amount Paid</b></td>
-      <td style="padding: 6px 10px;">: ₹${tempPayment.amount}</td>
-    </tr>
-    <tr>
-      <td style="padding: 6px 10px;"><b>Payment Date</b></td>
-      <td style="padding: 6px 10px;">: ${new Date().toLocaleDateString("en-IN")}</td>
-    </tr>
-  </table>
-
-  <br/>
-
-  <p>
-    Your subscription will be active within <b>48 hours</b>,
-    and your first parcel will be on its way to you within the same timeframe.
-    Keep an eye out for it!
-  </p>
-
-  <p>
-    If you ever have questions or need support, our team is always happy to help —
-    reach us at <b>customersupport@ryviveroots.com</b>.
-  </p>
-
-  <br/>
-
-  <p>
-    Stay Healthy, Stay Vibrant,<br/>
-    <b>The Ryvive Roots Team</b>
-  </p>
-
-
-<style>
-@media only screen and (max-width:600px) {
-  .footer-table td {
-    display:block !important;
-    width:100% !important;
-    text-align:center !important;
-    margin-bottom:15px;
-  }
-
-  .footer-icons img{
-    margin:0 6px !important;
-  }
-}
-</style>
-
-<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; border-spacing:0;">
-
-<tr>
-<td align="center">
-
-<table style="text-align:center; border-spacing:0;">
-
-<tr>
-<td style="padding:6px 0;">
-<img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots Logo" style="border:none;">
-</td>
-</tr>
-
-<tr>
-<td style="padding:6px 0; font-size:13px; color:#333; line-height:1.5; text-align:center;">
-You're receiving this email because you recently activated a Ryvive Roots membership.<br>
-If you have any concerns, please contact us at 
-<a href="mailto:customersupport@ryviveroots.com" style="text-decoration:none;">
-customersupport@ryviveroots.com
-</a>.
-</td>
-</tr>
-
-<tr>
-<td style="padding:8px 0; text-align:center;">
-<a href="https://www.instagram.com/ryvive_roots/" style="margin-right:12px; text-decoration:none;">
-<img src="https://cdn-icons-png.flaticon.com/512/1400/1400829.png" width="22" alt="Instagram" style="vertical-align:middle; border:none;">
-</a>
-
-<a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="text-decoration:none;">
-<img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" width="22" alt="LinkedIn" style="vertical-align:middle; border:none;">
-</a>
-</td>
-</tr>
-
-<tr>
-<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
-+91 9076000468 / 97656 00701
-</td>
-</tr>
-
-<tr>
-<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
-<a href="https://www.ryviveroots.com" style="text-decoration:none;">
-www.ryviveroots.com
-</a>
-</td>
-</tr>
-
-<tr>
-<td style="padding:6px 0; text-align:center;">
-<a href="https://ryviveroots.com/privacy-policy" style="text-decoration:none;">
-Privacy Policy
-</a>
-</td>
-</tr>
-
-<tr>
-<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
-Dombivli East, Maharashtra 421201, India
-</td>
-</tr>
-
-<tr>
-<td style="padding-top:10px; font-size:13px; color:#333; text-align:center;">
-© 2026 RYVIVE ROOTS All Rights Reserved.
-</td>
-</tr>
-
-</table>
-
-
-</div>
-`,
-        attachments: [
-          {
-            filename: `invoice-${receiptNumber}.pdf`,
-            path: invoicePath,
-          },
-        ],
-      });
-
-      const previewEnd = addPlanDays(
-        existingOrder.subscription.endDate,
-        monthsToPlanDays(tempPayment.durationMonths)
-      );
-
-      // ✅ Renewal Email to Company
-      await sendEmail({
-        to: process.env.COMPANY_EMAIL,
-        subject: `🔁 Subscription Renewed - ${existingOrder.membershipId}`,
-        html: `
-<h2>Subscription Renewal Received</h2>
-
-<ul>
-  <li><b>Name:</b> ${existingOrder.user.firstName} ${existingOrder.user.lastName}</li>
-  <li><b>Phone:</b> ${existingOrder.user.phone}</li>
-  <li><b>Email:</b> ${existingOrder.user.email}</li>
- <li><b>Plan:</b> ${renewalPlan}</li>
-  <li><b>Amount:</b> ₹${tempPayment.amount}</li>
-  <li><b>New Expiry:</b> ${previewEnd.toLocaleDateString("en-IN")}</li>
-  <li><b>Membership ID:</b> ${existingOrder.membershipId}</li>
-  <li><b>Receipt No:</b> ${receiptNumber}</li>
-</ul>
-
-`,
-        attachments: [
-          {
-            filename: `invoice-${receiptNumber}.pdf`,
-            path: invoicePath,
-          },
-        ],
-      });
-
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/dashboard?renewal=success`
-      );
+      return;
     }
-
 
     // =====================================================
     // 🔁 EXISTING CUSTOMER BUYING A NEW / DIFFERENT PLAN
-    // (FIXED — reuses the SAME Order document instead of
-    // creating a second one with the same membershipId)
+    // (reuses the SAME Order document instead of creating a
+    // second one with the same membershipId)
     // =====================================================
     if (tempPayment.isExistingCustomerPurchase) {
-
-      const existingUser = await User.findOne({
-        membershipId: tempPayment.membershipId,
-      });
+      const existingUser = await User.findOne({ membershipId: tempPayment.membershipId });
 
       if (!existingUser) {
         return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
       }
 
-      // ♻️ Reuse the customer's existing Order document — do NOT create
-      // a second document sharing the same membershipId.
       const existingOrder = await Order.findOne({
         membershipId: existingUser.membershipId,
       }).sort({ updatedAt: -1 });
@@ -444,20 +661,14 @@ Dombivli East, Maharashtra 421201, India
       const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
       const startDate = new Date(activationAt);
 
-      // Extend from whichever is later: their current endDate (if they still
-      // have active days left) or the new activation date.
       const oldEndDate = existingOrder.subscription.endDate;
       const baseEndDate = oldEndDate ? new Date(oldEndDate) : new Date(activationAt);
       const extendFrom = baseEndDate > activationAt ? baseEndDate : activationAt;
       const endDate = addMealDays(extendFrom, selectedPlan.durationDays);
 
-      const receiptNumber = await generateReceiptNumber(
-        Order,
-        tempPayment.amount
-      );
+      const receiptNumber = await generateReceiptNumber(Order, tempPayment.amount);
 
-      // 📝 Snapshot the OLD subscription into renewalHistory before overwriting —
-      // same shape used by the admin /renew route and manual-order.
+      // 📝 Snapshot the OLD subscription into renewalHistory before overwriting
       existingOrder.subscription.renewalHistory = existingOrder.subscription.renewalHistory || [];
       existingOrder.subscription.renewalHistory.push({
         date: new Date(),
@@ -493,222 +704,24 @@ Dombivli East, Maharashtra 421201, India
 
       await existingOrder.save();
 
-      // ✅ Generate Invoice
-      const invoicePath = await generateInvoice(existingOrder);
-      existingOrder.invoiceUrl = invoicePath;
-      await existingOrder.save();
-
-      const formattedPlan = `RYVIVE ${exactPlan.split("_")[0]}`;
-
-      // ✅ CUSTOMER EMAIL
-    await sendEmail({
-  to: existingUser.email,
-  subject: "Payment successful for RYVIVE ROOTS LLP",
-  html: `
-<div style="font-family: Arial, sans-serif; line-height: 1.6;">
-
-<h2 style="font-family: Georgia, 'Times New Roman', serif; font-size:16px; margin-bottom:2px;">
-  Dear ${existingUser.firstName},
-</h2>
-
-  <p font-family: Arial, 'Times New Roman', serif; font-weight: bold; font-size:22px; margin-bottom:10px;>
-    We just wanted to say thank you so much! We're genuinely thrilled to have you as part of the 
-    <b>Ryvive Roots family</b>, and we can't wait to walk alongside you on this wonderful wellness journey.
-  </p>
-
-  <p>
-    Your payment has gone through successfully and everything is all set on our end. 
-    Here's a quick summary for your records:
-  </p>
-
-<table style="font-family: Arial, 'Times New Roman', serif; font-size:15px; margin-bottom:10px;">
-  <tr>
-    <td><b>Receipt Number</b></td>
-    <td>: <b>${receiptNumber}</b></td>
-  </tr>
-  <tr>
-    <td><b>Your Plan</b></td>
-    <td>: <b>${formattedPlan}</b></td>
-  </tr>
-  <tr>
-    <td><b>Amount Paid</b></td>
-    <td>: <b>₹${tempPayment.amount}</b></td>
-  </tr>
-  <tr>
-    <td><b>Payment Date</b></td>
-    <td>: <b>${new Date().toLocaleDateString("en-IN")}</b></td>
-  </tr>
-</table>
-
-  <br/>
-
-  <p>
-    Keep an eye on your inbox. You'll be hearing from us shortly with your 
-    <b>membership number</b> and all the details to get you started. 
-    The good stuff is just around the corner 😊
-  </p>
-
-  <p>
-  And hey, if you ever have a question, a concern, or just want to say hello, we're always here for you. Reach out anytime at customersupport@ryviveroots.com and we'll get back to you with a smile.
-  </p>
-
-  <p>
-    Here's to a healthier, happier you. We're so glad you're here!
-  </p>
-
-  <p>
-    Warmly,<br/>
-    <b>Team Ryvive Roots</b>
-  </p>
-
-<style>
-@media only screen and (max-width:600px) {
-  .footer-table td {
-    display:block !important;
-    width:100% !important;
-    text-align:center !important;
-    margin-bottom:15px;
-  }
-
-  .footer-icons img{
-    margin:0 6px !important;
-  }
-}
-</style>
-
-<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; border-spacing:0;">
-
-<tr>
-<td align="center">
-
-<table style="text-align:center; border-spacing:0;">
-
-<tr>
-<td style="padding:6px 0;">
-<img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots Logo" style="border:none;">
-</td>
-</tr>
-
-<tr>
-<td style="padding:6px 0; font-size:13px; color:#333; line-height:1.5; text-align:center;">
-You're receiving this email because you recently activated a Ryvive Roots membership.<br>
-If you have any concerns, please contact us at 
-<a href="mailto:customersupport@ryviveroots.com" style="text-decoration:none;">
-customersupport@ryviveroots.com
-</a>.
-</td>
-</tr>
-
-<tr>
-<td style="padding:8px 0; text-align:center;">
-<a href="https://www.instagram.com/ryvive_roots/" style="margin-right:12px; text-decoration:none;">
-<img src="https://cdn-icons-png.flaticon.com/512/1400/1400829.png" width="22" alt="Instagram" style="vertical-align:middle; border:none;">
-</a>
-
-<a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="text-decoration:none;">
-<img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" width="22" alt="LinkedIn" style="vertical-align:middle; border:none;">
-</a>
-</td>
-</tr>
-
-<tr>
-<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
-+91 9076000468 / 97656 00701
-</td>
-</tr>
-
-<tr>
-<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
-<a href="https://www.ryviveroots.com" style="text-decoration:none;">
-www.ryviveroots.com
-</a>
-</td>
-</tr>
-
-<tr>
-<td style="padding:6px 0; text-align:center;">
-<a href="https://ryviveroots.com/privacy-policy" style="text-decoration:none;">
-Privacy Policy
-</a>
-</td>
-</tr>
-
-<tr>
-<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
-Dombivli East, Maharashtra 421201, India
-</td>
-</tr>
-
-<tr>
-<td style="padding-top:10px; font-size:13px; color:#333; text-align:center;">
-© 2026 RYVIVE ROOTS All Rights Reserved.
-</td>
-</tr>
-
-</table>
-
-</td>
-</tr>
-
-</table>
-
-</div>
-`,
-  attachments: [
-    {
-      filename: `invoice-${receiptNumber}.pdf`,
-      path: invoicePath,
-    },
-  ],
-});
-
-
-      // ✅ COMPANY EMAIL
-      await sendEmail({
-        to: process.env.COMPANY_EMAIL,
-
-        subject: `🧾 Existing Customer Purchased New Plan - ${existingUser.membershipId}`,
-
-        html: `
-    <h2>Existing Customer Purchased New Subscription</h2>
-
-    <ul>
-      <li><b>Name:</b> ${existingUser.firstName} ${existingUser.lastName}</li>
-
-      <li><b>Email:</b> ${existingUser.email}</li>
-
-      <li><b>Phone:</b> ${existingUser.phone}</li>
-
-      <li><b>Plan:</b> ${formattedPlan}</li>
-
-      <li><b>Amount:</b> ₹${tempPayment.amount}</li>
-
-      <li><b>Receipt No:</b> ${receiptNumber}</li>
-
-      <li><b>Membership ID:</b> ${existingUser.membershipId}</li>
-    </ul>
-  `,
-
-        attachments: [
-          {
-            filename: `invoice-${receiptNumber}.pdf`,
-            path: invoicePath,
-          },
-        ],
-      });
-
       tempPayment.status = "SUCCESS";
       await tempPayment.save();
 
-      return res.redirect(
+      // 🚀 Respond immediately — invoice + emails happen in the background
+      res.redirect(
         `${process.env.FRONTEND_URL}/payment-success?membershipId=${existingUser.membershipId}`
       );
+
+      setImmediate(() => {
+        runExistingCustomerBackgroundJob({ existingOrder, existingUser, tempPayment, receiptNumber });
+      });
+
+      return;
     }
 
-
-    // 3️⃣ USER + MEMBERSHIP (SAFE VERSION)
-
-    // 🔹 Find existing user first
+    // =====================================================
+    // 3️⃣ NEW USER + MEMBERSHIP
+    // =====================================================
     let user = await User.findOne({
       $or: [
         ...(formData.phone ? [{ phone: formData.phone }] : []),
@@ -722,12 +735,9 @@ Dombivli East, Maharashtra 421201, India
       // ✅ User already exists → reuse membershipId
       membershipId = user.membershipId;
     } else {
-      // ❌ Create new user
       membershipId = await generateMembershipId(User, tempPayment.amount);
 
-      // ensure unique membershipId
       let exists = await User.findOne({ membershipId });
-
       while (exists) {
         membershipId = await generateMembershipId(User, tempPayment.amount);
         exists = await User.findOne({ membershipId });
@@ -742,33 +752,24 @@ Dombivli East, Maharashtra 421201, India
       });
     }
 
-    // 4️⃣ Prevent Duplicate Order (VERY IMPORTANT)
-    const existingOrder = await Order.findOne({
-      "paymentDetails.txnid": txnid,
-    });
-
+    // Prevent duplicate order
+    const existingOrder = await Order.findOne({ "paymentDetails.txnid": txnid });
     if (existingOrder) {
       return res.redirect(
         `${process.env.FRONTEND_URL}/subscription-success?membershipId=${existingOrder.membershipId}`
       );
     }
 
-    // 5️⃣ Subscription dates
     const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
     const startDate = new Date(activationAt);
     const endDate = addMealDays(startDate, selectedPlan.durationDays);
 
-    // 6️⃣ Receipt
-
-
-    // 7️⃣ CREATE ORDER
     let orderSaved = false;
     let order;
-    let receiptNumber;
 
     while (!orderSaved) {
       try {
-        receiptNumber = await generateReceiptNumber(Order, tempPayment.amount);
+        const receiptNumber = await generateReceiptNumber(Order, tempPayment.amount);
 
         order = new Order({
           membershipId,
@@ -809,9 +810,7 @@ Dombivli East, Maharashtra 421201, India
         });
 
         await order.save();
-
         orderSaved = true;
-
       } catch (err) {
         if (err.code === 11000) {
           console.log("Duplicate receipt detected — retrying...");
@@ -821,12 +820,7 @@ Dombivli East, Maharashtra 421201, India
       }
     }
 
-    // 🔹 Generate Invoice
-    const invoicePath = await generateInvoice(order);
-    order.invoiceUrl = invoicePath;
-    await order.save();
-
-    // 🔹 Update User (optional sync)
+    // Sync user record
     await User.findByIdAndUpdate(user._id, {
       firstName: order.user.firstName,
       lastName: order.user.lastName,
@@ -837,253 +831,20 @@ Dombivli East, Maharashtra 421201, India
     const rawPlan = order.subscription?.plan || "";
     const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 
-
-    // 7️⃣ SEND CUSTOMER EMAIL (AS-IT-IS)
-    await sendEmail({
-      to: order.user.email,
-      subject: "Payment successful for RYVIVE ROOTS LLP",
-      html:  `
-<div style="font-family: Arial, sans-serif; line-height: 1.6;">
-
-<h2 style="font-family: Georgia, 'Times New Roman', serif;  font-size:16px; margin-bottom:2px;">
-  Dear ${order.user.firstName},
-</h2>
-
-  <p font-family: Arial, 'Times New Roman', serif; font-weight: bold; font-size:22px; margin-bottom:10px;>
-    We just wanted to say thank you so much! We're genuinely thrilled to have you as part of the 
-    <b>Ryvive Roots family</b>, and we can't wait to walk alongside you on this wonderful wellness journey.
-  </p>
-
-  <p>
-    Your payment has gone through successfully and everything is all set on our end. 
-    Here's a quick summary for your records:
-  </p>
-
-<table style="font-family: Arial, 'Times New Roman', serif;  font-size:15px; margin-bottom:10px;">
-  <tr>
-    <td><b>Receipt Number</b></td>
-    <td>: <b>${order.receiptNumber}</b></td>
-  </tr>
-  <tr>
-    <td><b>Your Plan</b></td>
-    <td>: <b>${formattedPlan}</b></td>
-  </tr>
-  <tr>
-    <td><b>Amount Paid</b></td>
-    <td>: <b>₹${order.subscription.amount}</b></td>
-  </tr>
-  <tr>
-    <td><b>Payment Date</b></td>
-    <td>: <b>${order.createdAt.toLocaleDateString("en-IN")}</b></td>
-  </tr>
-</table>
-
-  <br/>
-
-  <p>
-    Keep an eye on your inbox. You'll be hearing from us shortly with your 
-    <b>membership number</b> and all the details to get you started. 
-    The good stuff is just around the corner 😊
-  </p>
-
-  <p>
-  And hey, if you ever have a question, a concern, or just want to say hello, we're always here for you. Reach out anytime at customersupport@ryviveroots.com and we'll get back to you with a smile.
-  </p>
-
-  <p>
-    Here's to a healthier, happier you. We're so glad you're here!
-  </p>
-
-  <p>
-    Warmly,<br/>
-    <b>Team Ryvive Roots</b>
-  </p>
-
-<style>
-@media only screen and (max-width:600px) {
-  .footer-table td {
-    display:block !important;
-    width:100% !important;
-    text-align:center !important;
-    margin-bottom:15px;
-  }
-
-  .footer-icons img{
-    margin:0 6px !important;
-  }
-}
-</style>
-
-<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; border-spacing:0;">
-
-<tr>
-<td align="center">
-
-<table style="text-align:center; border-spacing:0;">
-
-<tr>
-<td style="padding:6px 0;">
-<img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots Logo" style="border:none;">
-</td>
-</tr>
-
-<tr>
-<td style="padding:6px 0; font-size:13px; color:#333; line-height:1.5; text-align:center;">
-You're receiving this email because you recently activated a Ryvive Roots membership.<br>
-If you have any concerns, please contact us at 
-<a href="mailto:customersupport@ryviveroots.com" style="text-decoration:none;">
-customersupport@ryviveroots.com
-</a>.
-</td>
-</tr>
-
-<tr>
-<td style="padding:8px 0; text-align:center;">
-<a href="https://www.instagram.com/ryvive_roots/" style="margin-right:12px; text-decoration:none;">
-<img src="https://cdn-icons-png.flaticon.com/512/1400/1400829.png" width="22" alt="Instagram" style="vertical-align:middle; border:none;">
-</a>
-
-<a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="text-decoration:none;">
-<img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" width="22" alt="LinkedIn" style="vertical-align:middle; border:none;">
-</a>
-</td>
-</tr>
-
-<tr>
-<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
-+91 9076000468 / 97656 00701
-</td>
-</tr>
-
-<tr>
-<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
-<a href="https://www.ryviveroots.com" style="text-decoration:none;">
-www.ryviveroots.com
-</a>
-</td>
-</tr>
-
-<tr>
-<td style="padding:6px 0; text-align:center;">
-<a href="https://ryviveroots.com/privacy-policy" style="text-decoration:none;">
-Privacy Policy
-</a>
-</td>
-</tr>
-
-<tr>
-<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
-Dombivli East, Maharashtra 421201, India
-</td>
-</tr>
-
-<tr>
-<td style="padding-top:10px; font-size:13px; color:#333; text-align:center;">
-© 2026 RYVIVE ROOTS All Rights Reserved.
-</td>
-</tr>
-
-</table>
-
-</td>
-</tr>
-
-</table>
-
-
-</div>
-`,
-      attachments: [
-        {
-          filename: `invoice-${order.receiptNumber}.pdf`,
-          path: invoicePath,
-        },
-      ],
-    });
-
-    order.subscription.thankYouEmailSentAt = new Date();
-    order.subscription.welcomeEmailSent = false;
-
-    await order.save();
-
-
-    // 8️⃣ SEND COMPANY EMAIL (AS-IT-IS)
-    await sendEmail({
-      to: process.env.COMPANY_EMAIL,
-      subject: `🧾 New Subscription Order - ${order.membershipId}`,
-      html: `
-<h2>New Customer Subscription Received</h2>
-
-<ul>
-  <li><b>Name:</b> <b>${order.user.firstName} ${order.user.lastName}</b></li>
-  <li><b>Phone:</b> <b>${order.user.phone}</b></li>
-  <li><b>Email:</b> <b>${order.user.email}</b></li>
-  <li><b>Plan:</b> <b>${formattedPlan}</b></li>
-  <li><b>Amount:</b> <b>₹${order.subscription.amount}</b></li>
-  <li><b>Slot:</b> <b>${order.deliverySlot}</b></li>
-  <li><b>Receipt No:</b> <b>${order.receiptNumber}</b></li>
-  <li><b>Membership ID:</b> <b>${order.membershipId}</b></li>
-</ul>
-
-<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif;">
-  <tr>
-
-    <!-- LEFT SIDE -->
-    <td style="width:33.33%; vertical-align:middle;">
-      <h2 style="margin:0; font-weight:bold; font-size:22px; color:#243E36;">
-        Ryvive Roots
-      </h2>
-
-      <p style="margin:3px 0 15px 0; color:#555;">
-        Live | Relive | Believe
-      </p>
-
-      <a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="margin-right:8px;">
-        <img src="https://ryviveroots.com/link.png" width="28" alt="LinkedIn"/>
-      </a>
-
-      <a href="https://www.instagram.com/ryvive_roots/">
-        <img src="https://ryviveroots.com/ins.png" width="28" alt="Instagram"/>
-      </a>
-    </td>
-
-    <!-- CENTER LOGO -->
-    <td style="width:33.33%; text-align:center; vertical-align:middle;">
-      <img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots"/>
-    </td>
-
-    <!-- RIGHT SIDE -->
-    <td style="width:33.33%; vertical-align:middle; font-size:14px; color:#333;">
-      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
-      <p style="margin:5px 0;"><b>M:</b> 97656 00701</p>
-      <p style="margin:5px 0;"><b>E:</b> subscribe@ryviveroots.com</p>
-      <p style="margin:5px 0;">www.ryviveroots.com</p>
-      <p style="margin:5px 0;">
-        Dombivli East, Maharashtra 421201, India
-      </p>
-    </td>
-
-  </tr>
-</table>
-
-`,
-      attachments: [
-        {
-          filename: `invoice-${order.receiptNumber}.pdf`,
-          path: invoicePath,
-        },
-      ],
-    });
-
-    // 🔹 NOW mark TempPayment SUCCESS (AFTER everything works)
     tempPayment.status = "SUCCESS";
     tempPayment.membershipId = membershipId;
     await tempPayment.save();
 
-    // 9️⃣ Redirect to success page
-    return res.redirect(
+    // 🚀 Respond immediately — invoice + emails happen in the background
+    res.redirect(
       `${process.env.FRONTEND_URL}/payment-success?membershipId=${membershipId}&plan=${formattedPlan}`
     );
+
+    setImmediate(() => {
+      runNewOrderBackgroundJob({ order, formattedPlan });
+    });
+
+    return;
   } catch (error) {
     console.error("Easebuzz success error:", error);
     return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
