@@ -820,7 +820,22 @@ export const easebuzzSuccess = async (req, res) => {
       }
     }
 
-    // Sync user record
+const rawPlan = order.subscription?.plan || "";
+const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
+
+tempPayment.status = "SUCCESS";
+tempPayment.membershipId = membershipId;
+
+await Promise.all([tempPayment.save()]);
+
+// ✅ Customer is redirected immediately
+res.redirect(
+  `${process.env.FRONTEND_URL}/payment-success?membershipId=${membershipId}&plan=${formattedPlan}`,
+);
+
+// ✅ Everything else runs in the background
+setImmediate(async () => {
+  try {
     await User.findByIdAndUpdate(user._id, {
       firstName: order.user.firstName,
       lastName: order.user.lastName,
@@ -828,23 +843,16 @@ export const easebuzzSuccess = async (req, res) => {
       phone: order.user.phone,
     });
 
-    const rawPlan = order.subscription?.plan || "";
-    const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
-
-    tempPayment.status = "SUCCESS";
-    tempPayment.membershipId = membershipId;
-    await tempPayment.save();
-
-    // 🚀 Respond immediately — invoice + emails happen in the background
-    res.redirect(
-      `${process.env.FRONTEND_URL}/payment-success?membershipId=${membershipId}&plan=${formattedPlan}`
-    );
-
-    setImmediate(() => {
-      runNewOrderBackgroundJob({ order, formattedPlan });
+    await runNewOrderBackgroundJob({
+      order,
+      formattedPlan,
     });
+  } catch (err) {
+    console.error(err);
+  }
+});
 
-    return;
+return;
   } catch (error) {
     console.error("Easebuzz success error:", error);
     return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
