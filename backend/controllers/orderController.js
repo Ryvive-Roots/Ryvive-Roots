@@ -826,30 +826,34 @@ const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
 tempPayment.status = "SUCCESS";
 tempPayment.membershipId = membershipId;
 
-await Promise.all([tempPayment.save()]);
+await Promise.all([
+    tempPayment.save()
+]);
 
 // ✅ Customer is redirected immediately
 res.redirect(
-  `${process.env.FRONTEND_URL}/payment-success?membershipId=${membershipId}&plan=${formattedPlan}`,
+    `${process.env.FRONTEND_URL}/payment-success?membershipId=${membershipId}&plan=${formattedPlan}`
 );
 
 // ✅ Everything else runs in the background
 setImmediate(async () => {
-  try {
-    await User.findByIdAndUpdate(user._id, {
-      firstName: order.user.firstName,
-      lastName: order.user.lastName,
-      email: order.user.email,
-      phone: order.user.phone,
-    });
+    try {
 
-    await runNewOrderBackgroundJob({
-      order,
-      formattedPlan,
-    });
-  } catch (err) {
-    console.error(err);
-  }
+        await User.findByIdAndUpdate(user._id, {
+            firstName: order.user.firstName,
+            lastName: order.user.lastName,
+            email: order.user.email,
+            phone: order.user.phone,
+        });
+
+        await runNewOrderBackgroundJob({
+            order,
+            formattedPlan,
+        });
+
+    } catch (err) {
+        console.error(err);
+    }
 });
 
 return;

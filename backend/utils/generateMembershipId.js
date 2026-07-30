@@ -11,41 +11,20 @@ const generateMembershipId = async (Model, amount, userId) => {
   }
 
   // ✅ Step 2: First-time customer -> generate a new membershipId
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
+ const latest = await Model.findOne({
+   membershipId: { $regex: `^${prefix}${year}${month}` },
+ })
+   .sort({ membershipId: -1 })
+   .select("membershipId")
+   .lean();
 
-  const isTest = Number(amount) === 1;
-  const prefix = isTest ? "TEST" : "RR";
+ let nextNumber = 1;
 
-  const startOfMonth = new Date(year, now.getMonth(), 1);
-  const endOfMonth = new Date(year, now.getMonth() + 1, 1);
+ if (latest?.membershipId) {
+   nextNumber = parseInt(latest.membershipId.slice(-2), 10) + 1;
+ }
 
-  const orders = await Model.find({
-    membershipId: { $regex: `^${prefix}${year}${month}` },
-    createdAt: {
-      $gte: startOfMonth,
-      $lt: endOfMonth,
-    },
-  }).select("membershipId");
-
-  let maxNumber = 0;
-
-  for (const order of orders) {
-    const id = order.membershipId;
-    const match = id.match(/(\d{2})$/);
-    if (match) {
-      const num = parseInt(match[1], 10);
-      if (num > maxNumber) {
-        maxNumber = num;
-      }
-    }
-  }
-
-  const nextNumber = maxNumber + 1;
-  const customerNumber = String(nextNumber).padStart(2, "0");
-
-  return `${prefix}${year}${month}${customerNumber}`;
+ return `${prefix}${year}${month}${String(nextNumber).padStart(2, "0")}`;
 };
 
 export default generateMembershipId;
