@@ -3,19 +3,13 @@ import axios from "axios";
 import TempPayment from "../models/TempPayment.js";
 import { PLANS } from "../utils/planConfig.js";
 
-// ⭐ Fix: call the order controller's handler directly instead of making
-// an HTTP request back to our own server. The old code did:
-//   axios.post(`${BACKEND_URL}/api/orders/easebuzz-success`, req.body)
-// which added an extra network hop (and an extra chance to hang/504)
-// for zero benefit — it's the same process.
-import { easebuzzSuccess as processEasebuzzSuccess } from "./orderController.js";
-
 /**
  * STEP 1️⃣ — INITIATE EASEBUZZ PAYMENT
  */
 export const initiateEasebuzzPayment = async (req, res) => {
   try {
     let {
+    
       firstname,
       email,
       phone,
@@ -37,7 +31,11 @@ export const initiateEasebuzzPayment = async (req, res) => {
     }
 
     // ✅ Require formData ONLY for new subscription
-    if (!isRenewal && !isExistingCustomerPurchase && !formData) {
+    if (
+  !isRenewal &&
+  !isExistingCustomerPurchase &&
+  !formData
+) {
       return res.status(400).json({
         success: false,
         message: "Form data required for new subscription",
@@ -52,25 +50,35 @@ export const initiateEasebuzzPayment = async (req, res) => {
       });
     }
 
-    // 🔎 Extract base plan
-    const selectedPlan = PLANS[plan];
+// 🔎 Extract base plan
+const selectedPlan = PLANS[plan];
 
-    if (!selectedPlan) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid plan",
-      });
-    }
 
-    const durationMonths = selectedPlan.durationMonths;
-    const dbAmount = selectedPlan.price;
 
-    if (dbAmount === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid pricing configuration",
-      });
-    }
+if (!selectedPlan) {
+  return res.status(400).json({
+    success: false,
+    message: "Invalid plan",
+  });
+}
+
+const durationMonths = selectedPlan.durationMonths;
+const dbAmount = selectedPlan.price;
+ 
+
+if (dbAmount === undefined) 
+ {
+  return res.status(400).json({
+    success: false,
+    message: "Invalid pricing configuration",
+  });
+}
+
+
+
+
+
+
 
     const easebuzzAmount = dbAmount.toString();
     const txnid = `TXN_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
@@ -81,15 +89,16 @@ export const initiateEasebuzzPayment = async (req, res) => {
       amount: dbAmount,
       plan: plan,
       durationMonths,
-      formData: isRenewal ? undefined : formData,
+    formData: isRenewal ? undefined : formData,
       isRenewal: isRenewal || false,
-      isExistingCustomerPurchase: isExistingCustomerPurchase || false,
+      isExistingCustomerPurchase:
+  isExistingCustomerPurchase || false,
       membershipId: membershipId || null,
       status: "PENDING",
     });
 
     // 🔐 Easebuzz hash
-    const udf1 = plan; // IMPORTANT
+   const udf1 = plan;   // IMPORTANT
     const udf2 = phone.toString();
 
     const productinfo = "Subscription Payment";
@@ -114,7 +123,10 @@ export const initiateEasebuzzPayment = async (req, res) => {
       process.env.EASEBUZZ_SALT,
     ].join("|");
 
-    const hash = crypto.createHash("sha512").update(hashString).digest("hex");
+    const hash = crypto
+      .createHash("sha512")
+      .update(hashString)
+      .digest("hex");
 
     const paymentUrl =
       process.env.EASEBUZZ_ENV === "TEST"
@@ -147,7 +159,6 @@ export const initiateEasebuzzPayment = async (req, res) => {
       }),
       {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        timeout: 15000, // ⭐ don't hang forever waiting on Easebuzz
       }
     );
 
@@ -165,32 +176,36 @@ export const initiateEasebuzzPayment = async (req, res) => {
       access_key: easebuzzResponse.data.data,
     });
   } catch (error) {
-    console.error(
-      "Easebuzz initiate error:",
-      error.response?.data || error.message || error
-    );
+  console.error(
+    "Easebuzz initiate error:",
+    error.response?.data || error.message || error
+  );
 
-    return res.status(500).json({
-      success: false,
-      message: "Payment initiation failed",
-    });
-  }
+  return res.status(500).json({
+    success: false,
+    message: "Payment initiation failed",
+  });
+}
 };
 
 /**
  * SUCCESS CALLBACK
- *
- * ⭐ FIX: this used to do `axios.post(BACKEND_URL + "/api/orders/easebuzz-success", ...)`
- * — an HTTP call from the server to itself. That extra hop was the main
- * cause of the 504s: it doubled the number of open connections per
- * payment and added a second full request/response cycle (with its own
- * timeout) on top of the already-slow email/invoice work downstream.
- *
- * Now we just call the handler function directly, in-process. Same
- * logic, same `req`/`res`, no network round-trip.
  */
 export const easebuzzPaymentSuccess = async (req, res) => {
-  return processEasebuzzSuccess(req, res);
+  try {
+    const response = await axios.post(
+      `${process.env.BACKEND_URL}/api/orders/easebuzz-success`,
+      req.body,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
+    );
+
+    return res.redirect(response.request.res.responseUrl);
+  } catch (error) {
+    console.error("Easebuzz payment success forward error:", error);
+    return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+  }
 };
 
 /**
