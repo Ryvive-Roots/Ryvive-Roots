@@ -12,7 +12,7 @@ export const PLANS = {
     durationDays: 24,
   },
   GOLD_1MONTH: {
-    price: 2,
+    price: 5999,
     durationMonths: 1,
     durationDays: 24,
   },
@@ -36,7 +36,7 @@ export const PLANS = {
     durationDays: 72,
   },
   PLATINUM_3MONTH: {
-    price: 19999,
+    price: 3,
     durationMonths: 3,
     durationDays: 72,
   },
