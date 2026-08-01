@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ArrowLeft } from 'lucide-react';
+
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { CREAM, CREAM_2, DARK, INK, SAGE_DARK } from '../theme';
 export default function Login() {
@@ -10,7 +11,13 @@ export default function Login() {
       const [loading, setLoading] = useState(false);
       const [error, setError] = useState("");
     
-      
+      const location = useLocation();
+
+useEffect(() => {
+  if (location.state?.identifier) {
+    setIdentifier(location.state.identifier);
+  }
+}, [location.state]);
     
     const handleLogin = async () => {
       if (!membershipId || !identifier) {

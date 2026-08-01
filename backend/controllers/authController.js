@@ -46,3 +46,33 @@ export const loginUser = async (req, res) => {
   }
 };
 
+
+// POST /api/auth/check-customer
+export const checkCustomer = async (req, res) => {
+  try {
+    const { phone, email } = req.body;
+
+    if (!phone && !email) {
+      return res.json({ success: false, exists: false, message: "Phone or email required" });
+    }
+
+    const orConditions = [];
+    if (phone) orConditions.push({ phone });
+    if (email) orConditions.push({ email });
+
+    const existingUser = await User.findOne({ $or: orConditions });
+
+    if (existingUser) {
+      return res.json({
+        success: true,
+        exists: true,
+        membershipId: existingUser.membershipId || "",
+      });
+    }
+
+    return res.json({ success: true, exists: false });
+  } catch (error) {
+    console.error("check-customer error:", error);
+    return res.status(500).json({ success: false, exists: false, message: "Server error" });
+  }
+};

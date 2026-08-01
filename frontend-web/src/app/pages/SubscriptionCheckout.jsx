@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { Link } from "react-router-dom";
 import Confetti from "react-confetti";
 import {
   Check,
@@ -234,6 +235,9 @@ export default function SubscriptionCheckout() {
   const [selectedPlan, setSelectedPlan] = useState("gold");
   const [durations, setDurations] = useState({ silver: 1, gold: 1, platinum: 1 });
 
+  const [existingCustomer, setExistingCustomer] = useState(null); // { membershipId } or null
+const [checkingCustomer, setCheckingCustomer] = useState(false);
+
   // Personal info
   const [info, setInfo] = useState(() =>
     JSON.parse(localStorage.getItem("ryvive_info") || "null") || {
@@ -313,8 +317,8 @@ export default function SubscriptionCheckout() {
   // Validation per step
   const isStepValid = () => {
     if (step === 1) return true; // plan always selected
-    if (step === 2)
-      return info.firstName && info.lastName && info.phone && info.email && info.dob;
+   if (step === 2)
+  return info.firstName && info.lastName && info.phone && info.email && info.dob && !existingCustomer;
     if (step === 3) return true; // health is optional
     if (step === 4)
       return (
@@ -395,7 +399,34 @@ export default function SubscriptionCheckout() {
   const goBack = () => {
     if (step > 1) { setStep(step - 1); scrollToTop(); }
   };
+const checkExistingCustomer = async (data) => {
+  try {
+    setCheckingCustomer(true);
+    const res = await fetch("https://api.ryviveroots.com/api/auth/check-customer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: data.phone, email: data.email }),
+    });
+    const result = await res.json();
+    setExistingCustomer(result.exists ? { membershipId: result.membershipId || "" } : null);
+  } catch (err) {
+    console.error("Customer check error:", err);
+  } finally {
+    setCheckingCustomer(false);
+  }
+};
 
+useEffect(() => {
+  if (step !== 2) return;
+  const { firstName, lastName, phone, email } = info;
+  const looksComplete = firstName && lastName && phone.length === 10 && /\S+@\S+\.\S+/.test(email);
+  if (!looksComplete) {
+    setExistingCustomer(null);
+    return;
+  }
+  const timer = setTimeout(() => checkExistingCustomer(info), 600); // debounce so it doesn't fire on every keystroke
+  return () => clearTimeout(timer);
+}, [info, step]);
   // ─── Success screen ───────────────────────────────────────────────────────
   if (showSuccessPopper) {
     return (
@@ -1115,7 +1146,7 @@ function PlanStep({ selectedPlan, setSelectedPlan, durations, setDurations, onCo
 }
 
 // ─── Step 2: Personal Details ─────────────────────────────────────────────────
-function PersonalStep({ info, setInfo }) {
+function PersonalStep({ info, setInfo, existingCustomer, checkingCustomer }) {
   const onFocus = (e) => { e.currentTarget.style.borderBottomColor = SAGE_DARK; };
   const onBlur = (e) => { e.currentTarget.style.borderBottomColor = "rgba(42,37,32,0.25)"; };
 
@@ -1153,6 +1184,42 @@ function PersonalStep({ info, setInfo }) {
           </div>
         ))}
       </div>
+
+      {checkingCustomer && (
+        <p style={{ fontSize: "12px", color: SAGE_DARK, marginTop: "18px" }}>
+          Checking your details…
+        </p>
+      )}
+
+      {existingCustomer && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-6 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          style={{
+            background: "rgba(139,149,121,0.1)",
+            border: "1px solid rgba(139,149,121,0.3)",
+            borderRadius: "2px",
+          }}
+        >
+          <div>
+            <div style={{ fontSize: "14px", color: INK, fontWeight: 500 }}>
+              Welcome back! We found an existing account with these details.
+            </div>
+            <div style={{ fontSize: "12px", color: "rgba(42,37,32,0.6)", marginTop: "4px" }}>
+              Please log in to manage your subscription instead of signing up again.
+            </div>
+          </div>
+          <Link
+            to="/login"
+            state={{ identifier: info.email || info.phone }}
+            className="px-5 py-3 tracking-[0.22em] uppercase whitespace-nowrap text-center"
+            style={{ fontSize: "10px", background: INK, color: CREAM, borderRadius: "2px" }}
+          >
+            Go to Login
+          </Link>
+        </motion.div>
+      )}
     </div>
   );
 }
