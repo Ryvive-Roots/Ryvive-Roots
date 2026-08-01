@@ -645,7 +645,14 @@ useEffect(() => {
                     onContinue={goNext}
                   />
                 )}
-                {step === 2 && <PersonalStep info={info} setInfo={setInfo} />}
+              {step === 2 && (
+  <PersonalStep
+    info={info}
+    setInfo={setInfo}
+    existingCustomer={existingCustomer}
+    checkingCustomer={checkingCustomer}
+  />
+)}
                 {step === 3 && <HealthStep health={health} setHealth={setHealth} />}
                 {step === 4 && (
                   <DeliveryStep delivery={delivery} setDelivery={setDelivery} />
