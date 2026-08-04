@@ -123,84 +123,158 @@ async function initiatePayment({ user, plan, duration, membershipId, isRenewal =
 }
 
 // ─── UpgradePlanCard ───────────────────────────────────────────────────────────
-function UpgradePlanCard({ plan, membershipId, user, formData }) {
+// NEW: `isSubscriptionActive` + `subscriptionEndDate` let this card know whether
+// the member already has a running plan. If so, clicking "Continue" no longer
+// jumps straight to payment — it first shows a small explainer modal with two
+// clear paths: (1) queue the new plan to start right after the current one ends,
+// or (2) start a brand-new plan immediately under a separate account
+// (different phone/email — e.g. a family member's details).
+function UpgradePlanCard({ plan, membershipId, user, formData, isSubscriptionActive, subscriptionEndDate }) {
   const [upgradeDur, setUpgradeDur] = useState("3");
+  const [showTransitionModal, setShowTransitionModal] = useState(false);
 
   const handleUpgradePayment = () => {
     initiatePayment({ user, plan: plan.name, duration: upgradeDur, membershipId, isRenewal: false, isExistingCustomerPurchase: true, formData });
   };
 
+  const handleContinueClick = () => {
+    if (isSubscriptionActive) {
+      setShowTransitionModal(true);
+    } else {
+      handleUpgradePayment();
+    }
+  };
+
   return (
-    <div style={{
-      background: CREAM,
-      border: plan.highlight ? `2px solid ${GOLD}` : `1.5px solid ${CARD_BORDER}`,
-      borderRadius: "2px",
-      padding: "1.75rem",
-      position: "relative",
-      overflow: "hidden",
-    }}>
-      {plan.badge && (
+    <>
+      <div style={{
+        background: CREAM,
+        border: plan.highlight ? `2px solid ${GOLD}` : `1.5px solid ${CARD_BORDER}`,
+        borderRadius: "2px",
+        padding: "1.75rem",
+        position: "relative",
+        overflow: "hidden",
+      }}>
+        {plan.badge && (
+          <div style={{
+            position: "absolute", top: 0, right: 0,
+            background: GOLD, color: DARK,
+            padding: ".3rem .9rem", fontSize: ".72rem", fontWeight: 700,
+            letterSpacing: "0.1em", textTransform: "uppercase", borderBottomLeftRadius: "2px",
+          }}>
+            {plan.badge}
+          </div>
+        )}
+        <h3 className="font-serif" style={{ color: INK, fontSize: "1.2rem", fontWeight: 400, marginBottom: "1rem", marginTop: plan.badge ? ".5rem" : 0 }}>
+          {plan.label}
+        </h3>
+        <div style={{ display: "flex", gap: ".5rem", marginBottom: "1rem" }}>
+          {["1", "3"].map((dur) => (
+            <button key={dur} onClick={() => setUpgradeDur(dur)} style={{
+              flex: 1, padding: ".6rem",
+              border: `${upgradeDur === dur ? "2" : "1"}px solid ${upgradeDur === dur ? GOLD : CARD_BORDER}`,
+              background: upgradeDur === dur ? GOLD_LIGHT : CREAM,
+              color: INK, fontWeight: upgradeDur === dur ? 700 : 400,
+              fontSize: ".85rem", cursor: "pointer", letterSpacing: "0.1em", textTransform: "uppercase",
+            }}>
+              {dur === "1" ? "1 Month" : "3 Months"}
+            </button>
+          ))}
+        </div>
+        <div className="font-serif" style={{ fontSize: "2rem", fontWeight: 300, color: INK, marginBottom: "1.25rem" }}>
+          ₹{plan.prices[upgradeDur].toLocaleString()}
+          <span style={{ fontSize: ".85rem", fontWeight: 400, color: "rgba(42,37,32,0.5)", marginLeft: ".4rem" }}>
+            / {upgradeDur === "1" ? "month" : "3 months"}
+          </span>
+        </div>
+        <ul style={{ listStyle: "none", margin: "0 0 1.5rem 0", padding: 0 }}>
+          {plan.features.map((f) => (
+            <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: ".5rem", marginBottom: ".55rem", fontSize: ".88rem", color: "rgba(42,37,32,0.7)" }}>
+              <CheckCircle size={15} color={SAGE_DARK} style={{ marginTop: "2px", flexShrink: 0 }} /> {f}
+            </li>
+          ))}
+        </ul>
         <div style={{
-          position: "absolute", top: 0, right: 0,
-          background: GOLD, color: DARK,
-          padding: ".3rem .9rem", fontSize: ".72rem", fontWeight: 700,
-          letterSpacing: "0.1em", textTransform: "uppercase", borderBottomLeftRadius: "2px",
+          background: CREAM_2, borderRadius: "2px", padding: ".85rem",
+          border: `1px solid ${CARD_BORDER}`, marginBottom: "1rem", fontSize: ".85rem",
         }}>
-          {plan.badge}
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: ".35rem" }}>
+            <span style={{ color: "rgba(42,37,32,0.6)" }}>Plan</span>
+            <span style={{ fontWeight: 600, color: INK }}>RYVIVE {plan.name} · {upgradeDur}M</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${CARD_BORDER}`, paddingTop: ".35rem", marginTop: ".35rem" }}>
+            <span style={{ fontWeight: 600, color: INK }}>Total</span>
+            <span style={{ fontWeight: 700, color: SAGE_DARK }}>₹{plan.prices[upgradeDur].toLocaleString()}</span>
+          </div>
+        </div>
+        <button
+          onClick={handleContinueClick}
+          className="tracking-widest uppercase"
+          style={{ width: "100%", padding: ".75rem 1.5rem", background: DARK, color: CREAM, border: "none", fontSize: ".82rem", fontWeight: 400, cursor: "pointer", letterSpacing: "0.2em" }}
+          onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.85"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+        >
+          Continue
+        </button>
+      </div>
+
+      {/* ── Ongoing Plan Transition Modal ─────────────────────────────────── */}
+      {showTransitionModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(26,22,19,0.72)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999, padding: "1rem" }}
+          onClick={() => setShowTransitionModal(false)}
+        >
+          <div
+            style={{ background: CREAM, borderRadius: "2px", padding: "2rem", width: "100%", maxWidth: 460, border: `1px solid ${CARD_BORDER}`, position: "relative" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              style={{ position: "absolute", top: "1.25rem", right: "1.25rem", background: "none", border: "none", fontSize: "1rem", cursor: "pointer", color: "rgba(42,37,32,0.45)" }}
+              onClick={() => setShowTransitionModal(false)}
+            >
+              Close
+            </button>
+            <div style={{ fontSize: "10px", letterSpacing: "0.24em", textTransform: "uppercase", color: SAGE_DARK, fontWeight: 600, marginBottom: ".5rem" }}>
+              — Ongoing Plan Detected
+            </div>
+            <h3 className="font-serif" style={{ color: INK, fontSize: "1.3rem", fontWeight: 300, marginBottom: ".75rem" }}>
+              You already have an active plan
+            </h3>
+            <p style={{ fontSize: ".88rem", color: "rgba(42,37,32,0.7)", lineHeight: 1.65, marginBottom: "1.5rem" }}>
+              Your current subscription runs until <strong style={{ color: INK }}>{formatDate(subscriptionEndDate)}</strong>. Here's how you can proceed with RYVIVE {plan.name}:
+            </p>
+
+            {/* Option 1 */}
+            <div style={{ border: `1px solid ${CARD_BORDER}`, padding: "1rem", marginBottom: ".85rem", background: CREAM_2 }}>
+              <p style={{ margin: "0 0 .4rem 0", fontWeight: 600, color: INK, fontSize: ".9rem" }}>Option 1 — Start After Current Plan Ends</p>
+              <p style={{ margin: "0 0 .85rem 0", fontSize: ".8rem", color: "rgba(42,37,32,0.6)", lineHeight: 1.55 }}>
+                We'll queue RYVIVE {plan.name} on your account. It will begin automatically once your ongoing plan is completed on {formatDate(subscriptionEndDate)}.
+              </p>
+              <button
+                style={{ width: "100%", padding: ".7rem", background: DARK, color: CREAM, border: "none", fontSize: ".78rem", fontWeight: 400, cursor: "pointer", letterSpacing: "0.15em", textTransform: "uppercase" }}
+                onClick={() => { setShowTransitionModal(false); handleUpgradePayment(); }}
+              >
+                Continue with this plan
+              </button>
+            </div>
+
+            {/* Option 2 */}
+            <div style={{ border: `1px solid ${CARD_BORDER}`, padding: "1rem" }}>
+              <p style={{ margin: "0 0 .4rem 0", fontWeight: 600, color: INK, fontSize: ".9rem" }}>Option 2 — Start Immediately, Separately</p>
+              <p style={{ margin: "0 0 .85rem 0", fontSize: ".8rem", color: "rgba(42,37,32,0.6)", lineHeight: 1.55 }}>
+                Want to begin right away instead of waiting? You can create a new, separate account — for example, under a family member's name — using a different phone number and email address, and start this plan immediately.
+              </p>
+              <button
+                style={{ width: "100%", padding: ".7rem", background: "transparent", color: INK, border: `1px solid ${INK}`, fontSize: ".78rem", cursor: "pointer", letterSpacing: "0.15em", textTransform: "uppercase" }}
+                onClick={() => { setShowTransitionModal(false); window.location.href = "/signup"; }}
+              >
+                Create New Account
+              </button>
+            </div>
+          </div>
         </div>
       )}
-      <h3 className="font-serif" style={{ color: INK, fontSize: "1.2rem", fontWeight: 400, marginBottom: "1rem", marginTop: plan.badge ? ".5rem" : 0 }}>
-        {plan.label}
-      </h3>
-      <div style={{ display: "flex", gap: ".5rem", marginBottom: "1rem" }}>
-        {["1", "3"].map((dur) => (
-          <button key={dur} onClick={() => setUpgradeDur(dur)} style={{
-            flex: 1, padding: ".6rem",
-            border: `${upgradeDur === dur ? "2" : "1"}px solid ${upgradeDur === dur ? GOLD : CARD_BORDER}`,
-            background: upgradeDur === dur ? GOLD_LIGHT : CREAM,
-            color: INK, fontWeight: upgradeDur === dur ? 700 : 400,
-            fontSize: ".85rem", cursor: "pointer", letterSpacing: "0.1em", textTransform: "uppercase",
-          }}>
-            {dur === "1" ? "1 Month" : "3 Months"}
-          </button>
-        ))}
-      </div>
-      <div className="font-serif" style={{ fontSize: "2rem", fontWeight: 300, color: INK, marginBottom: "1.25rem" }}>
-        ₹{plan.prices[upgradeDur].toLocaleString()}
-        <span style={{ fontSize: ".85rem", fontWeight: 400, color: "rgba(42,37,32,0.5)", marginLeft: ".4rem" }}>
-          / {upgradeDur === "1" ? "month" : "3 months"}
-        </span>
-      </div>
-      <ul style={{ listStyle: "none", margin: "0 0 1.5rem 0", padding: 0 }}>
-        {plan.features.map((f) => (
-          <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: ".5rem", marginBottom: ".55rem", fontSize: ".88rem", color: "rgba(42,37,32,0.7)" }}>
-            <CheckCircle size={15} color={SAGE_DARK} style={{ marginTop: "2px", flexShrink: 0 }} /> {f}
-          </li>
-        ))}
-      </ul>
-      <div style={{
-        background: CREAM_2, borderRadius: "2px", padding: ".85rem",
-        border: `1px solid ${CARD_BORDER}`, marginBottom: "1rem", fontSize: ".85rem",
-      }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: ".35rem" }}>
-          <span style={{ color: "rgba(42,37,32,0.6)" }}>Plan</span>
-          <span style={{ fontWeight: 600, color: INK }}>RYVIVE {plan.name} · {upgradeDur}M</span>
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${CARD_BORDER}`, paddingTop: ".35rem", marginTop: ".35rem" }}>
-          <span style={{ fontWeight: 600, color: INK }}>Total</span>
-          <span style={{ fontWeight: 700, color: SAGE_DARK }}>₹{plan.prices[upgradeDur].toLocaleString()}</span>
-        </div>
-      </div>
-      <button
-        onClick={handleUpgradePayment}
-        className="tracking-widest uppercase"
-        style={{ width: "100%", padding: ".75rem 1.5rem", background: DARK, color: CREAM, border: "none", fontSize: ".82rem", fontWeight: 400, cursor: "pointer", letterSpacing: "0.2em" }}
-        onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.85"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
-      >
-        Continue
-      </button>
-    </div>
+    </>
   );
 }
 
@@ -556,6 +630,9 @@ const pct =
 const statusColor = statusColors[finalStatus] || "#666";
 
   const isLocked = remainingPauseCount === 0 || finalStatus === "UNDER_PROCESS" || finalStatus === "EXPIRED";
+
+  // Used by UpgradePlanCard to decide whether to show the "ongoing plan" transition modal
+  const isSubscriptionActive = finalStatus === "ACTIVE" || finalStatus === "PAUSED";
 
   const latestPause  = subscription.pause?.history?.length > 0 ? subscription.pause.history[subscription.pause.history.length - 1] : null;
   const pauseMessage = latestPause
@@ -1409,6 +1486,11 @@ const statusColor = statusColors[finalStatus] || "#666";
                     <p style={{ margin: "0 0 .2rem 0", ...labelStyle }}>Current Plan</p>
                     <p className="font-serif" style={{ margin: 0, color: INK, fontSize: "1.2rem", fontWeight: 300 }}>RYVIVE {basePlan} · {durationMonths}-Month</p>
                   </div>
+                  {isSubscriptionActive && (
+                    <div className="flex items-center gap-3 px-5 py-4 mb-6" style={{ background: "#fff8e5", border: `1px solid rgba(212,175,55,0.3)`, fontSize: ".85rem", color: "#8b6914" }}>
+                      <Clock size={16} color={GOLD} /> You have an ongoing plan until {formatDate(subscription.endDate)}. Selecting a new plan below will let you choose to start it after your current plan ends, or begin immediately on a separate account.
+                    </div>
+                  )}
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1.25rem" }}>
                     {allPlans.sort((a) => (a.name === basePlan ? -1 : 1)).map((plan) => {
                       const rank        = PLAN_RANK[plan.name];
@@ -1423,6 +1505,8 @@ const statusColor = statusColors[finalStatus] || "#666";
                             membershipId={membershipId}
                             user={user}
                             formData={formData}
+                            isSubscriptionActive={isSubscriptionActive}
+                            subscriptionEndDate={subscription.endDate}
                           />
                         </div>
                       );
@@ -1729,7 +1813,7 @@ const statusColor = statusColors[finalStatus] || "#666";
                       Continue
                     </button>
                     <ul style={{ listStyle: "none", marginTop: ".85rem", padding: 0 }}>
-                      {PLAN_FEATURES[plan].slice(0, 3).map((f) => (
+                      {PLAN_FEATURES[plan].slice(0, 5).map((f) => (
                         <li key={f} style={{ fontSize: ".78rem", color: "rgba(42,37,32,0.6)", marginBottom: ".3rem", letterSpacing: "0.02em" }}>• {f}</li>
                       ))}
                     </ul>

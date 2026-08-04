@@ -672,7 +672,7 @@ Dombivli East, Maharashtra 421201, India
         subject: `🧾 Existing Customer Purchased New Plan - ${existingUser.membershipId}`,
 
         html: `
-    <h2>Existing Customer Purchased New Subscription</h2>
+    <h2>Existing Customer Purchased New Subscription Plan</h2>
 
     <ul>
       <li><b>Name:</b> ${existingUser.firstName} ${existingUser.lastName}</li>
