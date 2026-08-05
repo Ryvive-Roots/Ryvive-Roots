@@ -30,6 +30,15 @@ const TempPaymentSchema = new mongoose.Schema(
   default: false,
 },
 
+    // 🆕 "Continue with this plan" from the ongoing-plan modal — when true
+    // (only ever alongside isExistingCustomerPurchase), easebuzzSuccess
+    // creates a queued "UPCOMING" order instead of switching the plan
+    // immediately. See controllers/easebuzz.controller.js.
+    startAfterCurrentPlanEnds: {
+      type: Boolean,
+      default: false,
+    },
+
     membershipId: {
       type: String,
       default: null,

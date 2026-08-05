@@ -18,9 +18,16 @@ export const initiateEasebuzzPayment = async (req, res) => {
       isRenewal,
       membershipId,
       isExistingCustomerPurchase,
+      startAfterCurrentPlanEnds,
     } = req.body;
 
     isRenewal = isRenewal === true || isRenewal === "true";
+
+    // 🆕 "Continue with this plan" -> queue it to start after the
+    // member's currently running plan ends, instead of activating soon.
+    // Only meaningful for isExistingCustomerPurchase; ignored otherwise.
+    startAfterCurrentPlanEnds =
+      startAfterCurrentPlanEnds === true || startAfterCurrentPlanEnds === "true";
 
     // ✅ Basic validation (common fields)
     if (!firstname || !email || !phone || !plan) {
@@ -47,6 +54,15 @@ export const initiateEasebuzzPayment = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Membership ID required for renewal",
+      });
+    }
+
+    // ✅ Require membershipId for existing-customer purchases too — the
+    // queued-plan flow specifically needs it to look up the current order.
+    if (isExistingCustomerPurchase && !membershipId) {
+      return res.status(400).json({
+        success: false,
+        message: "Membership ID required for this purchase",
       });
     }
 
@@ -93,6 +109,11 @@ if (dbAmount === undefined)
       isRenewal: isRenewal || false,
       isExistingCustomerPurchase:
   isExistingCustomerPurchase || false,
+      // 🆕 only ever true alongside isExistingCustomerPurchase — the
+      // easebuzzSuccess handler checks this to decide whether to create a
+      // queued "UPCOMING" order instead of switching the plan immediately.
+      startAfterCurrentPlanEnds:
+        isExistingCustomerPurchase ? !!startAfterCurrentPlanEnds : false,
       membershipId: membershipId || null,
       status: "PENDING",
     });

@@ -17,6 +17,7 @@ import createAdminIfNotExists from "./utils/createAdmin.js";
 import cron from "node-cron";
 import { renewalReminderJob } from "./cron/renewalReminderJob.js";
 import { welcomeEmailJob } from "./cron/welcomeEmailJob.js";
+import { activateQueuedPlansJob } from "./cron/activateQueuedPlans.js";
 import adminQueryRoutes from "./routes/Adminquery.js";  
 import deliveryLogRoutes from "./routes/deliveryLogRoutes.js";
 
@@ -88,6 +89,18 @@ connectDB().then(async () => {
     console.error("Welcome cron error:", err);
   }
 });
+
+  // 🆕 Promote queued ("UPCOMING") plans to ACTIVE once their activation
+  // date (the member's previous plan's endDate) arrives. Hourly is plenty
+  // since activation dates are whole calendar days, not exact times.
+  cron.schedule("0 * * * *", async () => {
+    try {
+      console.log("📦 Checking for queued plans due for activation...");
+      await activateQueuedPlansJob();
+    } catch (err) {
+      console.error("Activate-queued-plans cron error:", err);
+    }
+  });
 
 
   console.log("✅ Cron jobs started");

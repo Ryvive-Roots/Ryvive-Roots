@@ -163,7 +163,7 @@ plan: {
 
       status: {
         type: String,
-        enum: ["UNDER_PROCESS", "ACTIVE", "PAUSED", "CANCELLED", "EXPIRED"],
+        enum: ["UNDER_PROCESS", "ACTIVE", "PAUSED", "CANCELLED", "EXPIRED", "UPCOMING"],
         default: "UNDER_PROCESS", // 🟠 default now
       },
        // 🔔 NEW FIELDS (ADD THESE)
@@ -189,6 +189,18 @@ renewal: {
     default: false,
   },
   durationMonths: Number,
+},
+
+// 🆕 QUEUED-PLAN LINKAGE — set on an UPCOMING order so we always know
+// exactly which order it supersedes, and set on the CURRENT order so
+// dashboards/support tooling can see a queued plan is waiting.
+queuedFromOrderId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Order",
+},
+supersededByOrderId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Order",
 },
 
 noDeliveryHistory: [

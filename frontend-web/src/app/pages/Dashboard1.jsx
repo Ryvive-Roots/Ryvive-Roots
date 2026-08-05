@@ -95,8 +95,47 @@ function getRemainingDays(endDate) {
   return Math.max(Math.floor(diff / (1000 * 60 * 60 * 24)), 0);
 }
 
+// ─── Active vs Upcoming order resolution ───────────────────────────────────────
+// A member can have a currently-running order plus (optionally) one queued
+// order created via "Continue with this plan" -> "Start After Current Plan
+// Ends". The backend marks a queued order with subscription.status
+// "UPCOMING" (or "QUEUED") and/or an activationAt date in the future.
+// These helpers separate the two so the UI always drives "My Subscription"
+// / "My Daily Schedule" off the order that is actually live right now, and
+// surfaces the queued one separately until it takes over.
+function isQueuedOrder(o) {
+  const status = o?.subscription?.status;
+  if (status === "UPCOMING" || status === "QUEUED") return true;
+  const activation = o?.subscription?.activationAt ? new Date(o.subscription.activationAt) : null;
+  if (!activation) return false;
+  return activation.getTime() > Date.now();
+}
+
+function getActiveOrder(orders) {
+  if (!orders || orders.length === 0) return null;
+  const live = orders.filter((o) => !isQueuedOrder(o) && o?.subscription?.status !== "CANCELLED");
+  const pool = live.length > 0 ? live : orders;
+  return pool.reduce((latest, o) => {
+    if (!latest) return o;
+    const latestDate = new Date(latest.subscription?.activationAt || 0);
+    const oDate = new Date(o.subscription?.activationAt || 0);
+    return oDate > latestDate ? o : latest;
+  }, null);
+}
+
+function getUpcomingOrder(orders, activeOrder) {
+  if (!orders || orders.length === 0) return null;
+  const candidates = orders.filter((o) => o !== activeOrder && isQueuedOrder(o) && o?.subscription?.status !== "CANCELLED");
+  if (candidates.length === 0) return null;
+  return candidates.reduce((earliest, o) => {
+    const earliestDate = new Date(earliest.subscription?.activationAt || 8640000000000000);
+    const oDate = new Date(o.subscription?.activationAt || 8640000000000000);
+    return oDate < earliestDate ? o : earliest;
+  });
+}
+
 // ─── Real Payment Initiator (Doc2) ─────────────────────────────────────────────
-async function initiatePayment({ user, plan, duration, membershipId, isRenewal = false, isExistingCustomerPurchase = false, formData = {} }) {
+async function initiatePayment({ user, plan, duration, membershipId, isRenewal = false, isExistingCustomerPurchase = false, formData = {}, queueAfterCurrent = false }) {
   try {
     const baseMembershipId = membershipId?.includes("-") ? membershipId.split("-")[0] : membershipId;
     const planString = `${plan}_${duration}MONTH`;
@@ -111,6 +150,10 @@ async function initiatePayment({ user, plan, duration, membershipId, isRenewal =
         isRenewal,
         isExistingCustomerPurchase,
         membershipId: baseMembershipId,
+        // Tells the backend not to activate this plan immediately — it should
+        // be created with status "UPCOMING" and auto-activate once the
+        // member's currently running plan reaches its endDate.
+        startAfterCurrentPlanEnds: queueAfterCurrent,
       }),
     });
     const data = await res.json();
@@ -133,15 +176,15 @@ function UpgradePlanCard({ plan, membershipId, user, formData, isSubscriptionAct
   const [upgradeDur, setUpgradeDur] = useState("3");
   const [showTransitionModal, setShowTransitionModal] = useState(false);
 
-  const handleUpgradePayment = () => {
-    initiatePayment({ user, plan: plan.name, duration: upgradeDur, membershipId, isRenewal: false, isExistingCustomerPurchase: true, formData });
+  const handleUpgradePayment = (queueAfterCurrent = false) => {
+    initiatePayment({ user, plan: plan.name, duration: upgradeDur, membershipId, isRenewal: false, isExistingCustomerPurchase: true, formData, queueAfterCurrent });
   };
 
   const handleContinueClick = () => {
     if (isSubscriptionActive) {
       setShowTransitionModal(true);
     } else {
-      handleUpgradePayment();
+      handleUpgradePayment(false);
     }
   };
 
@@ -252,7 +295,7 @@ function UpgradePlanCard({ plan, membershipId, user, formData, isSubscriptionAct
               </p>
               <button
                 style={{ width: "100%", padding: ".7rem", background: DARK, color: CREAM, border: "none", fontSize: ".78rem", fontWeight: 400, cursor: "pointer", letterSpacing: "0.15em", textTransform: "uppercase" }}
-                onClick={() => { setShowTransitionModal(false); handleUpgradePayment(); }}
+                onClick={() => { setShowTransitionModal(false); handleUpgradePayment(true); }}
               >
                 Continue with this plan
               </button>
@@ -266,7 +309,7 @@ function UpgradePlanCard({ plan, membershipId, user, formData, isSubscriptionAct
               </p>
               <button
                 style={{ width: "100%", padding: ".7rem", background: "transparent", color: INK, border: `1px solid ${INK}`, fontSize: ".78rem", cursor: "pointer", letterSpacing: "0.15em", textTransform: "uppercase" }}
-                onClick={() => { setShowTransitionModal(false); window.location.href = "/signup"; }}
+                onClick={() => { setShowTransitionModal(false); window.location.href = "/subscription"; }}
               >
                 Create New Account
               </button>
@@ -283,6 +326,7 @@ export default function Dashboard1() {
   const [activeTab, setActiveTab]       = useState("schedule");
   const [order, setOrder]               = useState(null);
   const [orders, setOrders]             = useState([]);
+  const [upcomingOrder, setUpcomingOrder] = useState(null);
   const [loading, setLoading]           = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -336,7 +380,10 @@ export default function Dashboard1() {
         const res  = await fetch(`https://api.ryviveroots.com/api/user/orders?membershipId=${membershipId}`);
         const data = await res.json();
         if (data.success && data.orders.length > 0) {
-          setOrder(data.orders[0]);
+          const active   = getActiveOrder(data.orders);
+          const upcoming = getUpcomingOrder(data.orders, active);
+          setOrder(active || data.orders[0]);
+          setUpcomingOrder(upcoming);
           setOrders(data.orders);
         }
       } catch (err) {
@@ -777,6 +824,7 @@ const statusColor = statusColors[finalStatus] || "#666";
     { id: "info",          icon: User,          label: "My Information" },
     { id: "subscription",  icon: Package,        label: "My Subscription" },
     { id: "schedule",      icon: Calendar,       label: "My Daily Schedule" },
+    ...(upcomingOrder ? [{ id: "upcoming", icon: Clock, label: "Upcoming Plan" }] : []),
     { id: "history",       icon: Receipt,        label: "Purchase History" },
     { id: "upgrade",       icon: TrendingUp,     label: "Explore More Plans" },
     { id: "support",       icon: MessageCircle,  label: "Support & Tickets" },
@@ -1161,6 +1209,18 @@ const statusColor = statusColors[finalStatus] || "#666";
                 <h2 className="font-serif mb-1" style={{ fontSize: "clamp(24px,3vw,34px)", color: INK, fontWeight: 300 }}>My Subscription</h2>
                 <p style={{ fontSize: "13px", color: "rgba(42,37,32,0.6)", marginBottom: "2rem" }}>Manage your package, pauses, and delivery preferences</p>
 
+                {upcomingOrder && (
+                  <div className="flex items-center justify-between gap-4 flex-wrap px-5 py-4 mb-6" style={{ background: "rgba(139,149,121,0.1)", border: `1px solid rgba(139,149,121,0.2)` }}>
+                    <div className="flex items-center gap-3">
+                      <Clock size={16} color={SAGE_DARK} />
+                      <p style={{ margin: 0, fontSize: ".85rem", color: SAGE_DARK }}>
+                        RYVIVE {upcomingOrder.subscription.plan.split("_")[0]} is queued and will begin automatically on {formatDate(subscription.endDate)}, right after this plan ends.
+                      </p>
+                    </div>
+                    <button style={{ ...btnOutline, padding: ".4rem 1rem", fontSize: ".76rem" }} onClick={() => setActiveTab("upcoming")}>View Details</button>
+                  </div>
+                )}
+
                 {/* Hero card */}
                 <div className="mb-6 px-8 py-7" style={{ background: DARK }}>
                   <div className="flex justify-between items-start flex-wrap gap-4 mb-5">
@@ -1424,6 +1484,65 @@ const statusColor = statusColors[finalStatus] || "#666";
             })()}
 
             {/* ══════════════════════════════════════════════════════════════ */}
+            {/* ── UPCOMING PLAN (queued via "Continue with this plan") ──── */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {activeTab === "upcoming" && upcomingOrder && (() => {
+              const uSub      = upcomingOrder.subscription;
+              const uPlan     = uSub.plan.split("_")[0].toUpperCase();
+              const uDuration = uSub.durationMonths || 1;
+              const uPrice    = RENEWAL_PRICING[uPlan]?.[String(uDuration)]?.final;
+              return (
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                  <div style={labelStyle} className="mb-2">— Queued</div>
+                  <h2 className="font-serif mb-1" style={{ fontSize: "clamp(24px,3vw,34px)", color: INK, fontWeight: 300 }}>Upcoming Plan</h2>
+                  <p style={{ fontSize: "13px", color: "rgba(42,37,32,0.6)", marginBottom: "2rem" }}>
+                    This plan is confirmed and will take over automatically — no action needed.
+                  </p>
+
+                  <div className="mb-6 px-8 py-7" style={{ background: DARK }}>
+                    <div className="flex justify-between items-start flex-wrap gap-4">
+                      <div>
+                        <div className="flex items-center gap-3 mb-2">
+                          <Package size={20} color={GOLD} strokeWidth={1.5} />
+                          <h3 className="font-serif" style={{ margin: 0, color: CREAM, fontSize: "1.2rem", fontWeight: 300 }}>
+                            RYVIVE {uPlan} · {uDuration}-Month Plan
+                          </h3>
+                        </div>
+                        <p style={{ margin: "0 0 .4rem 0", color: "rgba(244,239,230,0.65)", fontSize: ".85rem" }}>
+                          Begins {formatDate(subscription.endDate)}
+                        </p>
+                        <span style={{ color: GOLD, fontWeight: 600, fontSize: ".88rem", letterSpacing: "0.08em" }}>
+                          Status: <span style={{ color: "#c8860f", filter: "brightness(1.5)" }}>QUEUED</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="dash-card" style={{ ...card, padding: "1.75rem" }}>
+                    <div style={labelStyle} className="mb-5">— Plan Details</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: "1rem" }}>
+                      {[
+                        ["Package",       `RYVIVE ${uPlan}`],
+                        ["Duration",      `${uDuration} Month${uDuration > 1 ? "s" : ""}`],
+                        ["Activates On",  formatDate(subscription.endDate)],
+                        ["Amount Paid",   uPrice ? `₹${uPrice.toLocaleString()}` : "-"],
+                      ].map(([label, val]) => (
+                        <div key={label} className="px-4 py-4" style={{ background: CREAM_2, border: `1px solid ${CARD_BORDER}` }}>
+                          <p style={{ margin: "0 0 .3rem 0", ...labelStyle, color: "rgba(42,37,32,0.5)" }}>{label}</p>
+                          <p className="font-serif" style={{ margin: 0, color: INK, fontSize: "1rem", fontWeight: 300 }}>{val}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 px-5 py-4" style={{ background: "rgba(139,149,121,0.1)", border: `1px solid rgba(139,149,121,0.2)`, fontSize: ".85rem", color: SAGE_DARK }}>
+                    <CheckCircle size={16} color={SAGE_DARK} /> Your current RYVIVE {basePlan} plan continues uninterrupted until {formatDate(subscription.endDate)}. Once it ends, this plan activates automatically and will appear under "My Subscription" and "My Daily Schedule."
+                  </div>
+                </motion.div>
+              );
+            })()}
+
+            {/* ══════════════════════════════════════════════════════════════ */}
             {/* ── PURCHASE HISTORY ──────────────────────────────────────── */}
             {/* ══════════════════════════════════════════════════════════════ */}
             {activeTab === "history" && (
@@ -1486,7 +1605,11 @@ const statusColor = statusColors[finalStatus] || "#666";
                     <p style={{ margin: "0 0 .2rem 0", ...labelStyle }}>Current Plan</p>
                     <p className="font-serif" style={{ margin: 0, color: INK, fontSize: "1.2rem", fontWeight: 300 }}>RYVIVE {basePlan} · {durationMonths}-Month</p>
                   </div>
-                  {isSubscriptionActive && (
+                  {upcomingOrder ? (
+                    <div className="flex items-center gap-3 px-5 py-4 mb-6" style={{ background: "rgba(139,149,121,0.1)", border: `1px solid rgba(139,149,121,0.2)`, fontSize: ".85rem", color: SAGE_DARK }}>
+                      <Clock size={16} color={SAGE_DARK} /> RYVIVE {upcomingOrder.subscription.plan.split("_")[0]} is already queued to begin on {formatDate(subscription.endDate)}. See the "Upcoming Plan" tab for details.
+                    </div>
+                  ) : isSubscriptionActive && (
                     <div className="flex items-center gap-3 px-5 py-4 mb-6" style={{ background: "#fff8e5", border: `1px solid rgba(212,175,55,0.3)`, fontSize: ".85rem", color: "#8b6914" }}>
                       <Clock size={16} color={GOLD} /> You have an ongoing plan until {formatDate(subscription.endDate)}. Selecting a new plan below will let you choose to start it after your current plan ends, or begin immediately on a separate account.
                     </div>

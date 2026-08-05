@@ -443,6 +443,159 @@ Dombivli East, Maharashtra 421201, India
         return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
       }
 
+      // =====================================================
+      // 🆕 QUEUE THE NEW PLAN TO START AFTER THE CURRENT ONE ENDS
+      // ("Continue with this plan" option in the ongoing-plan modal)
+      //
+      // Creates a SEPARATE Order document with status "UPCOMING" and
+      // activationAt pinned to the current plan's endDate (or 48h from
+      // now, whichever is later — keeps the same logistics buffer used
+      // everywhere else). The current order is left completely
+      // untouched so it keeps running normally until it naturally ends.
+      // A cron job (cron/activateQueuedPlans.js) later flips this
+      // UPCOMING order to ACTIVE once activationAt arrives.
+      // =====================================================
+      if (tempPayment.startAfterCurrentPlanEnds) {
+        // Only one queued plan allowed at a time — supersede any earlier one
+        const staleQueued = await Order.find({
+          membershipId: existingUser.membershipId,
+          "subscription.status": "UPCOMING",
+        });
+        for (const stale of staleQueued) {
+          stale.subscription.status = "CANCELLED";
+          await stale.save();
+        }
+
+        const receiptNumber = await generateReceiptNumber(Order, tempPayment.amount);
+
+        const minActivation = new Date(Date.now() + 48 * 60 * 60 * 1000);
+        const currentEndDate = existingOrder.subscription.endDate
+          ? new Date(existingOrder.subscription.endDate)
+          : null;
+        const activationAt =
+          currentEndDate && currentEndDate > minActivation ? currentEndDate : minActivation;
+        const startDate = new Date(activationAt);
+        const endDate = addMealDays(startDate, selectedPlan.durationDays);
+
+        const existingOrderObj = existingOrder.toObject();
+
+        const queuedOrder = new Order({
+          membershipId: existingUser.membershipId,
+          receiptNumber,
+          user: existingOrderObj.user,
+          address: existingOrderObj.address,
+          deliverySlot: existingOrder.deliverySlot,
+          queuedFromOrderId: existingOrder._id,
+          subscription: {
+            plan: exactPlan,
+            amount: tempPayment.amount,
+            originalAmount: tempPayment.amount,
+            durationMonths: selectedPlan.durationMonths,
+            activationAt,
+            startDate,
+            endDate,
+            pause: { used: 0, history: [] },
+            status: "UPCOMING",
+          },
+          paymentStatus: "PAID",
+          paymentMethod: "ONLINE",
+          paymentDetails: {
+            gateway: "EASEBUZZ",
+            txnid,
+            easepayid,
+          },
+        });
+
+        await queuedOrder.save();
+
+        existingOrder.subscription.supersededByOrderId = queuedOrder._id;
+        await existingOrder.save();
+
+        const invoicePath = await generateInvoice(queuedOrder);
+        queuedOrder.invoiceUrl = invoicePath;
+        await queuedOrder.save();
+
+        const formattedPlan = `RYVIVE ${exactPlan.split("_")[0]}`;
+        const activationDateStr = activationAt.toLocaleDateString("en-IN");
+
+        // ✅ CUSTOMER EMAIL — confirms the plan is queued, not yet live
+        await sendEmail({
+          to: existingUser.email,
+          subject: "Your Next RYVIVE Plan Is Confirmed 🌿",
+          html: `
+<div style="font-family: Arial, sans-serif; line-height: 1.6;">
+  <h2>Hi ${existingUser.firstName},</h2>
+  <p>
+    Thank you! Your payment for <b>${formattedPlan}</b> has gone through successfully.
+    Your current plan continues without interruption, and this new plan will
+    automatically begin on <b>${activationDateStr}</b>, right after your current
+    plan is completed.
+  </p>
+  <table style="font-size:15px; margin-bottom:10px;">
+    <tr><td><b>Receipt Number</b></td><td>: ${receiptNumber}</td></tr>
+    <tr><td><b>Plan</b></td><td>: ${formattedPlan}</td></tr>
+    <tr><td><b>Amount Paid</b></td><td>: ₹${tempPayment.amount}</td></tr>
+    <tr><td><b>Starts On</b></td><td>: ${activationDateStr}</td></tr>
+  </table>
+  <p>No action is needed from you — we'll take care of the transition automatically.</p>
+  <p>
+    Questions? Reach us anytime at <b>customersupport@ryviveroots.com</b>.
+  </p>
+  <p>Warmly,<br/><b>Team Ryvive Roots</b></p>
+</div>
+`,
+          attachments: [
+            {
+              filename: `invoice-${receiptNumber}.pdf`,
+              path: invoicePath,
+            },
+          ],
+        });
+
+        // ✅ COMPANY EMAIL
+        await sendEmail({
+          to: process.env.COMPANY_EMAIL,
+          subject: `📅 Plan Queued (Starts After Current Ends) - ${existingUser.membershipId}`,
+          html: `
+<h2>Customer Queued a New Plan</h2>
+<ul>
+  <li><b>Name:</b> ${existingUser.firstName} ${existingUser.lastName}</li>
+  <li><b>Email:</b> ${existingUser.email}</li>
+  <li><b>Phone:</b> ${existingUser.phone}</li>
+  <li><b>New Plan:</b> ${formattedPlan}</li>
+  <li><b>Amount:</b> ₹${tempPayment.amount}</li>
+  <li><b>Current Plan Ends / New Plan Activates:</b> ${activationDateStr}</li>
+  <li><b>Receipt No:</b> ${receiptNumber}</li>
+  <li><b>Membership ID:</b> ${existingUser.membershipId}</li>
+</ul>
+`,
+          attachments: [
+            {
+              filename: `invoice-${receiptNumber}.pdf`,
+              path: invoicePath,
+            },
+          ],
+        });
+
+        tempPayment.status = "SUCCESS";
+        await tempPayment.save();
+
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/payment-success?membershipId=${existingUser.membershipId}&queued=true`
+        );
+      }
+
+      // =====================================================
+      // EXISTING BEHAVIOUR — immediate plan switch (unchanged below)
+      // =====================================================
+
+      // Supersede any queued plan the member had — an immediate switch
+      // replaces whatever was queued next.
+      await Order.updateMany(
+        { membershipId: existingUser.membershipId, "subscription.status": "UPCOMING" },
+        { $set: { "subscription.status": "CANCELLED" } }
+      );
+
       const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
       const startDate = new Date(activationAt);
 
