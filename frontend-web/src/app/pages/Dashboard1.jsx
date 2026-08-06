@@ -1425,54 +1425,58 @@ const statusColor = statusColors[finalStatus] || "#666";
                         const beforeStart    = currentDate < activationDate;
                         const afterEnd       = currentDate > endDate;
 
-                        if (afterEnd && !isCurrentMonth) {
-                          return <div key={index} style={{ minHeight: 100, borderRight: `1px solid ${CARD_BORDER}`, borderBottom: `1px solid ${CARD_BORDER}`, background: CREAM_2 }} />;
-                        }
+                       const diffDays   = Math.floor((currentDate.getTime() - activationDate.getTime()) / 86400000);
+const wkNum      = Math.floor(diffDays / 7) + 1;
+const menu       = WEEKLY_MENU[basePlan]?.[(((wkNum - 1) % 4) + 1)] || {};
+const dayName    = DAY_NAMES[currentDate.getDay()];
+const meal       = !beforeStart && !afterEnd && !isSunday ? menu[dayName] : null;
 
-                        const diffDays   = Math.floor((currentDate.getTime() - activationDate.getTime()) / 86400000);
-                        const wkNum      = Math.floor(diffDays / 7) + 1;
-                        const menu       = WEEKLY_MENU[basePlan]?.[(((wkNum - 1) % 4) + 1)] || {};
-                        const dayName    = DAY_NAMES[currentDate.getDay()];
-                        const meal       = !beforeStart && !afterEnd && !isSunday ? menu[dayName] : null;
+// NEW — is this specific day inside a pause window?
+const isPaused = !beforeStart && !afterEnd && isPausedDate(currentDate, subscription.pause?.history);
 
-                        return (
-                          <div key={index} style={{
-                            minHeight: 108, padding: "10px 8px 8px",
-                            borderRight: `1px solid ${CARD_BORDER}`, borderBottom: `1px solid ${CARD_BORDER}`,
-                            display: "flex", flexDirection: "column", gap: 6,
-                            background: isToday ? "rgba(139,149,121,0.08)" : afterEnd ? CREAM_2 : "transparent",
-                            opacity: beforeStart ? 0.18 : !isCurrentMonth ? 0.38 : afterEnd ? 0.45 : 1,
-                            pointerEvents: beforeStart ? "none" : "auto",
-                          }}>
-                            <div style={{ width: 24, height: 24, borderRadius: "50%", background: isToday ? DARK : "transparent", color: isToday ? CREAM : isCurrentMonth ? INK : "rgba(42,37,32,0.35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.78rem", fontWeight: isToday ? 500 : 400, flexShrink: 0 }}>
-                              {currentDate.getDate()}
-                            </div>
-                            {!beforeStart && !afterEnd && isSunday ? (
-                              <div style={{ fontSize: "0.62rem", color: "rgba(42,37,32,0.38)", fontStyle: "italic", textAlign: "center", marginTop: 3 }}>Rest day</div>
-                            ) : (
-                              <>
-                                {meal && (
-                                  <div style={{ fontSize: "0.63rem", color: isToday ? INK : isCurrentMonth ? "rgba(42,37,32,0.65)" : "rgba(42,37,32,0.32)", lineHeight: 1.45, flex: 1 }}>
-                                    {meal}
-                                  </div>
-                                )}
-                                {!beforeStart && !afterEnd && (
-                                  <div>
-                                    {isPast   && <span style={{ display: "inline-flex", alignItems: "center", gap: 2, background: "rgba(139,149,121,0.15)", color: SAGE_DARK, padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em" }}>Done</span>}
-                                    {isToday  && <span style={{ display: "inline-flex", alignItems: "center", background: `rgba(212,175,55,0.18)`, color: "#854F0B", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em" }}>Today</span>}
-                                    {isFuture && <span style={{ display: "inline-flex", alignItems: "center", background: CREAM_2, color: "rgba(42,37,32,0.45)", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em", border: `1px solid ${CARD_BORDER}` }}>Upcoming</span>}
-                                  </div>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        );
+return (
+  <div key={index} style={{
+    minHeight: 108, padding: "10px 8px 8px",
+    borderRight: `1px solid ${CARD_BORDER}`, borderBottom: `1px solid ${CARD_BORDER}`,
+    display: "flex", flexDirection: "column", gap: 6,
+    background: isPaused ? "rgba(212,175,55,0.08)" : isToday ? "rgba(139,149,121,0.08)" : afterEnd ? CREAM_2 : "transparent",
+    opacity: beforeStart ? 0.18 : !isCurrentMonth ? 0.38 : afterEnd ? 0.45 : 1,
+    pointerEvents: beforeStart ? "none" : "auto",
+  }}>
+    <div style={{ width: 24, height: 24, borderRadius: "50%", background: isToday ? DARK : "transparent", color: isToday ? CREAM : isCurrentMonth ? INK : "rgba(42,37,32,0.35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.78rem", fontWeight: isToday ? 500 : 400, flexShrink: 0 }}>
+      {currentDate.getDate()}
+    </div>
+
+    {isPaused ? (
+      <div style={{ fontSize: "0.62rem", color: "#8b6914", fontWeight: 600, textAlign: "center", marginTop: 3, display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
+        <Pause size={9} /> Paused
+      </div>
+    ) : !beforeStart && !afterEnd && isSunday ? (
+      <div style={{ fontSize: "0.62rem", color: "rgba(42,37,32,0.38)", fontStyle: "italic", textAlign: "center", marginTop: 3 }}>Rest day</div>
+    ) : (
+      <>
+        {meal && (
+          <div style={{ fontSize: "0.63rem", color: isToday ? INK : isCurrentMonth ? "rgba(42,37,32,0.65)" : "rgba(42,37,32,0.32)", lineHeight: 1.45, flex: 1 }}>
+            {meal}
+          </div>
+        )}
+        {!beforeStart && !afterEnd && (
+          <div>
+            {isPast   && <span style={{ display: "inline-flex", alignItems: "center", gap: 2, background: "rgba(139,149,121,0.15)", color: SAGE_DARK, padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em" }}>Done</span>}
+            {isToday  && <span style={{ display: "inline-flex", alignItems: "center", background: `rgba(212,175,55,0.18)`, color: "#854F0B", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em" }}>Today</span>}
+            {isFuture && <span style={{ display: "inline-flex", alignItems: "center", background: CREAM_2, color: "rgba(42,37,32,0.45)", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em", border: `1px solid ${CARD_BORDER}` }}>Upcoming</span>}
+          </div>
+        )}
+      </>
+    )}
+  </div>
+);
                       })}
                     </div>
 
                     {/* Legend */}
                     <div className="flex gap-5 flex-wrap px-6 py-4" style={{ borderTop: `1px solid ${CARD_BORDER}` }}>
-                      {[{ color: DARK, label: "Today" }, { color: SAGE_DARK, label: "Done" }, { color: "#854F0B", label: "Current" }, { color: CARD_BORDER, label: "Upcoming" }].map(({ color, label }) => (
+                      {[{ color: DARK, label: "Today" }, { color: "#c8860f", label: "Paused" }, { color: SAGE_DARK, label: "Done" }, { color: "#854F0B", label: "Current" }, { color: CARD_BORDER, label: "Upcoming" }].map(({ color, label }) => (
                         <div key={label} className="flex items-center gap-2" style={{ fontSize: "11px", color: "rgba(42,37,32,0.55)", letterSpacing: "0.1em" }}>
                           <div style={{ width: 7, height: 7, borderRadius: "50%", background: color }} /> {label}
                         </div>
