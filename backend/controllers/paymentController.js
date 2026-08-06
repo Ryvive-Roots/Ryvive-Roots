@@ -2,6 +2,7 @@ import crypto from "crypto";
 import axios from "axios";
 import TempPayment from "../models/TempPayment.js";
 import { PLANS } from "../utils/planConfig.js";
+import { easebuzzSuccess } from "../controllers/orderController.js";
 
 /**
  * STEP 1️⃣ — INITIATE EASEBUZZ PAYMENT
@@ -214,31 +215,9 @@ if (dbAmount === undefined)
  */
 export const easebuzzPaymentSuccess = async (req, res) => {
   try {
-   const url = `${process.env.BACKEND_URL}/api/orders/easebuzz-success`;
-
-console.log("BACKEND_URL:", process.env.BACKEND_URL);
-console.log("Forward URL:", url);
-
-const response = await axios.post(
-  url,
-  req.body,
-  {
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    timeout: 60000,
-  }
-);
-
-    return res.redirect(response.request.res.responseUrl);
+    return await easebuzzSuccess(req, res);
   } catch (error) {
-  console.error("Forward Error:", {
-  message: error.message,
-  code: error.code,
-  status: error.response?.status,
-  data: error.response?.data,
-  url: error.config?.url,
-});
+    console.error("Easebuzz payment success error:", error);
     return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
   }
 };
