@@ -214,17 +214,31 @@ if (dbAmount === undefined)
  */
 export const easebuzzPaymentSuccess = async (req, res) => {
   try {
-    const response = await axios.post(
-      `${process.env.BACKEND_URL}/api/orders/easebuzz-success`,
-      req.body,
-      {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      }
-    );
+   const url = `${process.env.BACKEND_URL}/api/orders/easebuzz-success`;
+
+console.log("BACKEND_URL:", process.env.BACKEND_URL);
+console.log("Forward URL:", url);
+
+const response = await axios.post(
+  url,
+  req.body,
+  {
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    timeout: 60000,
+  }
+);
 
     return res.redirect(response.request.res.responseUrl);
   } catch (error) {
-    console.error("Easebuzz payment success forward error:", error);
+  console.error("Forward Error:", {
+  message: error.message,
+  code: error.code,
+  status: error.response?.status,
+  data: error.response?.data,
+  url: error.config?.url,
+});
     return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
   }
 };
