@@ -167,37 +167,9 @@ export const easebuzzSuccess = async (req, res) => {
         return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
       }
 
+      // DO NOT extend endDate immediately
+
       const activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-
-      // =====================================================
-      // ✅ FIX — actually extend startDate/endDate on renewal.
-      // Same "extend from whichever is later" logic used by the
-      // plan-switch branch below, so a renewal made while days are
-      // still remaining doesn't clip the customer's remaining meals,
-      // and a renewal made after expiry starts fresh from activationAt.
-      // =====================================================
-      const oldEndDate = existingOrder.subscription.endDate;
-      const baseEndDate = oldEndDate ? new Date(oldEndDate) : new Date(activationAt);
-      const extendFrom = baseEndDate > activationAt ? baseEndDate : activationAt;
-
-      // Renewal duration comes from tempPayment (1 or 3 months) — convert
-      // to the compulsory meal-day count the same way selectedPlan does.
-      const renewalDurationDays = monthsToPlanDays(tempPayment.durationMonths);
-      const newEndDate = addMealDays(extendFrom, renewalDurationDays);
-
-      // 📝 Snapshot the OLD cycle into renewalHistory before overwriting —
-      // keeps a record of every renewal, same shape used elsewhere.
-      existingOrder.subscription.renewalHistory = existingOrder.subscription.renewalHistory || [];
-      existingOrder.subscription.renewalHistory.push({
-        date: new Date(),
-        plan: existingOrder.subscription.plan,
-        durationMonths: existingOrder.subscription.durationMonths,
-        amount: existingOrder.subscription.amount,
-        paymentMethod: existingOrder.paymentMethod || "ONLINE",
-        startDate: existingOrder.subscription.startDate,
-        activationAt: existingOrder.subscription.activationAt,
-        endDate: oldEndDate,
-      });
 
       existingOrder.subscription.renewal = {
         pending: true,
@@ -208,16 +180,7 @@ export const easebuzzSuccess = async (req, res) => {
       existingOrder.subscription.durationMonths = tempPayment.durationMonths;
 
       existingOrder.subscription.activationAt = activationAt;
-      // Only reset startDate if the plan had already fully expired;
-      // otherwise keep the original startDate so "days completed" math
-      // (which counts from startDate) isn't reset mid-cycle.
-      if (!(baseEndDate > activationAt)) {
-        existingOrder.subscription.startDate = activationAt;
-      }
-      existingOrder.subscription.endDate = newEndDate;
       existingOrder.subscription.status = "UNDER_PROCESS";
-      existingOrder.subscription.renewedAt = new Date();
-      existingOrder.subscription.renewalTriggeredBy = "CUSTOMER_ONLINE";
 
       await existingOrder.save();
 
@@ -296,10 +259,6 @@ export const easebuzzSuccess = async (req, res) => {
     <tr>
       <td style="padding: 6px 10px;"><b>Payment Date</b></td>
       <td style="padding: 6px 10px;">: ${new Date().toLocaleDateString("en-IN")}</td>
-    </tr>
-    <tr>
-      <td style="padding: 6px 10px;"><b>New Expiry</b></td>
-      <td style="padding: 6px 10px;">: ${newEndDate.toLocaleDateString("en-IN")}</td>
     </tr>
   </table>
 
@@ -421,10 +380,10 @@ Dombivli East, Maharashtra 421201, India
         ],
       });
 
-      // ✅ FIX — no longer recomputed with addPlanDays (which skipped
-      // no days and would disagree with the real addMealDays-based
-      // endDate saved above). Just report the real, already-saved value.
-      const previewEnd = newEndDate;
+      const previewEnd = addPlanDays(
+        existingOrder.subscription.endDate,
+        monthsToPlanDays(tempPayment.durationMonths)
+      );
 
       // ✅ Renewal Email to Company
       await sendEmail({
