@@ -1,16 +1,31 @@
-const generateMembershipId = async (Model, amount, userId) => {
-  // ✅ Step 1: Check if this customer already has a membership ID (renewal / new plan)
-  const existingOrder = await Model.findOne({
-    userId,
-    membershipId: { $exists: true, $ne: null },
-  }).sort({ createdAt: 1 }); // earliest one = original parent ID
-
-  if (existingOrder) {
-    // ✅ Reuse the SAME parent membershipId for renewals / additional plans
-    return existingOrder.membershipId;
-  }
-
-  // ✅ Step 2: First-time customer -> generate a new membershipId
+/**
+ * Generates a new sequential membershipId for a brand-new customer.
+ *
+ * NOTE: This function no longer tries to "reuse" an existing membershipId.
+ * That logic (Step 1, removed) relied on a `userId` field that does not
+ * exist on the User/Order/TempPayment schemas, and with no userId ever
+ * passed by the caller, it was matching against `userId: undefined` and
+ * silently returning the OLDEST user in the entire database as if they
+ * were the current new customer. That caused every new signup to collide
+ * with the same stale membershipId, which sent the retry loop in
+ * easebuzzSuccess into an infinite loop -> request never resolves ->
+ * nginx 504 Gateway Timeout.
+ *
+ * The caller (easebuzzSuccess) already checks whether the customer exists
+ * BEFORE calling this function:
+ *
+ *   if (user) {
+ *     membershipId = user.membershipId;               // existing customer
+ *   } else {
+ *     membershipId = await generateMembershipId(User, tempPayment.amount); // new customer
+ *   }
+ *
+ * So this function only ever needs to handle the "generate a fresh ID"
+ * case. If you ever need "reuse this specific person's ID" logic again,
+ * do it in the caller using a real, indexed field (e.g. look up by
+ * phone/email first, like easebuzzSuccess already does) — not here.
+ */
+const generateMembershipId = async (Model, amount) => {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
