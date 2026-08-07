@@ -13,6 +13,10 @@ import Dashboard from './pages/Dashboard';
 import Dashboard1 from './pages/Dashboard1';
 import SubscriptionCheckout from './pages/SubscriptionCheckout';
 import Dash from "./pages/Dash";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsAndConditions from "./pages/Terms&Conditions";
+import CancellationRefundPolicy from "./pages/Cancellation";
+import ShippingDeliveryPolicy from "./pages/Shipping";
 export const router = createBrowserRouter([
     {
         path: '/login',
@@ -32,6 +36,10 @@ export const router = createBrowserRouter([
             { path: 'contact', Component: Contact },
             { path: 'dashboard', Component: Dashboard1 },
             { path: '*', Component: Home },
+            { path: 'PrivacyPolicy', Component: PrivacyPolicy },
+            { path: 'TermsConditions', Component: TermsAndConditions },
+            { path: 'CancellationRefundPolicy', Component: CancellationRefundPolicy },
+             { path: 'Shipping&DeliveryPolicy', Component: ShippingDeliveryPolicy },
         ],
     },
 ]);

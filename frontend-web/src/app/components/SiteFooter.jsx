@@ -194,10 +194,10 @@ export function SiteFooter() {
               </div>
               <ul className="space-y-3">
                 {[
-                  { label: 'PRIVACY POLICY', href: '#' },
-                  { label: 'TERMS & CONDITIONS', href: '#' },
-                  { label: 'CANCELLATION & REFUND POLICY', href: '#' },
-                  { label: 'SHIPPING & DELIVERY POLICY', href: '#' },
+                  { label: 'PRIVACY POLICY', href: '/PrivacyPolicy' },
+                  { label: 'TERMS & CONDITIONS', href: '/TermsConditions' },
+                  { label: 'CANCELLATION & REFUND POLICY', href: '/CancellationRefundPolicy' },
+                  { label: 'SHIPPING & DELIVERY POLICY', href: '/Shipping&DeliveryPolicy' },
                 ].map((item) => (<li key={item.label} data-footer-nav-item>
                     <a href={item.href} className="transition-colors" style={{ color: 'rgba(244,239,230,0.85)', fontSize: '13px', letterSpacing: '0.04em', fontWeight: 500 }} onMouseEnter={(e) => (e.currentTarget.style.color = CREAM)} onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(244,239,230,0.85)')}>
                       {item.label}
