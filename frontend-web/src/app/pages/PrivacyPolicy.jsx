@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-import gsap from "gsap";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import {
@@ -18,12 +16,12 @@ const SECTIONS = [
   {
     icon: ShieldCheck,
     title: "Information We Collect",
-    body: "We may collect personal information such as name, contact details, delivery address, date of birth, subscription details, order history, and any dietary preferences or allergies you disclose to us.",
+    body: "We may collect personal information such as name, contact details, delivery address, date of birth, subscription details, order history, and any dietary preferences or allergies disclosed by the user.",
   },
   {
     icon: CreditCard,
     title: "Payment Information",
-    body: "All payments are processed securely through Easebuzz. Ryvive Roots does not store, process, or retain any card details, UPI IDs, banking credentials, or wallet information.",
+    body: "All payments are processed securely through easebuzz. Ryvive Roots does not store, process, or retain any card details, UPI IDs, banking credentials, or wallet information.",
   },
   {
     icon: Cpu,
@@ -48,7 +46,7 @@ const SECTIONS = [
   {
     icon: Cookie,
     title: "Cookies & Tracking Technologies",
-    body: "Our website may use cookies to enhance user experience and analyze traffic. You may disable cookies through your browser settings, though some features may not function properly.",
+    body: "Our website may use cookies to enhance user experience and analyze traffic. Users may disable cookies through browser settings, though some features may not function properly.",
   },
   {
     icon: UserCheck,
@@ -58,7 +56,7 @@ const SECTIONS = [
   {
     icon: Archive,
     title: "Data Retention",
-    body: "Personal data is retained only as long as necessary for service delivery, legal compliance, dispute resolution, and to send marketing communications or offers.",
+    body: "Personal data is retained only as long as necessary for service delivery, legal compliance, or dispute resolution, and to send marketing or offers.",
   },
   {
     icon: ExternalLink,
@@ -76,13 +74,6 @@ const SECTIONS = [
 
 // ─── Page ───────────────────────────────────────────────────────────────────────
 export default function PrivacyPolicy() {
-  useEffect(() => {
-    const cards = document.querySelectorAll(".policy-card");
-    if (cards && cards.length) {
-      gsap.from(cards, { y: 14, opacity: 0, stagger: 0.045, duration: 0.7, ease: "power2.out" });
-    }
-  }, []);
-
   const labelStyle = { fontSize: "10px", letterSpacing: "0.24em", textTransform: "uppercase", color: SAGE_DARK, fontWeight: 600 };
   const card = { background: CREAM, borderRadius: "4px", border: `1px solid ${CARD_BORDER}`, boxShadow: "0 1px 8px rgba(42,37,32,0.03)" };
 
