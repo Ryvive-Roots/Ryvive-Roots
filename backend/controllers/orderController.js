@@ -1298,9 +1298,7 @@ console.log("STEP 5 - Before company email");
     console.log("STEP 9 - Redirecting");
 
     // 9️⃣ Redirect to success page
-    return res.redirect(
-      `${process.env.FRONTEND_URL}/payment-success?membershipId=${membershipId}&plan=${formattedPlan}`
-    );
+   return res.redirect(`${process.env.FRONTEND_URL}/login?membershipId=${membershipId}&payment=success`);
   } catch (error) {
     console.error("Easebuzz success error:", error);
     return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);

@@ -10,6 +10,8 @@ export default function Login() {
       const [identifier, setIdentifier] = useState(""); // email or phone
       const [loading, setLoading] = useState(false);
       const [error, setError] = useState("");
+      // 🆕 shown when redirected here right after a successful payment
+      const [paymentSuccessMsg, setPaymentSuccessMsg] = useState("");
     
       const location = useLocation();
 
@@ -18,6 +20,27 @@ useEffect(() => {
     setIdentifier(location.state.identifier);
   }
 }, [location.state]);
+
+// 🆕 Read ?membershipId=...&payment=success from the URL.
+// The backend's post-payment redirect (easebuzzSuccess) now sends
+// customers straight here instead of a separate /payment-success page,
+// e.g. `${FRONTEND_URL}/login?membershipId=RR20260801&payment=success`.
+useEffect(() => {
+  const params = new URLSearchParams(location.search);
+  const midFromUrl = params.get("membershipId");
+  const paymentStatus = params.get("payment");
+
+  if (midFromUrl) {
+    setMembershipId(midFromUrl);
+    localStorage.setItem("membershipId", midFromUrl);
+  }
+
+  if (paymentStatus === "success") {
+    setPaymentSuccessMsg(
+      "Payment successful! Please sign in with your Membership ID and registered Email or Phone to view your dashboard."
+    );
+  }
+}, [location.search]);
     
     const handleLogin = async () => {
       if (!membershipId || !identifier) {
@@ -115,6 +138,23 @@ useEffect(() => {
             Sign in to manage your subscription and orders.
           </p>
         </div>
+
+        {/* 🆕 Payment success banner — only shows when redirected here right after payment */}
+        {paymentSuccessMsg && (
+          <div
+            style={{
+              background: 'rgba(139,149,121,0.12)',
+              border: `1px solid rgba(139,149,121,0.3)`,
+              color: SAGE_DARK,
+              fontSize: '12.5px',
+              lineHeight: 1.6,
+              padding: '12px 14px',
+              marginBottom: '1.75rem',
+            }}
+          >
+            {paymentSuccessMsg}
+          </div>
+        )}
 
         <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
           <div>
