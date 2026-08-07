@@ -20,6 +20,7 @@ import { welcomeEmailJob } from "./cron/welcomeEmailJob.js";
 import { activateQueuedPlansJob } from "./cron/Activatequeuedplans.js";
 import adminQueryRoutes from "./routes/Adminquery.js";  
 import deliveryLogRoutes from "./routes/deliveryLogRoutes.js";
+import ticketRoutes from "./routes/ticketRoutes.js"
 
 // App Config
 const app = express();
@@ -51,6 +52,7 @@ app.use("/api/invoice", invoiceRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 app.use("/api/admin-auth", adminAuthRoutes);
+app.use("/api/tickets", ticketRoutes);
 app.use(
   "/api/admin",
   auditRoutes

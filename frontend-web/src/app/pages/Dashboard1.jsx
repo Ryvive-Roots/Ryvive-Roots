@@ -363,6 +363,55 @@ export default function Dashboard1() {
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [selectedWeek, setSelectedWeek] = useState(1);
 
+  // ── Support tickets state (Doc3 feature) ────────────────────────────────
+  // NOTE: this state + its useEffect must live up here, ABOVE the early
+  // `if (loading) return ...` / `if (!order) return null` checks further
+  // below. Hooks must run unconditionally and in the same order on every
+  // render (Rules of Hooks) — putting them after those early returns would
+  // make them skip entirely on some renders and crash React with
+  // "Rendered fewer hooks than expected" once `order` becomes truthy.
+  const [tickets, setTickets] = useState([]);
+  const [lastTicketNumber, setLastTicketNumber] = useState("");
+
+  const fetchTickets = async () => {
+    const mid = localStorage.getItem("membershipId");
+    if (!mid) return;
+    try {
+      const res = await fetch(`https://api.ryviveroots.com/api/user/tickets?membershipId=${mid}`);
+      const data = await res.json();
+      if (data.success) setTickets(data.tickets || []);
+    } catch (err) { console.error("Fetch tickets error:", err); }
+  };
+
+  useEffect(() => { fetchTickets(); }, []);
+
+  // ── Real API support submit ───────────────────────────────────────────────
+  const handleFeedbackSubmit = async () => {
+    if (!feedbackText.trim()) { alert("Please describe your message."); return; }
+    const mid = localStorage.getItem("membershipId");
+    // FIX: when in the "Share Feedback" tab, always send type "Feedback" —
+    // feedbackType only ever holds "Query"/"Complaint" from the ticket-type
+    // selector cards, so it was previously silently mislabeling all
+    // feedback submissions as queries.
+    const ticketType = supportMode === "feedback" ? "Feedback" : feedbackType;
+    try {
+      const res = await fetch("https://api.ryviveroots.com/api/user/support", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ membershipId: mid, type: ticketType, message: feedbackText, rating: feedbackRating }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLastTicketNumber(data.ticket?.ticketNumber || "");
+        setFeedbackSubmitted(true);
+        setFeedbackText("");
+        setFeedbackRating(0);
+        fetchTickets(); // refresh the "Your Tickets" list right after submitting
+      }
+      else alert(data.message || "Submission failed.");
+    } catch (err) { console.error(err); alert("Something went wrong."); }
+  };
+
   // ── GSAP mount animations ──────────────────────────────────────────────────
   useEffect(() => {
     const cards = document.querySelectorAll(".dash-card");
@@ -742,22 +791,6 @@ const statusColor = statusColors[finalStatus] || "#666";
     } catch (err) { console.error(err); alert("Something went wrong."); }
   };
 
-  // ── Real API support submit ───────────────────────────────────────────────
-  const handleFeedbackSubmit = async () => {
-    if (!feedbackText.trim()) { alert("Please describe your message."); return; }
-    const mid = localStorage.getItem("membershipId");
-    try {
-      const res = await fetch("https://api.ryviveroots.com/api/user/support", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ membershipId: mid, type: feedbackType, message: feedbackText, rating: feedbackRating }),
-      });
-      const data = await res.json();
-      if (data.success) { setFeedbackSubmitted(true); setFeedbackText(""); setFeedbackRating(0); }
-      else alert(data.message || "Submission failed.");
-    } catch (err) { console.error(err); alert("Something went wrong."); }
-  };
-
   const unreadCount  = notifications.filter((n) => !n.read).length;
   const currentHour  = new Date().getHours();
   const canEdit      = currentHour < 17;
@@ -794,11 +827,6 @@ const statusColor = statusColors[finalStatus] || "#666";
     plan: o.subscription?.plan, amount: `₹${o.subscription?.amount?.toLocaleString() || 0}`,
     method: o.paymentMethod || "Online", status: o.subscription?.status,
   }));
-
-  const tickets = [
-    { id: "TICK001", date: "Apr 18, 2024", subject: "Meal delivery timing",  status: "Resolved"    },
-    { id: "TICK002", date: "Apr 10, 2024", subject: "Recipe customization",   status: "In Progress" },
-  ];
 
   // ── Policy sections ────────────────────────────────────────────────────────
   const policyItems = [
@@ -1680,6 +1708,12 @@ return (
                       <p style={{ fontWeight: 600, color: INK, fontSize: "1.1rem", margin: "0 0 .35rem 0" }}>
                         {supportMode === "feedback" ? "Feedback Received" : "Ticket Submitted"}
                       </p>
+                      {/* Show the real ticket number for Query/Complaint */}
+                      {lastTicketNumber && supportMode === "ticket" && (
+                        <p style={{ color: SAGE_DARK, fontWeight: 600, fontSize: ".9rem", margin: "0 0 .5rem 0" }}>
+                          Ticket ID: {lastTicketNumber}
+                        </p>
+                      )}
                       <p style={{ color: "rgba(42,37,32,0.6)", fontSize: ".88rem", margin: "0 0 1.25rem 0" }}>
                         {supportMode === "feedback" ? "Thank you — your feedback helps us improve." : "We'll get back to you within 24 hours."}
                       </p>
@@ -1746,23 +1780,28 @@ return (
                 {/* Tickets list */}
                 <div style={labelStyle} className="mb-4">— Your Tickets</div>
                 <div className="dash-card" style={{ ...card, padding: 0, overflow: "hidden" }}>
-                  {tickets.map((ticket, i) => (
-                    <div key={ticket.id} className="flex justify-between items-center px-7 py-5" style={{ borderBottom: i < tickets.length - 1 ? `1px solid ${CARD_BORDER}` : "none" }}>
-                      <div>
-                        <div className="flex items-center gap-3 mb-1 flex-wrap">
-                          <span style={{ fontWeight: 500, color: INK, fontSize: ".92rem" }}>{ticket.subject}</span>
-                          <span style={{
-                            background: ticket.status === "Resolved" ? "rgba(46,125,50,0.1)" : ticket.status === "In Progress" ? "rgba(212,175,55,0.15)" : CREAM_2,
-                            color: ticket.status === "Resolved" ? "#2e7d32" : ticket.status === "In Progress" ? "#c8860f" : "rgba(42,37,32,0.5)",
-                            padding: ".15rem .65rem", fontSize: ".72rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: ".3rem",
-                          }}>
-                            {ticket.status === "Resolved" ? <CheckCircle size={11} /> : <Clock size={11} />} {ticket.status}
-                          </span>
+                  {tickets.length === 0 ? (
+                    <p style={{ padding: "2rem", textAlign: "center", color: "rgba(42,37,32,0.5)" }}>No tickets yet.</p>
+                  ) : (
+                    tickets.map((ticket, i) => (
+                      <div key={ticket._id} className="flex justify-between items-center px-7 py-5" style={{ borderBottom: i < tickets.length - 1 ? `1px solid ${CARD_BORDER}` : "none" }}>
+                        <div>
+                          <div className="flex items-center gap-3 mb-1 flex-wrap">
+                            <span style={{ fontWeight: 500, color: INK, fontSize: ".92rem" }}>{ticket.type}</span>
+                            <span style={{
+                              background: ticket.status === "RESOLVED" || ticket.status === "CLOSED" ? "rgba(46,125,50,0.1)" : ticket.status === "IN_PROGRESS" ? "rgba(212,175,55,0.15)" : CREAM_2,
+                              color: ticket.status === "RESOLVED" || ticket.status === "CLOSED" ? "#2e7d32" : ticket.status === "IN_PROGRESS" ? "#c8860f" : "rgba(42,37,32,0.5)",
+                              padding: ".15rem .65rem", fontSize: ".72rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: ".3rem",
+                            }}>
+                              {ticket.status === "RESOLVED" || ticket.status === "CLOSED" ? <CheckCircle size={11} /> : <Clock size={11} />} {ticket.status.replace("_", " ")}
+                            </span>
+                          </div>
+                          <p style={{ margin: "0 0 .3rem 0", color: "rgba(42,37,32,0.65)", fontSize: ".85rem" }}>{ticket.message}</p>
+                          <p style={{ margin: 0, color: "rgba(42,37,32,0.5)", fontSize: ".8rem" }}>ID: {ticket.ticketNumber} · Raised {new Date(ticket.createdAt).toLocaleDateString("en-IN")}</p>
                         </div>
-                        <p style={{ margin: 0, color: "rgba(42,37,32,0.5)", fontSize: ".8rem" }}>ID: {ticket.id} · Raised {ticket.date}</p>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </motion.div>
             )}

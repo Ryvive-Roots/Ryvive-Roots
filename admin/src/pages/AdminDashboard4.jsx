@@ -786,38 +786,44 @@ const handleImpersonate = async () => {
     }
   };
 
-  const handleQueryStatusChange = async (id, newStatus) => {
-    setCustomerQueries(prev => prev.map(q => q._id === id ? { ...q, status: newStatus } : q)); // optimistic
-    try {
-      await fetch(`https://api.ryviveroots.com/api/admin/queries/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      });
-    } catch (err) {
-      console.error("Status update failed:", err);
-      fetchQueries(); // re-sync if the request failed
+ const handleQueryStatusChange = async (id, newStatus) => {
+  setCustomerQueries(prev => prev.map(q => q._id === id ? { ...q, status: newStatus } : q)); // optimistic
+  try {
+    const res = await fetch(`https://api.ryviveroots.com/api/admin/queries/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      // merge, don't replace — server response doesn't include `customer`
+      setCustomerQueries(prev => prev.map(q => q._id === id ? { ...q, ...data.query } : q));
     }
-  };
+  } catch (err) {
+    console.error("Status update failed:", err);
+    fetchQueries(); // re-sync if the request failed
+  }
+};
 
-  const handleSendQueryResponse = async (id) => {
-    const responseText = queryResponseDrafts[id];
-    if (!responseText || !responseText.trim()) return;
-    try {
-      const res = await fetch(`https://api.ryviveroots.com/api/admin/queries/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ response: responseText, status: "Resolved" }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setCustomerQueries(prev => prev.map(q => q._id === id ? data.query : q));
-        setQueryResponseDrafts(prev => ({ ...prev, [id]: "" }));
-      }
-    } catch (err) {
-      console.error("Failed to send response:", err);
+const handleSendQueryResponse = async (id) => {
+  const responseText = queryResponseDrafts[id];
+  if (!responseText || !responseText.trim()) return;
+  try {
+    const res = await fetch(`https://api.ryviveroots.com/api/admin/queries/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ response: responseText, status: "Resolved" }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      // merge, don't replace — server response doesn't include `customer`
+      setCustomerQueries(prev => prev.map(q => q._id === id ? { ...q, ...data.query } : q));
+      setQueryResponseDrafts(prev => ({ ...prev, [id]: "" }));
     }
-  };
+  } catch (err) {
+    console.error("Failed to send response:", err);
+  }
+};
 
   const handleVerifyPayment = (pending) => {
     setSelectedPending(pending);
@@ -846,6 +852,8 @@ const handleImpersonate = async () => {
       alert(error.message || "Activation failed");
     }
   };
+
+  
 
   const filteredOrders = orders.filter((order) => {
     const text = searchQuery.toLowerCase();
@@ -1189,45 +1197,92 @@ const handleImpersonate = async () => {
           )}
 
           {/* ── CUSTOMER QUERIES ── */}
-          {activeView === 'queries' && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <div style={eyebrowStyle}>— Support</div>
-                <h2 className="font-serif" style={{ ...h2Style, marginTop: '0.5rem' }}>Customer Queries &amp; Tickets</h2>
-                <p style={{ margin: '0.35rem 0 0', color: 'rgba(42,37,32,0.6)', fontSize: '0.9rem' }}>{customerQueries.filter(q => q.status === 'Open').length} open queries • {customerQueries.length} total</p>
+        {/* ── CUSTOMER QUERIES ── */}
+{activeView === 'queries' && (
+  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+    <div style={{ marginBottom: '1.5rem' }}>
+      <div style={eyebrowStyle}>— Support</div>
+      <h2 className="font-serif" style={{ ...h2Style, marginTop: '0.5rem' }}>Customer Queries &amp; Tickets</h2>
+      <p style={{ margin: '0.35rem 0 0', color: 'rgba(42,37,32,0.6)', fontSize: '0.9rem' }}>{customerQueries.filter(q => q.status === 'Open').length} open queries • {customerQueries.length} total</p>
+    </div>
+    <div style={{ display: 'grid', gap: '1rem' }}>
+      {customerQueries.length === 0 && (
+        <div style={{ ...cardStyle, padding: '3rem', textAlign: 'center' }}>
+          <p style={{ margin: 0, color: 'rgba(42,37,32,0.5)' }}>No queries yet.</p>
+        </div>
+      )}
+      {customerQueries.map(query => {
+        const typeTone = query.type === 'Complaint' ? STATUS.expired : query.type === 'Feedback' ? STATUS.active : { bg: 'rgba(107,117,96,0.12)', fg: SAGE_DARK };
+        const statTone = query.status === 'Open' ? STATUS.paused : query.status === 'In Progress' ? { bg: 'rgba(107,117,96,0.12)', fg: SAGE_DARK } : STATUS.active;
+        return (
+          <div key={query.id} style={{ ...cardStyle, padding: '1.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '1rem', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 240 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                  <h4 className="font-serif" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 400, color: INK }}>{query.subject}</h4>
+                  <span style={{ background: typeTone.bg, color: typeTone.fg, padding: '0.28rem 0.7rem', borderRadius: 3, fontSize: '0.7rem', fontWeight: 600 }}>{query.type}</span>
+                  <span style={{ background: statTone.bg, color: statTone.fg, padding: '0.28rem 0.7rem', borderRadius: 3, fontSize: '0.7rem', fontWeight: 600 }}>{query.status}</span>
+                  {query.priority === 'High' && <span style={{ background: STATUS.expired.bg, color: STATUS.expired.fg, padding: '0.28rem 0.7rem', borderRadius: 3, fontSize: '0.7rem', fontWeight: 600 }}>High Priority</span>}
+                </div>
+                <p style={{ margin: '0 0 0.5rem', fontSize: '0.88rem', color: 'rgba(42,37,32,0.6)' }}>Customer: <strong style={{ color: INK }}>{query.customer}</strong> ({query.customerId})</p>
+                <p style={{ margin: '0 0 1rem', fontSize: '0.92rem', color: 'rgba(42,37,32,0.7)', lineHeight: 1.6 }}>{query.message}</p>
+                {query.rating > 0 && (
+                  <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: '#c8860f' }}>
+                    {'★'.repeat(query.rating)}{'☆'.repeat(5 - query.rating)}
+                  </p>
+                )}
+                {query.response && (
+                  <div style={{ background: 'rgba(107,117,96,0.1)', padding: '0.75rem 1rem', borderRadius: 3, marginBottom: '1rem' }}>
+                    <p style={{ margin: '0 0 0.25rem', fontSize: '0.68rem', color: SAGE_DARK, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Response</p>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'rgba(42,37,32,0.75)', lineHeight: 1.5 }}>{query.response}</p>
+                  </div>
+                )}
+
+                {/* ── Admin controls: status + reply ── */}
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <label style={{ fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: SAGE_DARK, fontWeight: 600 }}>Status</label>
+                  <select
+                    value={query.status}
+                    onChange={e => handleQueryStatusChange(query._id, e.target.value)}
+                    style={{ ...selectStyle, width: 'auto', padding: '0.45rem 0.8rem', fontSize: '0.8rem' }}
+                  >
+                    <option value="Open">Open</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                    <option value="Closed">Closed</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <textarea
+                    value={queryResponseDrafts[query._id] || ''}
+                    onChange={e => setQueryResponseDrafts(prev => ({ ...prev, [query._id]: e.target.value }))}
+                    placeholder="Type a reply to the customer…"
+                    rows={2}
+                    style={{ ...inputStyle, flex: 1, minWidth: 220, resize: 'vertical' }}
+                  />
+                  <button
+                    onClick={() => handleSendQueryResponse(query._id)}
+                    disabled={!queryResponseDrafts[query._id]?.trim()}
+                    style={{ ...primaryBtn, alignSelf: 'flex-start', opacity: queryResponseDrafts[query._id]?.trim() ? 1 : 0.45, cursor: queryResponseDrafts[query._id]?.trim() ? 'pointer' : 'not-allowed' }}
+                  >
+                    <Send size={14} /> Reply
+                  </button>
+                </div>
               </div>
-              <div style={{ display: 'grid', gap: '1rem' }}>
-                {customerQueries.map(query => {
-                  const typeTone = query.type === 'Complaint' ? STATUS.expired : query.type === 'Feedback' ? STATUS.active : { bg: 'rgba(107,117,96,0.12)', fg: SAGE_DARK };
-                  const statTone = query.status === 'Open' ? STATUS.paused : query.status === 'In Progress' ? { bg: 'rgba(107,117,96,0.12)', fg: SAGE_DARK } : STATUS.active;
-                  return (
-                    <div key={query.id} style={{ ...cardStyle, padding: '1.75rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '1rem', flexWrap: 'wrap' }}>
-                        <div style={{ flex: 1, minWidth: 240 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-                            <h4 className="font-serif" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 400, color: INK }}>{query.subject}</h4>
-                            <span style={{ background: typeTone.bg, color: typeTone.fg, padding: '0.28rem 0.7rem', borderRadius: 3, fontSize: '0.7rem', fontWeight: 600 }}>{query.type}</span>
-                            <span style={{ background: statTone.bg, color: statTone.fg, padding: '0.28rem 0.7rem', borderRadius: 3, fontSize: '0.7rem', fontWeight: 600 }}>{query.status}</span>
-                            {query.priority === 'High' && <span style={{ background: STATUS.expired.bg, color: STATUS.expired.fg, padding: '0.28rem 0.7rem', borderRadius: 3, fontSize: '0.7rem', fontWeight: 600 }}>High Priority</span>}
-                          </div>
-                          <p style={{ margin: '0 0 0.5rem', fontSize: '0.88rem', color: 'rgba(42,37,32,0.6)' }}>Customer: <strong style={{ color: INK }}>{query.customer}</strong> ({query.customerId})</p>
-                          <p style={{ margin: '0 0 1rem', fontSize: '0.92rem', color: 'rgba(42,37,32,0.7)', lineHeight: 1.6 }}>{query.message}</p>
-                          {query.assignedTo && <div style={{ background: CREAM_2, padding: '0.65rem 1rem', borderRadius: 3, marginBottom: '0.75rem' }}><p style={{ margin: 0, fontSize: '0.82rem', color: SAGE_DARK, fontWeight: 500 }}>Assigned to: {query.assignedTo}</p></div>}
-                          {query.response && <div style={{ background: 'rgba(107,117,96,0.1)', padding: '0.75rem 1rem', borderRadius: 3 }}><p style={{ margin: '0 0 0.25rem', fontSize: '0.68rem', color: SAGE_DARK, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Response</p><p style={{ margin: 0, fontSize: '0.85rem', color: 'rgba(42,37,32,0.75)', lineHeight: 1.5 }}>{query.response}</p></div>}
-                        </div>
-                        <div style={{ textAlign: 'right', minWidth: 130 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'flex-end', marginBottom: '0.25rem' }}>
-                            <Clock size={13} color={SAGE_DARK} /><p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(42,37,32,0.65)', fontWeight: 500 }}>{query.date}</p>
-                          </div>
-                          <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(42,37,32,0.45)' }}>{query.time}</p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div style={{ textAlign: 'right', minWidth: 130 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'flex-end', marginBottom: '0.25rem' }}>
+                  <Clock size={13} color={SAGE_DARK} /><p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(42,37,32,0.65)', fontWeight: 500 }}>{query.date}</p>
+                </div>
+                <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(42,37,32,0.45)' }}>{query.time}</p>
               </div>
-            </motion.div>
-          )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </motion.div>
+)}
 
           {/* ── RENEWALS ── */}
           {activeView === 'renewals' && (
