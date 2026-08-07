@@ -914,21 +914,13 @@ Dombivli East, Maharashtra 421201, India
 
     let membershipId;
 
-    if (user) {
-      // ✅ User already exists → reuse membershipId
-      membershipId = user.membershipId;
-    } else {
-      // ❌ Create new user
-      membershipId = await generateMembershipId(User, tempPayment.amount);
-
-      // ensure unique membershipId
-      let exists = await User.findOne({ membershipId });
-
-      while (exists) {
-        membershipId = await generateMembershipId(User, tempPayment.amount);
-        exists = await User.findOne({ membershipId });
-      }
-
+   if (user) {
+  membershipId = user.membershipId;
+} else {
+  let created = false;
+  while (!created) {
+    membershipId = await generateMembershipId(User, tempPayment.amount);
+    try {
       user = await User.create({
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -936,7 +928,27 @@ Dombivli East, Maharashtra 421201, India
         phone: formData.phone,
         membershipId,
       });
+      created = true;
+    } catch (err) {
+      if (err.code === 11000 && err.keyPattern?.membershipId) {
+        console.log("Duplicate membershipId collision — retrying...");
+        // loop again with a freshly generated membershipId
+      } else if (err.code === 11000) {
+        // email/phone collision, not membershipId — re-check for existing user
+        user = await User.findOne({
+          $or: [
+            ...(formData.phone ? [{ phone: formData.phone }] : []),
+            ...(formData.email ? [{ email: formData.email }] : []),
+          ],
+        });
+        if (user) { membershipId = user.membershipId; created = true; }
+        else throw err;
+      } else {
+        throw err;
+      }
     }
+  }
+}
 
     // 4️⃣ Prevent Duplicate Order (VERY IMPORTANT)
     const existingOrder = await Order.findOne({
