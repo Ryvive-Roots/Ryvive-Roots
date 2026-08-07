@@ -96,7 +96,7 @@ export default function PrivacyPolicy() {
             className="policy-back inline-flex items-center gap-2 mb-8"
             style={{ fontSize: "11px", color: "rgba(42,37,32,0.5)", letterSpacing: "0.18em", textTransform: "uppercase" }}
           >
-            <ArrowLeft size={13} strokeWidth={1.6} /> Back to Ryvive Roots
+            <ArrowLeft size={13} strokeWidth={1.6} /> Back 
           </Link>
           <div className="tracking-[0.42em] uppercase mb-4" style={{ fontSize: "10px", color: SAGE_DARK, fontWeight: 600 }}>
             — Legal
