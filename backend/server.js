@@ -53,7 +53,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 app.use("/api/admin-auth", adminAuthRoutes);
 app.use("/api/user", ticketRoutes);      
-app.use("/api/admin", ticketAdminRoutes); 
+app.use("/api/admin/tickets", ticketAdminRoutes);
 app.use(
   "/api/admin",
   auditRoutes

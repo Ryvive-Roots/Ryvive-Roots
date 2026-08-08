@@ -197,7 +197,7 @@ export default function AdminDashboard4() {
 
   const fetchQueries = async () => {
     try {
-      const res = await fetch("https://api.ryviveroots.com/api/admin/queries");
+     const res = await fetch("https://api.ryviveroots.com/api/admin/tickets/queries");   
       const data = await res.json();
       if (data.success) setCustomerQueries(data.queries);
     } catch (err) {
@@ -789,7 +789,7 @@ const handleImpersonate = async () => {
  const handleQueryStatusChange = async (id, newStatus) => {
   setCustomerQueries(prev => prev.map(q => q._id === id ? { ...q, status: newStatus } : q)); // optimistic
   try {
-    const res = await fetch(`https://api.ryviveroots.com/api/admin/queries/${id}`, {
+   const res = await fetch(`https://api.ryviveroots.com/api/admin/tickets/queries/${id}`, {  
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus }),
@@ -809,7 +809,7 @@ const handleSendQueryResponse = async (id) => {
   const responseText = queryResponseDrafts[id];
   if (!responseText || !responseText.trim()) return;
   try {
-    const res = await fetch(`https://api.ryviveroots.com/api/admin/queries/${id}`, {
+   const res = await fetch(`https://api.ryviveroots.com/api/admin/tickets/queries/${id}`, {   
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ response: responseText, status: "Resolved" }),
