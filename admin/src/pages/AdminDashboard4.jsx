@@ -152,8 +152,11 @@ export default function AdminDashboard4() {
   const [deliveryMenuText, setDeliveryMenuText] = useState('');
   const [deliveryWeekNo, setDeliveryWeekNo] = useState('');
 
-  const [customerQueries, setCustomerQueries] = useState([]);
-  const [queryResponseDrafts, setQueryResponseDrafts] = useState({}); // { [queryId]: draft text }
+  // ── Support / Ticket state ─────────────────────────────────────────────
+const [tickets, setTickets] = useState([]);
+const [ticketReplyDrafts, setTicketReplyDrafts] = useState({});
+const [ticketLoading, setTicketLoading] = useState(false);
+const [ticketUpdating, setTicketUpdating] = useState({});
 
   // ── Lifecycle ──
   useEffect(() => {
@@ -163,7 +166,7 @@ export default function AdminDashboard4() {
     fetchPendingPayments();
     fetchAuditLogs();
     fetchPauseRequests();
-    fetchQueries();
+    fetchTickets();
   }, []);
 
   useEffect(() => { setMobileNavOpen(false); }, [activeView]);
@@ -195,15 +198,28 @@ export default function AdminDashboard4() {
     }
   };
 
-  const fetchQueries = async () => {
-    try {
-     const res = await fetch("https://api.ryviveroots.com/api/admin/tickets/queries");   
-      const data = await res.json();
-      if (data.success) setCustomerQueries(data.queries);
-    } catch (err) {
-      console.error("Failed to fetch queries", err);
+const fetchTickets = async () => {
+  try {
+    setTicketLoading(true);
+
+    const res = await fetch(
+      "https://api.ryviveroots.com/api/admin/tickets/queries"
+    );
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || "Failed to fetch tickets");
     }
-  };
+
+    setTickets(Array.isArray(data.queries) ? data.queries : []);
+  } catch (err) {
+    console.error("Failed to fetch tickets:", err);
+    setTickets([]);
+  } finally {
+    setTicketLoading(false);
+  }
+};
 
   const fetchPendingPayments = async () => {
     try {
@@ -608,7 +624,11 @@ const handleImpersonate = async () => {
   const dashboardStats = {
     totalCustomers: orders.length,
     activeSubscriptions: orders.filter(o => o.subscription?.status !== 'EXPIRED' && o.subscription?.status !== 'UNDER_PROCESS').length,
-    pendingQueries: customerQueries.filter(q => q.status === 'Open').length,
+  pendingTickets: tickets.filter(
+  ticket =>
+    ticket.status === "Open" ||
+    ticket.status === "In Progress"
+).length,
     pausedSubscriptions: orders.filter(o => getPauseStatusText(o).includes('PAUSED')).length,
     upcomingRenewals: orders.filter(o => canShowRenew(o)).length,
     pendingRenewals: orders.filter(o => o.subscription?.status === 'EXPIRED').length,
@@ -786,42 +806,133 @@ const handleImpersonate = async () => {
     }
   };
 
- const handleQueryStatusChange = async (id, newStatus) => {
-  setCustomerQueries(prev => prev.map(q => q._id === id ? { ...q, status: newStatus } : q)); // optimistic
+const handleTicketStatusChange = async (ticketId, newStatus) => {
+  const previousTickets = [...tickets];
+
+  // Optimistic update
+  setTickets(prev =>
+    prev.map(ticket =>
+      ticket._id === ticketId
+        ? { ...ticket, status: newStatus }
+        : ticket
+    )
+  );
+
+  setTicketUpdating(prev => ({
+    ...prev,
+    [ticketId]: true,
+  }));
+
   try {
-   const res = await fetch(`https://api.ryviveroots.com/api/admin/tickets/queries/${id}`, {  
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
-    });
+    const res = await fetch(
+     `https://api.ryviveroots.com/api/admin/tickets/queries/${ticketId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+        },
+        body: JSON.stringify({
+          status: newStatus,
+        }),
+      }
+    );
+
     const data = await res.json();
-    if (data.success) {
-      // merge, don't replace — server response doesn't include `customer`
-      setCustomerQueries(prev => prev.map(q => q._id === id ? { ...q, ...data.query } : q));
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || "Failed to update ticket");
+    }
+
+    // Use returned ticket if backend sends it
+    if (data.ticket) {
+      setTickets(prev =>
+        prev.map(ticket =>
+          ticket._id === ticketId
+            ? { ...ticket, ...data.ticket }
+            : ticket
+        )
+      );
     }
   } catch (err) {
-    console.error("Status update failed:", err);
-    fetchQueries(); // re-sync if the request failed
+    console.error("Ticket status update failed:", err);
+
+    // Rollback
+    setTickets(previousTickets);
+
+    alert(err.message || "Failed to update ticket");
+  } finally {
+    setTicketUpdating(prev => ({
+      ...prev,
+      [ticketId]: false,
+    }));
   }
 };
 
-const handleSendQueryResponse = async (id) => {
-  const responseText = queryResponseDrafts[id];
-  if (!responseText || !responseText.trim()) return;
+const handleSendTicketReply = async (ticketId) => {
+  const reply = ticketReplyDrafts[ticketId]?.trim();
+
+  if (!reply) {
+    alert("Please enter a reply.");
+    return;
+  }
+
+  setTicketUpdating(prev => ({
+    ...prev,
+    [ticketId]: true,
+  }));
+
   try {
-   const res = await fetch(`https://api.ryviveroots.com/api/admin/tickets/queries/${id}`, {   
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ response: responseText, status: "Resolved" }),
-    });
+    const res = await fetch(
+     `https://api.ryviveroots.com/api/admin/tickets/queries/${ticketId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+        },
+        body: JSON.stringify({
+          response: reply,
+          status: "Resolved",
+        }),
+      }
+    );
+
     const data = await res.json();
-    if (data.success) {
-      // merge, don't replace — server response doesn't include `customer`
-      setCustomerQueries(prev => prev.map(q => q._id === id ? { ...q, ...data.query } : q));
-      setQueryResponseDrafts(prev => ({ ...prev, [id]: "" }));
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || "Failed to reply to ticket");
     }
+
+    setTickets(prev =>
+      prev.map(ticket =>
+        ticket._id === ticketId
+          ? {
+              ...ticket,
+              ...(data.ticket || {}),
+              response:
+                data.ticket?.response ??
+                reply,
+              status:
+                data.ticket?.status ??
+                "Resolved",
+            }
+          : ticket
+      )
+    );
+
+    setTicketReplyDrafts(prev => ({
+      ...prev,
+      [ticketId]: "",
+    }));
   } catch (err) {
-    console.error("Failed to send response:", err);
+    console.error("Failed to send ticket reply:", err);
+    alert(err.message || "Failed to send reply");
+  } finally {
+    setTicketUpdating(prev => ({
+      ...prev,
+      [ticketId]: false,
+    }));
   }
 };
 
@@ -875,7 +986,16 @@ const handleSendQueryResponse = async (id) => {
     { id: 'delivery', icon: Truck, label: 'Daily Delivery Log' },
     { id: 'pending', icon: DollarSign, label: 'Pending Payments', badge: pendingCustomers.length },
     { id: 'pause', icon: PauseCircle, label: 'Pause Requests' },
-    { id: 'queries', icon: MessageSquare, label: 'Customer Queries' },
+  {
+  id: "queries",
+  icon: MessageSquare,
+  label: "Support Tickets",
+  badge: tickets.filter(
+    ticket =>
+      ticket.status === "Open" ||
+      ticket.status === "In Progress"
+  ).length,
+},
     { id: 'renewals', icon: Calendar, label: 'Renewals' },
     { id: 'create', icon: Plus, label: 'Create Account' },
     { id: 'audit', icon: Activity, label: 'Audit Logs' },
@@ -970,7 +1090,7 @@ const handleSendQueryResponse = async (id) => {
                 {[
                   { label: 'Total Customers', value: dashboardStats.totalCustomers, icon: Users },
                   { label: 'Active Subscriptions', value: dashboardStats.activeSubscriptions, icon: Package },
-                  { label: 'Pending Queries', value: dashboardStats.pendingQueries, icon: MessageSquare },
+                 { label: 'Pending Tickets', value: dashboardStats.pendingTickets, icon: MessageSquare },
                   { label: 'Paused Subscriptions', value: dashboardStats.pausedSubscriptions, icon: PauseCircle },
                   { label: 'Upcoming Renewals', value: dashboardStats.upcomingRenewals, icon: CalendarClock },
                   { label: 'Expired / Pending Renewals', value: dashboardStats.pendingRenewals, icon: RefreshCcw },
@@ -1196,91 +1316,607 @@ const handleSendQueryResponse = async (id) => {
             </motion.div>
           )}
 
-          {/* ── CUSTOMER QUERIES ── */}
-        {/* ── CUSTOMER QUERIES ── */}
-{activeView === 'queries' && (
-  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-    <div style={{ marginBottom: '1.5rem' }}>
+        {/* ── SUPPORT / TICKETS ── */}
+{activeView === "queries" && (
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+  >
+    <div style={{ marginBottom: "1.5rem" }}>
       <div style={eyebrowStyle}>— Support</div>
-      <h2 className="font-serif" style={{ ...h2Style, marginTop: '0.5rem' }}>Customer Queries &amp; Tickets</h2>
-      <p style={{ margin: '0.35rem 0 0', color: 'rgba(42,37,32,0.6)', fontSize: '0.9rem' }}>{customerQueries.filter(q => q.status === 'Open').length} open queries • {customerQueries.length} total</p>
+
+      <h2
+        className="font-serif"
+        style={{
+          ...h2Style,
+          marginTop: "0.5rem",
+        }}
+      >
+        Customer Support Tickets
+      </h2>
+
+      <p
+        style={{
+          margin: "0.35rem 0 0",
+          color: "rgba(42,37,32,0.6)",
+          fontSize: "0.9rem",
+        }}
+      >
+        {
+          tickets.filter(
+            ticket =>
+              ticket.status === "Open" ||
+              ticket.status === "In Progress"
+          ).length
+        }{" "}
+        open tickets • {tickets.length} total
+      </p>
     </div>
-    <div style={{ display: 'grid', gap: '1rem' }}>
-      {customerQueries.length === 0 && (
-        <div style={{ ...cardStyle, padding: '3rem', textAlign: 'center' }}>
-          <p style={{ margin: 0, color: 'rgba(42,37,32,0.5)' }}>No queries yet.</p>
-        </div>
-      )}
-      {customerQueries.map(query => {
-        const typeTone = query.type === 'Complaint' ? STATUS.expired : query.type === 'Feedback' ? STATUS.active : { bg: 'rgba(107,117,96,0.12)', fg: SAGE_DARK };
-        const statTone = query.status === 'Open' ? STATUS.paused : query.status === 'In Progress' ? { bg: 'rgba(107,117,96,0.12)', fg: SAGE_DARK } : STATUS.active;
-        return (
-          <div key={query.id} style={{ ...cardStyle, padding: '1.75rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '1rem', flexWrap: 'wrap' }}>
-              <div style={{ flex: 1, minWidth: 240 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-                  <h4 className="font-serif" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 400, color: INK }}>{query.subject}</h4>
-                  <span style={{ background: typeTone.bg, color: typeTone.fg, padding: '0.28rem 0.7rem', borderRadius: 3, fontSize: '0.7rem', fontWeight: 600 }}>{query.type}</span>
-                  <span style={{ background: statTone.bg, color: statTone.fg, padding: '0.28rem 0.7rem', borderRadius: 3, fontSize: '0.7rem', fontWeight: 600 }}>{query.status}</span>
-                  {query.priority === 'High' && <span style={{ background: STATUS.expired.bg, color: STATUS.expired.fg, padding: '0.28rem 0.7rem', borderRadius: 3, fontSize: '0.7rem', fontWeight: 600 }}>High Priority</span>}
-                </div>
-                <p style={{ margin: '0 0 0.5rem', fontSize: '0.88rem', color: 'rgba(42,37,32,0.6)' }}>Customer: <strong style={{ color: INK }}>{query.customer}</strong> ({query.customerId})</p>
-                <p style={{ margin: '0 0 1rem', fontSize: '0.92rem', color: 'rgba(42,37,32,0.7)', lineHeight: 1.6 }}>{query.message}</p>
-                {query.rating > 0 && (
-                  <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: '#c8860f' }}>
-                    {'★'.repeat(query.rating)}{'☆'.repeat(5 - query.rating)}
-                  </p>
-                )}
-                {query.response && (
-                  <div style={{ background: 'rgba(107,117,96,0.1)', padding: '0.75rem 1rem', borderRadius: 3, marginBottom: '1rem' }}>
-                    <p style={{ margin: '0 0 0.25rem', fontSize: '0.68rem', color: SAGE_DARK, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Response</p>
-                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'rgba(42,37,32,0.75)', lineHeight: 1.5 }}>{query.response}</p>
+
+    {/* Refresh */}
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "flex-end",
+        marginBottom: "1rem",
+      }}
+    >
+      <button
+        onClick={fetchTickets}
+        disabled={ticketLoading}
+        style={{
+          ...ghostBtn,
+          opacity: ticketLoading ? 0.5 : 1,
+        }}
+      >
+        <RefreshCcw size={15} />
+        {ticketLoading ? "Loading..." : "Refresh Tickets"}
+      </button>
+    </div>
+
+    {/* Loading */}
+    {ticketLoading && (
+      <div
+        style={{
+          ...cardStyle,
+          padding: "3rem",
+          textAlign: "center",
+        }}
+      >
+        <RefreshCcw
+          size={25}
+          color={SAGE_DARK}
+          style={{
+            animation: "spin 1s linear infinite",
+            marginBottom: "1rem",
+          }}
+        />
+
+        <p
+          style={{
+            margin: 0,
+            color: "rgba(42,37,32,0.5)",
+          }}
+        >
+          Loading support tickets...
+        </p>
+      </div>
+    )}
+
+    {/* Empty */}
+    {!ticketLoading && tickets.length === 0 && (
+      <div
+        style={{
+          ...cardStyle,
+          padding: "3rem",
+          textAlign: "center",
+        }}
+      >
+        <MessageSquare
+          size={35}
+          color={SAGE_DARK}
+          style={{
+            marginBottom: "1rem",
+            opacity: 0.5,
+          }}
+        />
+
+        <h3
+          className="font-serif"
+          style={{
+            margin: "0 0 0.5rem",
+            fontSize: "1.4rem",
+            fontWeight: 400,
+            color: INK,
+          }}
+        >
+          No Support Tickets
+        </h3>
+
+        <p
+          style={{
+            margin: 0,
+            color: "rgba(42,37,32,0.55)",
+          }}
+        >
+          Customer complaints and feedback will appear here.
+        </p>
+      </div>
+    )}
+
+    {/* Tickets */}
+    {!ticketLoading && tickets.length > 0 && (
+      <div
+        style={{
+          display: "grid",
+          gap: "1rem",
+        }}
+      >
+        {tickets.map(ticket => {
+          const ticketId = ticket._id;
+
+          const customerName =
+            ticket.customer?.name ||
+            ticket.customerName ||
+            `${ticket.user?.firstName || ""} ${
+              ticket.user?.lastName || ""
+            }`.trim() ||
+            "Customer";
+
+          const membershipId =
+            ticket.customer?.membershipId ||
+            ticket.membershipId ||
+            ticket.customerId ||
+            "—";
+
+          const phone =
+            ticket.customer?.phone ||
+            ticket.user?.phone ||
+            ticket.phone ||
+            "";
+
+          const subject =
+            ticket.subject ||
+            ticket.title ||
+            "Support Request";
+
+          const message =
+            ticket.message ||
+            ticket.description ||
+            ticket.query ||
+            "";
+
+          const type =
+            ticket.type ||
+            ticket.category ||
+            "Support";
+
+          const priority =
+            ticket.priority || "Normal";
+
+          const status =
+            ticket.status || "Open";
+
+          const response =
+            ticket.response ||
+            ticket.adminResponse ||
+            "";
+
+          const createdAt =
+            ticket.createdAt ||
+            ticket.date;
+
+          const statusTone =
+            status === "Open"
+              ? STATUS.paused
+              : status === "In Progress"
+              ? {
+                  bg: "rgba(107,117,96,0.12)",
+                  fg: SAGE_DARK,
+                }
+              : status === "Resolved"
+              ? STATUS.active
+              : status === "Closed"
+              ? {
+                  bg: "rgba(42,37,32,0.10)",
+                  fg: INK,
+                }
+              : STATUS.paused;
+
+          const typeTone =
+            type === "Complaint"
+              ? STATUS.expired
+              : type === "Feedback"
+              ? STATUS.active
+              : {
+                  bg: "rgba(107,117,96,0.12)",
+                  fg: SAGE_DARK,
+                };
+
+          return (
+            <div
+              key={ticketId}
+              style={{
+                ...cardStyle,
+                padding: "1.75rem",
+                borderLeft:
+                  priority === "High"
+                    ? "3px solid #9a4a3e"
+                    : `1px solid ${CARD_BORDER}`,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: "1rem",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div
+                  style={{
+                    flex: 1,
+                    minWidth: 260,
+                  }}
+                >
+                  {/* Header */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.6rem",
+                      marginBottom: "0.8rem",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <h4
+                      className="font-serif"
+                      style={{
+                        margin: 0,
+                        fontSize: "1.25rem",
+                        fontWeight: 400,
+                        color: INK,
+                      }}
+                    >
+                      {subject}
+                    </h4>
+
+                    <span
+                      style={{
+                        background: typeTone.bg,
+                        color: typeTone.fg,
+                        padding: "0.28rem 0.7rem",
+                        borderRadius: 3,
+                        fontSize: "0.7rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {type}
+                    </span>
+
+                    <span
+                      style={{
+                        background: statusTone.bg,
+                        color: statusTone.fg,
+                        padding: "0.28rem 0.7rem",
+                        borderRadius: 3,
+                        fontSize: "0.7rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {status}
+                    </span>
+
+                    {priority === "High" && (
+                      <span
+                        style={{
+                          background: STATUS.expired.bg,
+                          color: STATUS.expired.fg,
+                          padding: "0.28rem 0.7rem",
+                          borderRadius: 3,
+                          fontSize: "0.7rem",
+                          fontWeight: 600,
+                        }}
+                      >
+                        High Priority
+                      </span>
+                    )}
                   </div>
-                )}
 
-                {/* ── Admin controls: status + reply ── */}
-                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.75rem' }}>
-                  <label style={{ fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: SAGE_DARK, fontWeight: 600 }}>Status</label>
-                  <select
-                    value={query.status}
-                    onChange={e => handleQueryStatusChange(query._id, e.target.value)}
-                    style={{ ...selectStyle, width: 'auto', padding: '0.45rem 0.8rem', fontSize: '0.8rem' }}
+                  {/* Customer */}
+                  <div
+                    style={{
+                      background: CREAM_2,
+                      padding: "0.8rem 1rem",
+                      borderRadius: 3,
+                      marginBottom: "1rem",
+                    }}
                   >
-                    <option value="Open">Open</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
-                    <option value="Closed">Closed</option>
-                  </select>
+                    <p
+                      style={{
+                        margin: "0 0 0.25rem",
+                        fontSize: "0.68rem",
+                        color: SAGE_DARK,
+                        fontWeight: 700,
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Customer
+                    </p>
+
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: "0.9rem",
+                        color: INK,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {customerName}
+                    </p>
+
+                    <p
+                      style={{
+                        margin: "0.2rem 0 0",
+                        fontSize: "0.78rem",
+                        color: "rgba(42,37,32,0.55)",
+                      }}
+                    >
+                      Membership: {membershipId}
+                      {phone ? ` • ${phone}` : ""}
+                    </p>
+                  </div>
+
+                  {/* Message */}
+                  <div style={{ marginBottom: "1rem" }}>
+                    <p
+                      style={{
+                        margin: "0 0 0.35rem",
+                        fontSize: "0.68rem",
+                        color: SAGE_DARK,
+                        fontWeight: 700,
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Customer Message
+                    </p>
+
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: "0.92rem",
+                        color: "rgba(42,37,32,0.75)",
+                        lineHeight: 1.65,
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {message || "No message provided."}
+                    </p>
+                  </div>
+
+                  {/* Existing response */}
+                  {response && (
+                    <div
+                      style={{
+                        background: "rgba(107,117,96,0.10)",
+                        padding: "0.85rem 1rem",
+                        borderRadius: 3,
+                        marginBottom: "1rem",
+                        borderLeft: `3px solid ${SAGE_DARK}`,
+                      }}
+                    >
+                      <p
+                        style={{
+                          margin: "0 0 0.25rem",
+                          fontSize: "0.68rem",
+                          color: SAGE_DARK,
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.1em",
+                        }}
+                      >
+                        Admin Response
+                      </p>
+
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: "0.85rem",
+                          color: "rgba(42,37,32,0.75)",
+                          lineHeight: 1.5,
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {response}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Status */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "0.75rem",
+                      flexWrap: "wrap",
+                      alignItems: "center",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    <label style={labelStyle}>
+                      Ticket Status
+                    </label>
+
+                    <select
+                      value={status}
+                      disabled={ticketUpdating[ticketId]}
+                      onChange={e =>
+                        handleTicketStatusChange(
+                          ticketId,
+                          e.target.value
+                        )
+                      }
+                      style={{
+                        ...selectStyle,
+                        width: "auto",
+                        padding: "0.45rem 0.8rem",
+                        fontSize: "0.8rem",
+                        opacity: ticketUpdating[ticketId]
+                          ? 0.6
+                          : 1,
+                      }}
+                    >
+                      <option value="Open">
+                        Open
+                      </option>
+
+                      <option value="In Progress">
+                        In Progress
+                      </option>
+
+                      <option value="Resolved">
+                        Resolved
+                      </option>
+
+                      <option value="Closed">
+                        Closed
+                      </option>
+                    </select>
+                  </div>
+
+                  {/* Reply */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "0.5rem",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <textarea
+                      value={
+                        ticketReplyDrafts[ticketId] || ""
+                      }
+                      onChange={e =>
+                        setTicketReplyDrafts(prev => ({
+                          ...prev,
+                          [ticketId]: e.target.value,
+                        }))
+                      }
+                      placeholder="Type a reply to the customer..."
+                      rows={3}
+                      disabled={ticketUpdating[ticketId]}
+                      style={{
+                        ...inputStyle,
+                        flex: 1,
+                        minWidth: 240,
+                        resize: "vertical",
+                      }}
+                    />
+
+                    <button
+                      onClick={() =>
+                        handleSendTicketReply(ticketId)
+                      }
+                      disabled={
+                        ticketUpdating[ticketId] ||
+                        !ticketReplyDrafts[
+                          ticketId
+                        ]?.trim()
+                      }
+                      style={{
+                        ...primaryBtn,
+                        alignSelf: "flex-start",
+                        opacity:
+                          ticketUpdating[ticketId] ||
+                          !ticketReplyDrafts[
+                            ticketId
+                          ]?.trim()
+                            ? 0.45
+                            : 1,
+                        cursor:
+                          ticketUpdating[ticketId] ||
+                          !ticketReplyDrafts[
+                            ticketId
+                          ]?.trim()
+                            ? "not-allowed"
+                            : "pointer",
+                      }}
+                    >
+                      <Send size={14} />
+
+                      {ticketUpdating[ticketId]
+                        ? "Updating..."
+                        : "Reply"}
+                    </button>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <textarea
-                    value={queryResponseDrafts[query._id] || ''}
-                    onChange={e => setQueryResponseDrafts(prev => ({ ...prev, [query._id]: e.target.value }))}
-                    placeholder="Type a reply to the customer…"
-                    rows={2}
-                    style={{ ...inputStyle, flex: 1, minWidth: 220, resize: 'vertical' }}
-                  />
-                  <button
-                    onClick={() => handleSendQueryResponse(query._id)}
-                    disabled={!queryResponseDrafts[query._id]?.trim()}
-                    style={{ ...primaryBtn, alignSelf: 'flex-start', opacity: queryResponseDrafts[query._id]?.trim() ? 1 : 0.45, cursor: queryResponseDrafts[query._id]?.trim() ? 'pointer' : 'not-allowed' }}
+                {/* Date */}
+                <div
+                  style={{
+                    textAlign: "right",
+                    minWidth: 130,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                      justifyContent: "flex-end",
+                      marginBottom: "0.25rem",
+                    }}
                   >
-                    <Send size={14} /> Reply
-                  </button>
+                    <Clock
+                      size={13}
+                      color={SAGE_DARK}
+                    />
+
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: "0.82rem",
+                        color: "rgba(42,37,32,0.65)",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {createdAt
+                        ? new Date(
+                            createdAt
+                          ).toLocaleDateString("en-IN")
+                        : "—"}
+                    </p>
+                  </div>
+
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "0.78rem",
+                      color: "rgba(42,37,32,0.45)",
+                    }}
+                  >
+                    {createdAt
+                      ? new Date(
+                          createdAt
+                        ).toLocaleTimeString(
+                          "en-IN",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )
+                      : ""}
+                  </p>
                 </div>
-              </div>
-              <div style={{ textAlign: 'right', minWidth: 130 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'flex-end', marginBottom: '0.25rem' }}>
-                  <Clock size={13} color={SAGE_DARK} /><p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(42,37,32,0.65)', fontWeight: 500 }}>{query.date}</p>
-                </div>
-                <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(42,37,32,0.45)' }}>{query.time}</p>
               </div>
             </div>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    )}
   </motion.div>
 )}
 
