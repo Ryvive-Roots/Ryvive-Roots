@@ -21,12 +21,12 @@ const escapeHtml = (value = "") =>
 const getTypeDetails = (type) => {
   switch (type) {
     case "Complaint":
-      return { title: "Customer Complaint", emoji: "⚠️", color: "#b23a3a" };
+      return { title: "Customer Complaint", emoji: "", color: "#b23a3a" };
     case "Feedback":
-      return { title: "Customer Feedback", emoji: "⭐", color: "#b8860b" };
+      return { title: "Customer Feedback", emoji: "", color: "#b8860b" };
     case "Query":
     default:
-      return { title: "Customer Query", emoji: "🎫", color: "#6b7560" };
+      return { title: "Customer Query", emoji: "", color: "#6b7560" };
   }
 };
 
@@ -52,8 +52,8 @@ const dbStatusFromHuman = (value) =>
 
 const buildCustomerAckEmail = ({ typeDetails, type, customerName, ticket, rating, message }) => `
   <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; color: #2a2520; line-height: 1.6; background: #faf7f0;">
-    <div style="background: #171512; padding: 25px; text-align: center;">
-      <h1 style="color: #f5f0e6; margin: 0; font-size: 24px; letter-spacing: 2px;">RYVIVE ROOTS</h1>
+    <div style="background: #d4af37; padding: 25px; text-align: center;">
+      <h1 style="color: #2a2520; margin: 0; font-size: 24px; letter-spacing: 2px;">RYVIVE ROOTS</h1>
     </div>
 
     <div style="padding: 30px 24px;">
@@ -81,7 +81,7 @@ const buildCustomerAckEmail = ({ typeDetails, type, customerName, ticket, rating
       <p style="margin-top: 30px;">Warm regards,<br/><strong>Team Ryvive Roots</strong></p>
     </div>
 
-    <div style="background: #171512; color: #d9d3c8; padding: 18px; text-align: center; font-size: 12px;">
+    <div style="background: #6b7560; color: #f5f3ea; padding: 18px; text-align: center; font-size: 12px;">
       This is an automated acknowledgement email.
     </div>
   </div>
@@ -99,9 +99,9 @@ const buildSupportNotificationEmail = ({
   message,
 }) => `
   <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; color: #2a2520; line-height: 1.6;">
-    <div style="background: #171512; padding: 25px; color: #f5f0e6;">
+    <div style="background: #d4af37; padding: 25px; color: #2a2520;">
       <h2 style="margin: 0;">${typeDetails.emoji} New Customer ${escapeHtml(type)}</h2>
-      <p style="margin: 8px 0 0; color: #d0c8bd;">Ryvive Roots Customer Support</p>
+      <p style="margin: 8px 0 0; color: rgba(42,37,32,0.65);">Ryvive Roots Customer Support</p>
     </div>
 
     <div style="background: #faf7f0; padding: 28px 24px;">
