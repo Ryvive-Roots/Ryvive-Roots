@@ -1778,31 +1778,214 @@ return (
                 </div>
 
                 {/* Tickets list */}
-                <div style={labelStyle} className="mb-4">— Your Tickets</div>
-                <div className="dash-card" style={{ ...card, padding: 0, overflow: "hidden" }}>
-                  {tickets.length === 0 ? (
-                    <p style={{ padding: "2rem", textAlign: "center", color: "rgba(42,37,32,0.5)" }}>No tickets yet.</p>
-                  ) : (
-                    tickets.map((ticket, i) => (
-                      <div key={ticket._id} className="flex justify-between items-center px-7 py-5" style={{ borderBottom: i < tickets.length - 1 ? `1px solid ${CARD_BORDER}` : "none" }}>
-                        <div>
-                          <div className="flex items-center gap-3 mb-1 flex-wrap">
-                            <span style={{ fontWeight: 500, color: INK, fontSize: ".92rem" }}>{ticket.type}</span>
-                            <span style={{
-                              background: ticket.status === "RESOLVED" || ticket.status === "CLOSED" ? "rgba(46,125,50,0.1)" : ticket.status === "IN_PROGRESS" ? "rgba(212,175,55,0.15)" : CREAM_2,
-                              color: ticket.status === "RESOLVED" || ticket.status === "CLOSED" ? "#2e7d32" : ticket.status === "IN_PROGRESS" ? "#c8860f" : "rgba(42,37,32,0.5)",
-                              padding: ".15rem .65rem", fontSize: ".72rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: ".3rem",
-                            }}>
-                              {ticket.status === "RESOLVED" || ticket.status === "CLOSED" ? <CheckCircle size={11} /> : <Clock size={11} />} {ticket.status.replace("_", " ")}
-                            </span>
-                          </div>
-                          <p style={{ margin: "0 0 .3rem 0", color: "rgba(42,37,32,0.65)", fontSize: ".85rem" }}>{ticket.message}</p>
-                          <p style={{ margin: 0, color: "rgba(42,37,32,0.5)", fontSize: ".8rem" }}>ID: {ticket.ticketNumber} · Raised {new Date(ticket.createdAt).toLocaleDateString("en-IN")}</p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
+              {/* Tickets list */}
+<div style={labelStyle} className="mb-4">
+  — Your Tickets
+</div>
+
+<div
+  className="dash-card"
+  style={{
+    ...card,
+    padding: 0,
+    overflow: "hidden",
+  }}
+>
+  {tickets.length === 0 ? (
+    <p
+      style={{
+        padding: "2rem",
+        textAlign: "center",
+        color: "rgba(42,37,32,0.5)",
+      }}
+    >
+      No tickets yet.
+    </p>
+  ) : (
+    tickets.map((ticket, i) => (
+      <div
+        key={ticket._id}
+        className="
+          flex
+          flex-col
+          sm:flex-row
+          justify-between
+          sm:items-center
+          gap-4
+          px-4
+          py-5
+          sm:px-7
+          sm:py-5
+        "
+        style={{
+          borderBottom:
+            i < tickets.length - 1
+              ? `1px solid ${CARD_BORDER}`
+              : "none",
+        }}
+      >
+        {/* Ticket content */}
+        <div
+          style={{
+            width: "100%",
+            minWidth: 0,
+          }}
+        >
+          {/* Type + Status */}
+          <div
+            className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap"
+          >
+            <span
+              style={{
+                fontWeight: 500,
+                color: INK,
+                fontSize: ".92rem",
+              }}
+            >
+              {ticket.type}
+            </span>
+
+            <span
+              style={{
+                background:
+                  ticket.status === "RESOLVED" ||
+                  ticket.status === "CLOSED"
+                    ? "rgba(46,125,50,0.1)"
+                    : ticket.status === "IN_PROGRESS"
+                    ? "rgba(212,175,55,0.15)"
+                    : CREAM_2,
+
+                color:
+                  ticket.status === "RESOLVED" ||
+                  ticket.status === "CLOSED"
+                    ? "#2e7d32"
+                    : ticket.status === "IN_PROGRESS"
+                    ? "#c8860f"
+                    : "rgba(42,37,32,0.5)",
+
+                padding: ".18rem .6rem",
+                fontSize: ".68rem",
+                fontWeight: 600,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: ".3rem",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {ticket.status === "RESOLVED" ||
+              ticket.status === "CLOSED" ? (
+                <CheckCircle size={11} />
+              ) : (
+                <Clock size={11} />
+              )}
+
+              {ticket.status.replace("_", " ")}
+            </span>
+          </div>
+
+          {/* Customer Message */}
+          <p
+            style={{
+              margin: "0 0 .5rem 0",
+              color: "rgba(42,37,32,0.65)",
+              fontSize: ".85rem",
+              lineHeight: 1.55,
+              overflowWrap: "anywhere",
+              wordBreak: "break-word",
+            }}
+          >
+            {ticket.message}
+          </p>
+
+          {/* ============================= */}
+          {/* ADMIN RESPONSE */}
+          {/* ============================= */}
+
+          {ticket.adminReply &&
+            ticket.adminReply.trim() && (
+              <div
+                style={{
+                  marginTop: "1rem",
+                  padding: "0.9rem 1rem",
+                  background: "rgba(107,117,96,0.10)",
+                  borderLeft: `3px solid ${SAGE_DARK}`,
+                  borderRadius: "2px",
+                  width: "100%",
+                  boxSizing: "border-box",
+                }}
+              >
+                {/* Admin Response Label */}
+                <p
+                  style={{
+                    margin: "0 0 .4rem 0",
+                    fontSize: ".68rem",
+                    color: SAGE_DARK,
+                    fontWeight: 700,
+                    letterSpacing: ".12em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Admin Response
+                </p>
+
+                {/* Response */}
+                <p
+                  style={{
+                    margin: 0,
+                    color: "rgba(42,37,32,0.75)",
+                    fontSize: ".85rem",
+                    lineHeight: 1.6,
+                    whiteSpace: "pre-wrap",
+                    overflowWrap: "anywhere",
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {ticket.adminReply}
+                </p>
+
+                {/* Replied Time */}
+                {ticket.repliedAt && (
+                  <p
+                    style={{
+                      margin: ".6rem 0 0",
+                      fontSize: ".72rem",
+                      color: "rgba(42,37,32,0.45)",
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    Replied{" "}
+                    {new Date(
+                      ticket.repliedAt
+                    ).toLocaleString("en-IN")}
+                  </p>
+                )}
+              </div>
+            )}
+
+          {/* Ticket ID */}
+          <p
+            style={{
+              margin: ".7rem 0 0",
+              color: "rgba(42,37,32,0.5)",
+              fontSize: ".76rem",
+              lineHeight: 1.4,
+              overflowWrap: "anywhere",
+            }}
+          >
+            ID: {ticket.ticketNumber}
+            {" · "}
+            Raised{" "}
+            {new Date(ticket.createdAt).toLocaleDateString(
+              "en-IN"
+            )}
+          </p>
+        </div>
+      </div>
+    ))
+  )}
+</div>
               </motion.div>
             )}
 
