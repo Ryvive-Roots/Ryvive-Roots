@@ -228,7 +228,7 @@ noDeliveryHistory: [
 
    paymentMethod: {
   type: String,
-  enum: ["CASH", "ONLINE", "GPAY", "CARD", "EASEBUZZ"],
+  enum: ["CASH", "ONLINE", "GPAY", "CARD", "EASEBUZZ", UPI],
   default: "CASH",
 },
 
