@@ -292,6 +292,20 @@ const fetchTickets = async () => {
     }
   };
 
+  // ── Create an audit log entry, then refresh the log list ──
+const createAuditLog = async ({ customerName, action, details, performedBy }) => {
+  try {
+    await fetch("https://api.ryviveroots.com/api/admin/audit-logs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ customerName, action, details, performedBy }),
+    });
+    fetchAuditLogs(); // refresh so the Audit Logs tab shows it immediately
+  } catch (err) {
+    console.error("Failed to create audit log", err);
+  }
+};
+
   // ── Fetch delivery log for a given date ──
  const fetchDeliveryLog = async (date) => {
   setDeliveryLogLoading(true);

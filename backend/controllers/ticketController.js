@@ -347,7 +347,7 @@ export const getAllTicketsForAdmin = async (req, res) => {
 };
 
 /* =========================================================
-   ADMIN UPDATE TICKET (Status + Admin Reply)
+   ADMIN UPDATE TICKET (Status + Admin Reply + Email)
 ========================================================= */
 
 export const updateTicketByAdmin = async (req, res) => {
@@ -357,31 +357,265 @@ export const updateTicketByAdmin = async (req, res) => {
 
     const update = {};
 
+    // Convert frontend status to DB status
     if (status) {
       update.status = dbStatusFromHuman(status);
     }
 
+    // Save admin reply
     if (response !== undefined) {
       update.adminReply = response.trim();
       update.repliedAt = new Date();
     }
 
+    // Save closedAt
     if (update.status === "CLOSED") {
       update.closedAt = new Date();
     }
 
-    const ticket = await Ticket.findByIdAndUpdate(id, update, {
-      new: true,
-      runValidators: true,
-    });
+    // ---------------------------------------------------------
+    // 1. UPDATE TICKET
+    // ---------------------------------------------------------
+
+    const ticket = await Ticket.findByIdAndUpdate(
+      id,
+      update,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     if (!ticket) {
-      return res.status(404).json({ success: false, message: "Ticket not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Ticket not found",
+      });
     }
+
+    // ---------------------------------------------------------
+    // 2. SEND EMAIL TO CUSTOMER WHEN ADMIN REPLIES
+    // ---------------------------------------------------------
+
+    if (response !== undefined && response.trim()) {
+      try {
+        // Find customer's latest order
+        const order = await Order.findOne({
+          membershipId: ticket.membershipId,
+        })
+          .sort({ createdAt: -1 })
+          .select(
+            "membershipId user.firstName user.lastName user.email user.phone"
+          )
+          .lean();
+
+        const customerName =
+          `${order?.user?.firstName || ""} ${
+            order?.user?.lastName || ""
+          }`.trim() || "Customer";
+
+        const customerEmail = order?.user?.email || "";
+
+        if (!customerEmail) {
+          console.warn(
+            `⚠️ No customer email found for membershipId: ${ticket.membershipId}`
+          );
+        } else {
+          const safeCustomerName = escapeHtml(customerName);
+          const safeReply = escapeHtml(response.trim());
+          const safeMessage = escapeHtml(ticket.message);
+          const safeTicketNumber = escapeHtml(ticket.ticketNumber);
+          const safeType = escapeHtml(ticket.type);
+
+          const statusText = humanizeStatus(ticket.status);
+
+          const replyEmailHtml = `
+            <div style="
+              font-family: Arial, sans-serif;
+              max-width: 650px;
+              margin: 0 auto;
+              color: #2a2520;
+              line-height: 1.6;
+              background: #faf7f0;
+            ">
+
+              <!-- HEADER -->
+              <div style="
+                background: #171512;
+                padding: 25px;
+                text-align: center;
+              ">
+                <h1 style="
+                  color: #f5f0e6;
+                  margin: 0;
+                  font-size: 24px;
+                  letter-spacing: 2px;
+                ">
+                  RYVIVE ROOTS
+                </h1>
+
+                <p style="
+                  color: #b8c0a8;
+                  margin: 8px 0 0;
+                  font-size: 12px;
+                  letter-spacing: 2px;
+                ">
+                  LIVE. RELIVE. BELIEVE.
+                </p>
+              </div>
+
+              <!-- CONTENT -->
+              <div style="padding: 30px 24px;">
+
+                <h2 style="
+                  margin-top: 0;
+                  color: #6b7560;
+                ">
+                  We've Responded to Your Ticket
+                </h2>
+
+                <p>
+                  Dear <strong>${safeCustomerName}</strong>,
+                </p>
+
+                <p>
+                  Thank you for your patience. Our support team has
+                  carefully reviewed your ${safeType.toLowerCase()} and
+                  prepared a response for you below. We hope it
+                  addresses your concern fully — and we're here if
+                  you need anything further.
+                </p>
+
+                <!-- TICKET DETAILS -->
+                <div style="
+                  background: #eee9dd;
+                  padding: 20px;
+                  margin: 22px 0;
+                  border-left: 4px solid #6b7560;
+                ">
+
+                  <p style="margin: 6px 0;">
+                    <strong>Ticket ID:</strong>
+                    ${safeTicketNumber}
+                  </p>
+
+                  <p style="margin: 6px 0;">
+                    <strong>Type:</strong>
+                    ${safeType}
+                  </p>
+
+                  <p style="margin: 6px 0;">
+                    <strong>Status:</strong>
+                    ${escapeHtml(statusText)}
+                  </p>
+
+                </div>
+
+                <!-- CUSTOMER MESSAGE -->
+                <h3 style="
+                  color: #6b7560;
+                  margin-bottom: 10px;
+                ">
+                  Your Original Message
+                </h3>
+
+                <div style="
+                  background: #ffffff;
+                  border: 1px solid #ddd7ca;
+                  padding: 16px;
+                  border-radius: 4px;
+                  white-space: pre-wrap;
+                ">
+                  ${safeMessage}
+                </div>
+
+                <!-- ADMIN REPLY -->
+                <h3 style="
+                  color: #6b7560;
+                  margin-top: 28px;
+                  margin-bottom: 10px;
+                ">
+                  Our Response
+                </h3>
+
+                <div style="
+                  background: #eef1e9;
+                  border-left: 4px solid #6b7560;
+                  padding: 18px;
+                  border-radius: 4px;
+                  white-space: pre-wrap;
+                ">
+                  ${safeReply}
+                </div>
+
+                <p style="
+                  margin-top: 28px;
+                ">
+                  If anything here needs further clarification, or if
+                  this doesn't fully resolve things for you, please
+                  don't hesitate to reach out again through the
+                  <strong>Support &amp; Tickets</strong> section of
+                  your customer dashboard. We're always happy to help.
+                </p>
+
+                <p style="margin-top: 30px;">
+                  With warm regards,<br/>
+                  <strong>Team Ryvive Roots</strong>
+                </p>
+
+              </div>
+
+              <!-- FOOTER -->
+              <div style="
+                background: #171512;
+                color: #d9d3c8;
+                padding: 18px;
+                text-align: center;
+                font-size: 12px;
+              ">
+                This is an automated update regarding your support ticket. Please do not reply directly to this email.
+              </div>
+
+            </div>
+          `;
+
+          await sendEmail({
+            to: customerEmail,
+            subject: `Ryvive Roots - We've Responded to Your Ticket ${ticket.ticketNumber}`,
+            html: replyEmailHtml,
+            supportEmail: false,
+          });
+
+          console.log(
+            `✅ Admin reply email sent to ${customerEmail} for ticket ${ticket.ticketNumber}`
+          );
+        }
+      } catch (emailError) {
+        // IMPORTANT:
+        // Ticket is already updated, so don't fail the API
+        // just because the email failed.
+
+        console.error(
+          `❌ Ticket reply email failed for ${ticket.ticketNumber}:`,
+          emailError
+        );
+      }
+    }
+
+    // ---------------------------------------------------------
+    // 3. RETURN UPDATED TICKET
+    // ---------------------------------------------------------
 
     return res.json({
       success: true,
-      query: {
+      message:
+        response !== undefined && response.trim()
+          ? "Ticket updated and customer notified successfully."
+          : "Ticket updated successfully.",
+
+      // IMPORTANT:
+      // Frontend is checking data.ticket
+      ticket: {
         _id: ticket._id,
         id: ticket._id,
         subject: ticket.type,
@@ -389,18 +623,29 @@ export const updateTicketByAdmin = async (req, res) => {
         customerId: ticket.membershipId,
         message: ticket.message,
         rating: ticket.rating,
+
         status: humanizeStatus(ticket.status),
+
         response: ticket.adminReply || "",
         adminReply: ticket.adminReply || "",
+
         repliedAt: ticket.repliedAt || null,
+        closedAt: ticket.closedAt || null,
+
         date: new Date(ticket.createdAt).toLocaleDateString("en-IN"),
         time: new Date(ticket.createdAt).toLocaleTimeString("en-IN"),
+
         createdAt: ticket.createdAt,
         ticketNumber: ticket.ticketNumber,
       },
     });
+
   } catch (error) {
     console.error("❌ updateTicketByAdmin error:", error);
-    return res.status(500).json({ success: false, message: "Unable to update ticket." });
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to update ticket.",
+    });
   }
 };
