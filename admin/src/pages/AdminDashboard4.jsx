@@ -616,6 +616,8 @@ const handleImpersonate = async () => {
     return st !== 'CANCELLED' && st !== 'EXPIRED' && st !== 'UNDER_PROCESS';
   });
 
+  
+
   const calculateTotalMeals = (dur, mealsPerWeek) => {
     const weeks = dur === '1-month' ? 4 : dur === '2-month' ? 8 : dur === '3-month' ? 12 : dur === '6-month' ? 24 : 0;
     return weeks * parseInt(mealsPerWeek || 0);
@@ -1470,13 +1472,15 @@ const handleSendTicketReply = async (ticketId) => {
         {tickets.map(ticket => {
           const ticketId = ticket._id;
 
-          const customerName =
-            ticket.customer?.name ||
-            ticket.customerName ||
-            `${ticket.user?.firstName || ""} ${
-              ticket.user?.lastName || ""
-            }`.trim() ||
-            "Customer";
+         const customerName =
+  (typeof ticket.customer === "string"
+    ? ticket.customer
+    : ticket.customer?.name) ||
+  ticket.customerName ||
+  `${ticket.user?.firstName || ""} ${
+    ticket.user?.lastName || ""
+  }`.trim() ||
+  "Customer";
 
           const membershipId =
             ticket.customer?.membershipId ||

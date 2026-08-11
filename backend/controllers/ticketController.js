@@ -525,6 +525,7 @@ export const updateTicketByAdmin = async (req, res) => {
                   padding: 16px;
                   border-radius: 4px;
                   white-space: pre-wrap;
+                  text-align: left;
                 ">
                   ${safeMessage}
                 </div>
@@ -544,6 +545,7 @@ export const updateTicketByAdmin = async (req, res) => {
                   padding: 18px;
                   border-radius: 4px;
                   white-space: pre-wrap;
+                  text-align: left;
                 ">
                   ${safeReply}
                 </div>
