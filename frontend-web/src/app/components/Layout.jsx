@@ -1,25 +1,12 @@
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { SiteHeader } from './SiteHeader';
 import { SiteFooter } from './SiteFooter';
-import PageLoader from './PageLoader';
 import { CREAM, DARK, SAGE } from '../theme';
 
 export function Layout() {
     const location = useLocation();
-    const [routeLoading, setRouteLoading] = useState(false);
-
-    // Runs BEFORE the browser paints the new route's content
-    useLayoutEffect(() => {
-        setRouteLoading(true);
-    }, [location.pathname]);
-
-    useEffect(() => {
-        const timer = setTimeout(() => setRouteLoading(false), 1600);
-        return () => clearTimeout(timer);
-    }, [location.pathname]);
-
     useEffect(() => {
         if (location.hash) {
             const id = location.hash.slice(1);
@@ -31,9 +18,7 @@ export function Layout() {
             window.scrollTo(0, 0);
         }
     }, [location.pathname, location.hash]);
-
     return (<div style={{ background: DARK }} className="min-h-screen overflow-x-hidden relative">
-      <PageLoader isLoading={routeLoading} />
       <SiteHeader />
       <Outlet />
       <SiteFooter />
@@ -66,6 +51,7 @@ export function Layout() {
           cursor: 'pointer',
         }}
       >
+        {/* WhatsApp SVG icon — inline, styled to match site */}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.527 3.66 1.438 5.168L2 22l4.98-1.418A9.953 9.953 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" stroke={SAGE} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
           <path d="M8.5 9.5c.5 1 1.5 3 3.5 4s3.5.5 4 0" stroke={SAGE} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>

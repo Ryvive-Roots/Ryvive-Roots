@@ -156,7 +156,7 @@ export default function Home() {
             
             {/* Subheading */}
             <p className="mb-8 md:mb-14 max-w-xl text-left" style={{ fontSize: '15px', lineHeight: 1.85, color: 'rgba(244,239,230,0.65)' }}>
-             We built Ryvive Roots for one reason —
+             We built Ryvive Roots for one reason,
 because clean food should never feel like a sacrifice.
             </p>
             
