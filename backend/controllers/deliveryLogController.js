@@ -4,10 +4,16 @@ import { updateGoogleSheet } from "../services/googleSheetService.js";
 
 /**
  * GET /api/admin/delivery-log?date=2026-07-20
+ *
+ * Get delivery log for selected date
  */
 export const getDeliveryLog = async (req, res) => {
   try {
     const { date } = req.query;
+
+    // =========================================
+    // Validate date
+    // =========================================
 
     if (!date) {
       return res.status(400).json({
@@ -16,25 +22,58 @@ export const getDeliveryLog = async (req, res) => {
       });
     }
 
-    const start = new Date(date);
+    const selectedDate = new Date(date);
+
+    if (Number.isNaN(selectedDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid date",
+      });
+    }
+
+    // =========================================
+    // Start of selected date
+    // =========================================
+
+    const start = new Date(selectedDate);
+
     start.setHours(0, 0, 0, 0);
 
-    const end = new Date(date);
+    // =========================================
+    // End of selected date
+    // =========================================
+
+    const end = new Date(selectedDate);
+
     end.setHours(23, 59, 59, 999);
+
+    // =========================================
+    // Find delivery logs
+    // =========================================
 
     const log = await DeliveryLog.find({
       date: {
         $gte: start,
         $lte: end,
       },
-    }).sort({ membershipId: 1 });
+    }).sort({
+      membershipId: 1,
+    });
+
+    // =========================================
+    // Response
+    // =========================================
 
     return res.json({
       success: true,
       log,
     });
+
   } catch (error) {
-    console.error("Get Delivery Log Error:", error);
+    console.error(
+      "Get Delivery Log Error:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
@@ -43,12 +82,31 @@ export const getDeliveryLog = async (req, res) => {
   }
 };
 
+
 /**
  * POST /api/admin/delivery-log
+ *
+ * Save daily delivery log
+ *
+ * Flow:
+ *
+ * Admin Dashboard
+ *       ↓
+ * Save Delivery Log
+ *       ↓
+ * MongoDB DeliveryLog
+ *       ↓
+ * Update Order Meal Counts
+ *       ↓
+ * Google Sheet
  */
 export const saveDeliveryLog = async (req, res) => {
   try {
     const { date, log } = req.body;
+
+    // =========================================
+    // Validate request
+    // =========================================
 
     if (!date || !Array.isArray(log)) {
       return res.status(400).json({
@@ -57,127 +115,456 @@ export const saveDeliveryLog = async (req, res) => {
       });
     }
 
-    const updatedLogs = [];
+    const selectedDate = new Date(date);
 
-    for (const item of log) {
-      //---------------------------------------
-      // Find Order
-      //---------------------------------------
-
-      const order = await Order.findById(item.orderId);
-
-      if (!order) continue;
-
-      //---------------------------------------
-      // Save Delivery Log
-      //---------------------------------------
-
-      const deliveryLog = await DeliveryLog.findOneAndUpdate(
-        {
-          membershipId: order.membershipId,
-          date: new Date(date),
-        },
-        {
-          date: new Date(date),
-
-          orderId: order._id,
-
-          membershipId: order.membershipId,
-
-          receiptNumber: order.receiptNumber,
-
-          customer: {
-            firstName: order.user.firstName,
-            lastName: order.user.lastName,
-            phone: order.user.phone,
-            email: order.user.email,
-          },
-
-          subscription: {
-            plan: order.subscription.plan,
-            startDate: order.subscription.startDate,
-            endDate: order.subscription.endDate,
-            status: order.subscription.status,
-          },
-
-          deliverySlot: order.deliverySlot,
-
-          totalMeals: item.totalMeals,
-
-          mealDay: item.mealDay,
-
-          consumedMeals: item.consumedMeals,
-
-          remainingMeals: item.remainingMeals,
-
-          deliveryStatus: item.status,
-
-          reason: item.notes || "",
-
-          menu: item.menu || "",
-
-          weekNumber: item.weekNumber,
-
-          weekdayNumber: item.weekdayNumber,
-
-          staffInitials: item.staffInitials || "",
-
-          updatedBy: "Admin",
-        },
-        {
-          upsert: true,
-          new: true,
-        }
-      );
-
-      //---------------------------------------
-      // Update Order Meal Count
-      //---------------------------------------
-
-      if (item.status === "DELIVERED") {
-
-        order.subscription.consumedMeals =
-          item.consumedMeals;
-
-        order.subscription.remainingMeals =
-          item.remainingMeals;
-
-        order.subscription.mealDay =
-          item.mealDay;
-
-        await order.save();
-      }
-
-      //---------------------------------------
-      // Google Sheet
-      //---------------------------------------
-
-      try {
-        await updateGoogleSheet(order);
-
-        deliveryLog.googleSheetSynced = true;
-        deliveryLog.syncedAt = new Date();
-
-        await deliveryLog.save();
-      } catch (err) {
-        console.error("Google Sheet Error:", err);
-      }
-
-      updatedLogs.push(deliveryLog);
+    if (Number.isNaN(selectedDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid delivery date",
+      });
     }
 
+    // =========================================
+    // Normalize date
+    // =========================================
+
+    selectedDate.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+    const updatedLogs = [];
+
+    // =========================================
+    // Process every customer
+    // =========================================
+
+    for (const item of log) {
+      try {
+
+        // =======================================
+        // 1. Validate Order ID
+        // =======================================
+
+        if (!item.orderId) {
+          console.warn(
+            "Skipping delivery item: orderId missing"
+          );
+
+          continue;
+        }
+
+
+        // =======================================
+        // 2. Find Order
+        // =======================================
+
+        const order = await Order.findById(
+          item.orderId
+        );
+
+        if (!order) {
+          console.warn(
+            `Order not found: ${item.orderId}`
+          );
+
+          continue;
+        }
+
+
+        // =======================================
+        // 3. Subscription Data
+        // =======================================
+
+        const subscription =
+          order.subscription || {};
+
+
+        // =======================================
+        // 4. Customer Data
+        // =======================================
+
+        const user =
+          order.user || {};
+
+
+        // =======================================
+        // 5. Normalize Delivery Status
+        //
+        // Frontend sends:
+        //
+        // Delivered
+        // Pending
+        // Paused
+        //
+        // MongoDB stores:
+        //
+        // DELIVERED
+        // PENDING
+        // PAUSED
+        // NOT_DELIVERED
+        // =======================================
+
+        const normalizedDeliveryStatus =
+          item.status === "Delivered"
+            ? "DELIVERED"
+            : item.status === "Paused"
+              ? "PAUSED"
+              : item.status === "Pending"
+                ? "PENDING"
+                : "NOT_DELIVERED";
+
+
+        // =======================================
+        // 6. Prepare Meal Values
+        // =======================================
+
+        const totalMeals =
+          item.totalMeals ??
+          subscription.totalMeals ??
+          0;
+
+        const mealDay =
+          item.mealDay ??
+          subscription.mealDay ??
+          0;
+
+        const consumedMeals =
+          item.consumedMeals ??
+          subscription.consumedMeals ??
+          0;
+
+        const remainingMeals =
+          item.remainingMeals ??
+          subscription.remainingMeals ??
+          0;
+
+
+        // =======================================
+        // 7. Save / Update Delivery Log
+        //
+        // One customer + one date = one record
+        // =======================================
+
+        const deliveryLog =
+          await DeliveryLog.findOneAndUpdate(
+
+            {
+              membershipId:
+                order.membershipId,
+
+              date: selectedDate,
+            },
+
+            {
+              date: selectedDate,
+
+              orderId: order._id,
+
+              membershipId:
+                order.membershipId,
+
+              receiptNumber:
+                order.receiptNumber || "",
+
+
+              // ---------------------------------
+              // Customer Snapshot
+              // ---------------------------------
+
+              customer: {
+                firstName:
+                  user.firstName || "",
+
+                lastName:
+                  user.lastName || "",
+
+                phone:
+                  user.phone || "",
+
+                email:
+                  user.email || "",
+              },
+
+
+              // ---------------------------------
+              // Subscription Snapshot
+              // ---------------------------------
+
+              subscription: {
+                plan:
+                  subscription.plan || "",
+
+                startDate:
+                  subscription.startDate || null,
+
+                endDate:
+                  subscription.endDate || null,
+
+                status:
+                  subscription.status || "",
+              },
+
+
+              // ---------------------------------
+              // Delivery Slot
+              // ---------------------------------
+
+              deliverySlot:
+                order.deliverySlot || "",
+
+
+              // ---------------------------------
+              // Meal Progress
+              // ---------------------------------
+
+              totalMeals,
+
+              mealDay,
+
+              consumedMeals,
+
+              remainingMeals,
+
+
+              // ---------------------------------
+              // Delivery Status
+              // ---------------------------------
+
+              deliveryStatus:
+                normalizedDeliveryStatus,
+
+
+              // ---------------------------------
+              // Reason
+              // ---------------------------------
+
+              reason:
+                item.notes || "",
+
+
+              // ---------------------------------
+              // Menu
+              // ---------------------------------
+
+              menu:
+                item.menu || "",
+
+
+              // ---------------------------------
+              // Updated By
+              // ---------------------------------
+
+              updatedBy: "Admin",
+            },
+
+            {
+              upsert: true,
+              new: true,
+              setDefaultsOnInsert: true,
+            }
+          );
+
+
+        // =======================================
+        // 8. Update Order Meal Count
+        //
+        // Only when meal is Delivered
+        // =======================================
+
+        if (item.status === "Delivered") {
+
+          // -------------------------------------
+          // Make sure subscription exists
+          // -------------------------------------
+
+          if (!order.subscription) {
+            order.subscription = {};
+          }
+
+
+          // -------------------------------------
+          // Consumed Meals
+          // -------------------------------------
+
+          if (
+            item.consumedMeals !== undefined &&
+            item.consumedMeals !== null
+          ) {
+            order.subscription.consumedMeals =
+              item.consumedMeals;
+          }
+
+
+          // -------------------------------------
+          // Remaining Meals
+          // -------------------------------------
+
+          if (
+            item.remainingMeals !== undefined &&
+            item.remainingMeals !== null
+          ) {
+            order.subscription.remainingMeals =
+              item.remainingMeals;
+          }
+
+
+          // -------------------------------------
+          // Meal Day
+          // -------------------------------------
+
+          if (
+            item.mealDay !== undefined &&
+            item.mealDay !== null
+          ) {
+            order.subscription.mealDay =
+              item.mealDay;
+          }
+
+
+          // -------------------------------------
+          // Save Order
+          // -------------------------------------
+
+          await order.save();
+        }
+
+
+        // =======================================
+        // 9. Google Sheet Sync
+        // =======================================
+
+        try {
+
+          await updateGoogleSheet({
+
+            order,
+
+            // IMPORTANT:
+            // Keep frontend status here:
+            //
+            // Delivered
+            // Pending
+            // Paused
+            //
+            // Google Sheet service converts:
+            //
+            // Delivered → Yes
+            // Pending   → No
+            // Paused    → Paused
+
+            delivery: {
+              ...item,
+
+              totalMeals,
+
+              mealDay,
+
+              consumedMeals,
+
+              remainingMeals,
+            },
+
+            deliveryDate: date,
+          });
+
+
+          // -------------------------------------
+          // Mark Google Sheet as synced
+          // -------------------------------------
+
+          deliveryLog.googleSheetSynced =
+            true;
+
+          deliveryLog.syncedAt =
+            new Date();
+
+
+          await deliveryLog.save();
+
+
+          console.log(
+            `Google Sheet synced successfully: ${order.membershipId} - ${date}`
+          );
+
+        } catch (googleSheetError) {
+
+          // -------------------------------------
+          // Google Sheet error should NOT
+          // cancel MongoDB save
+          // -------------------------------------
+
+          console.error(
+            `Google Sheet sync failed for ${order.membershipId}:`,
+            googleSheetError.response?.data ||
+            googleSheetError.message ||
+            googleSheetError
+          );
+        }
+
+
+        // =======================================
+        // 10. Add Updated Log To Response
+        // =======================================
+
+        updatedLogs.push(
+          deliveryLog
+        );
+
+      } catch (itemError) {
+
+        // ---------------------------------------
+        // If one customer fails,
+        // continue processing others
+        // ---------------------------------------
+
+        console.error(
+          `Failed to process delivery item ${item.orderId}:`,
+          itemError
+        );
+
+        continue;
+      }
+    }
+
+
+    // =========================================
+    // 11. Final Response
+    // =========================================
+
     return res.json({
+
       success: true,
-      message: "Delivery log saved successfully.",
-      updated: updatedLogs,
+
+      message:
+        "Delivery log saved successfully.",
+
+      updated:
+        updatedLogs,
+
     });
 
   } catch (error) {
-    console.error(error);
+
+    console.error(
+      "Save Delivery Log Error:",
+      error
+    );
 
     return res.status(500).json({
+
       success: false,
-      message: "Failed to save delivery log.",
+
+      message:
+        "Failed to save delivery log.",
+
+      error:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : undefined,
+
     });
   }
 };

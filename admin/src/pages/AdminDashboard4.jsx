@@ -307,66 +307,271 @@ const createAuditLog = async ({ customerName, action, details, performedBy }) =>
 };
 
   // ── Fetch delivery log for a given date ──
- const fetchDeliveryLog = async (date) => {
+const fetchDeliveryLog = async (date) => {
   setDeliveryLogLoading(true);
+
   try {
-    const res = await fetch(`https://api.ryviveroots.com/api/admin/delivery-log?date=${date}`);
+    const res = await fetch(
+      `https://api.ryviveroots.com/api/admin/delivery-log?date=${date}`
+    );
+
     const data = await res.json();
 
-    const buildRow = (o) => ({
-      orderId: o._id,
-      membershipId: o.membershipId,
-      name: `${o.user?.firstName} ${o.user?.lastName}`,
-      plan: o.subscription?.plan || '—',
-      slot: o.deliverySlot || '—',
-      customisation: o.healthInfo?.allergies || '—',
-      status: getPauseStatusText(o).includes('PAUSED') ? 'Paused' : 'Pending',
-      notes: '',
+    if (!res.ok || !data.success) {
+      throw new Error(
+        data.message || "Failed to fetch delivery log"
+      );
+    }
+
+    // -----------------------------------------
+    // Convert backend DeliveryLog
+    // into frontend delivery row format
+    // -----------------------------------------
+
+    const normalizeSavedRow = (r) => ({
+      orderId: r.orderId,
+
+      membershipId: r.membershipId,
+
+      name:
+        `${r.customer?.firstName || ""} ${
+          r.customer?.lastName || ""
+        }`.trim(),
+
+      plan:
+        r.subscription?.plan || "—",
+
+      slot:
+        r.deliverySlot || "—",
+
+      customisation:
+        "—",
+
+      status:
+        r.deliveryStatus === "DELIVERED"
+          ? "Delivered"
+          : r.deliveryStatus === "PAUSED"
+            ? "Paused"
+            : r.deliveryStatus === "PENDING"
+              ? "Pending"
+              : "Pending",
+
+      notes:
+        r.reason || "",
+
+      menu:
+        r.menu || "",
+
+      totalMeals:
+        r.totalMeals ?? 0,
+
+      mealDay:
+        r.mealDay ?? 0,
+
+      consumedMeals:
+        r.consumedMeals ?? 0,
+
+      remainingMeals:
+        r.remainingMeals ?? 0,
     });
 
-    if (data.success && data.log?.length) {
-      // Merge saved log with any client missing from it, so nobody's ever hidden
-      const existingIds = new Set(data.log.map(r => r.orderId));
-      const missing = orders.filter(o => !existingIds.has(o._id)).map(buildRow);
-      setDeliveryLog([...data.log, ...missing]);
-    } else {
-      // No saved log yet — build fresh from every client
-      setDeliveryLog(orders.map(buildRow));
-    }
-  } catch {
-    // Network/API failure — still build from every client so the log isn't empty
+    // -----------------------------------------
+    // Build rows from Orders
+    // for customers who don't have a saved log
+    // -----------------------------------------
+
     const buildRow = (o) => ({
       orderId: o._id,
-      membershipId: o.membershipId,
-      name: `${o.user?.firstName} ${o.user?.lastName}`,
-      plan: o.subscription?.plan || '—',
-      slot: o.deliverySlot || '—',
-      customisation: o.healthInfo?.allergies || '—',
-      status: getPauseStatusText(o).includes('PAUSED') ? 'Paused' : 'Pending',
-      notes: '',
+
+      membershipId:
+        o.membershipId,
+
+      name:
+        `${o.user?.firstName || ""} ${
+          o.user?.lastName || ""
+        }`.trim(),
+
+      plan:
+        o.subscription?.plan || "—",
+
+      slot:
+        o.deliverySlot || "—",
+
+      customisation:
+        o.healthInfo?.allergies || "—",
+
+      status:
+        getPauseStatusText(o).includes("PAUSED")
+          ? "Paused"
+          : "Pending",
+
+      notes: "",
+
+      menu: "",
+
+      totalMeals:
+        o.subscription?.totalMeals ?? 0,
+
+      mealDay:
+        o.subscription?.mealDay ?? 0,
+
+      consumedMeals:
+        o.subscription?.consumedMeals ?? 0,
+
+      remainingMeals:
+        o.subscription?.remainingMeals ?? 0,
     });
-    setDeliveryLog(orders.map(buildRow));
+
+    // -----------------------------------------
+    // Normalize saved records
+    // -----------------------------------------
+
+    const savedRows =
+      Array.isArray(data.log)
+        ? data.log.map(normalizeSavedRow)
+        : [];
+
+    // -----------------------------------------
+    // Find customers that don't have
+    // a saved delivery record for this date
+    // -----------------------------------------
+
+    const existingIds = new Set(
+      savedRows.map(
+        (row) => String(row.orderId)
+      )
+    );
+
+    const missingRows = orders
+      .filter(
+        (o) =>
+          !existingIds.has(
+            String(o._id)
+          )
+      )
+      .map(buildRow);
+
+    // -----------------------------------------
+    // Final delivery log
+    // -----------------------------------------
+
+    setDeliveryLog([
+      ...savedRows,
+      ...missingRows,
+    ]);
+
+  } catch (error) {
+
+    console.error(
+      "Fetch delivery log error:",
+      error
+    );
+
+    // -----------------------------------------
+    // If API fails, show active customers
+    // -----------------------------------------
+
+    const buildRow = (o) => ({
+      orderId: o._id,
+
+      membershipId:
+        o.membershipId,
+
+      name:
+        `${o.user?.firstName || ""} ${
+          o.user?.lastName || ""
+        }`.trim(),
+
+      plan:
+        o.subscription?.plan || "—",
+
+      slot:
+        o.deliverySlot || "—",
+
+      customisation:
+        o.healthInfo?.allergies || "—",
+
+      status:
+        getPauseStatusText(o).includes("PAUSED")
+          ? "Paused"
+          : "Pending",
+
+      notes: "",
+
+      menu: "",
+
+      totalMeals:
+        o.subscription?.totalMeals ?? 0,
+
+      mealDay:
+        o.subscription?.mealDay ?? 0,
+
+      consumedMeals:
+        o.subscription?.consumedMeals ?? 0,
+
+      remainingMeals:
+        o.subscription?.remainingMeals ?? 0,
+    });
+
+    setDeliveryLog(
+      orders.map(buildRow)
+    );
+
   } finally {
     setDeliveryLogLoading(false);
   }
 };
 
   // ── Save delivery log ──
-  const saveDeliveryLog = async () => {
-    setSavingDelivery(true);
-    try {
-      await fetch(`https://api.ryviveroots.com/api/admin/delivery-log`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: deliveryDate, log: deliveryLog }),
-      });
-      alert('Delivery log saved successfully');
-    } catch {
-      alert('Failed to save delivery log');
-    } finally {
-      setSavingDelivery(false);
+const saveDeliveryLog = async () => {
+  if (!deliveryLog.length) {
+    alert("No delivery records to save.");
+    return;
+  }
+
+  setSavingDelivery(true);
+
+  try {
+    const res = await fetch(
+      "https://api.ryviveroots.com/api/admin/delivery-log",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          date: deliveryDate,
+          log: deliveryLog,
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(
+        data.message || "Failed to save delivery log"
+      );
     }
-  };
+
+    // Update UI with backend-saved records
+    if (Array.isArray(data.updated)) {
+      setDeliveryLog(data.updated);
+    }
+
+    alert("Delivery log saved successfully.");
+
+  } catch (error) {
+    console.error("Save delivery log error:", error);
+
+    alert(
+      error.message || "Failed to save delivery log."
+    );
+
+  } finally {
+    setSavingDelivery(false);
+  }
+};
 
   // ── Export delivery log as CSV / Excel-compatible ──
   const exportDeliveryLog = () => {

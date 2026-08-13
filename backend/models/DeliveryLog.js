@@ -2,14 +2,18 @@ import mongoose from "mongoose";
 
 const DeliveryLogSchema = new mongoose.Schema(
   {
-    // Delivery Date
+    // =========================================
+    // DELIVERY DATE
+    // =========================================
     date: {
       type: Date,
       required: true,
       index: true,
     },
 
-    // Order Reference
+    // =========================================
+    // ORDER REFERENCE
+    // =========================================
     orderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
@@ -17,109 +21,202 @@ const DeliveryLogSchema = new mongoose.Schema(
       index: true,
     },
 
+    // =========================================
+    // MEMBERSHIP ID
+    // =========================================
     membershipId: {
       type: String,
       required: true,
       index: true,
+      trim: true,
     },
 
+    // =========================================
+    // RECEIPT NUMBER
+    // =========================================
     receiptNumber: {
       type: String,
+      default: "",
+      trim: true,
     },
 
-    // Customer Information (Snapshot)
+    // =========================================
+    // CUSTOMER INFORMATION
+    // Snapshot at delivery time
+    // =========================================
     customer: {
-      firstName: String,
-      lastName: String,
-      phone: String,
-      email: String,
+      firstName: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+
+      lastName: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+
+      phone: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+
+      email: {
+        type: String,
+        default: "",
+        trim: true,
+      },
     },
 
-    // Subscription Details
+    // =========================================
+    // SUBSCRIPTION DETAILS
+    // =========================================
     subscription: {
-      plan: String,
-      startDate: Date,
-      endDate: Date,
-      status: String,
+      plan: {
+        type: String,
+        default: "",
+      },
+
+      startDate: {
+        type: Date,
+      },
+
+      endDate: {
+        type: Date,
+      },
+
+      status: {
+        type: String,
+        default: "",
+      },
     },
 
-    deliverySlot: String,
+    // =========================================
+    // DELIVERY SLOT
+    // =========================================
+    deliverySlot: {
+      type: String,
+      default: "",
+    },
 
-    // Meal Progress
+    // =========================================
+    // MEAL PROGRESS
+    // =========================================
     totalMeals: {
       type: Number,
       required: true,
+      default: 0,
+      min: 0,
     },
 
     mealDay: {
       type: Number,
       required: true,
+      default: 0,
+      min: 0,
     },
 
     consumedMeals: {
       type: Number,
       required: true,
+      default: 0,
+      min: 0,
     },
 
     remainingMeals: {
       type: Number,
       required: true,
+      default: 0,
+      min: 0,
     },
 
-    // Delivery Status
+    // =========================================
+    // DELIVERY STATUS
+    // =========================================
+    //
+    // Frontend values:
+    // Delivered → DELIVERED
+    // Pending   → PENDING
+    // Paused    → PAUSED
+    //
+    // =========================================
     deliveryStatus: {
       type: String,
+
       enum: [
         "PENDING",
         "DELIVERED",
         "NOT_DELIVERED",
         "PAUSED",
       ],
+
       default: "PENDING",
+
+      index: true,
     },
 
+    // =========================================
+    // REASON
+    // =========================================
     reason: {
       type: String,
       default: "",
+      trim: true,
     },
 
-    // Menu
+    // =========================================
+    // MENU
+    // =========================================
     menu: {
       type: String,
       default: "",
+      trim: true,
     },
 
-    weekNumber: {
-      type: Number,
-    },
-
-    weekdayNumber: {
-      type: Number,
-    },
-
-    staffInitials: {
-      type: String,
-      default: "",
-    },
-
+    // =========================================
+    // UPDATED BY
+    // =========================================
     updatedBy: {
       type: String,
       default: "Admin",
+      trim: true,
     },
 
+    // =========================================
+    // GOOGLE SHEET SYNC
+    // =========================================
     googleSheetSynced: {
       type: Boolean,
       default: false,
+      index: true,
     },
 
-    syncedAt: Date,
+    syncedAt: {
+      type: Date,
+      default: null,
+    },
   },
+
   {
     timestamps: true,
   }
 );
 
-// Prevent duplicate log for same customer on same day
+
+// =========================================
+// PREVENT DUPLICATE DAILY DELIVERY LOG
+//
+// Same customer + same date = ONE record
+//
+// Example:
+//
+// RV001 + 13/08/2026 → one record
+// RV001 + 14/08/2026 → another record
+//
+// =========================================
+
 DeliveryLogSchema.index(
   {
     membershipId: 1,
@@ -130,8 +227,16 @@ DeliveryLogSchema.index(
   }
 );
 
+
+// =========================================
+// MODEL
+// =========================================
+
 if (mongoose.models.DeliveryLog) {
   delete mongoose.models.DeliveryLog;
 }
 
-export default mongoose.model("DeliveryLog", DeliveryLogSchema);
+export default mongoose.model(
+  "DeliveryLog",
+  DeliveryLogSchema
+); 
