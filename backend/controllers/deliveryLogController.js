@@ -1,6 +1,7 @@
 import DeliveryLog from "../models/DeliveryLog.js";
 import Order from "../models/order.js";
 import { updateGoogleSheet } from "../services/googleSheetService.js";
+import { getCompletedMealDays } from "../utils/mealCalculator.js";
 
 /**
  * GET /api/admin/delivery-log?date=2026-07-20
@@ -217,219 +218,50 @@ export const saveDeliveryLog = async (req, res) => {
                 : "NOT_DELIVERED";
 
 
-// =======================================
-// 6. PREPARE MEAL VALUES
-// =======================================
+        // =======================================
+        // 6. MEAL VALUES — DATE-BASED CALCULATION
+        //
+        // IMPORTANT:
+        // This mirrors the CLIENT dashboard's
+        // getCompletedMealDays() exactly.
+        //
+        // Total / Consumed / Remaining are
+        // derived purely from:
+        //
+        //   activationAt / startDate
+        //   endDate
+        //   durationMonths
+        //   pause.history
+        //   noDeliveryHistory
+        //   deliverySlot
+        //
+        // NOT from counting DeliveryLog rows.
+        // This means the numbers are correct
+        // even if today is the very first day
+        // this feature has ever been used.
+        // =======================================
 
-// ---------------------------------------
-// TOTAL MEAL DAYS
-// ---------------------------------------
+        const { totalDays, daysCompleted } = getCompletedMealDays({
+          startDate: subscription.activationAt || subscription.startDate,
+          endDate: subscription.endDate,
+          durationMonths: subscription.durationMonths || 1,
+          pauseHistory: subscription.pause?.history || [],
+          noDeliveryHistory: subscription.noDeliveryHistory || [],
+          deliverySlot: order.deliverySlot,
+          asOfDate: selectedDate,
+        });
 
-let totalMeals = Number(
-  item.totalMeals ??
-  subscription.totalMeals ??
-  subscription.totalMealDays ??
-  subscription.mealDays ??
-  0
-);
+        const totalMeals = totalDays;
+        const consumedMeals = daysCompleted;
+        const remainingMeals = Math.max(totalMeals - consumedMeals, 0);
+        const mealDay = consumedMeals;
 
-// ---------------------------------------
-// FALLBACK FROM DURATION
-// 1 month = 24 meal days
-// 2 months = 48 meal days
-// 3 months = 72 meal days
-// ---------------------------------------
-
-if (
-  (!totalMeals || totalMeals <= 0) &&
-  subscription.durationMonths
-) {
-  totalMeals =
-    Number(subscription.durationMonths) * 24;
-}
-
-// ---------------------------------------
-// FALLBACK FROM PLAN NAME
-// ---------------------------------------
-
-if (!totalMeals || totalMeals <= 0) {
-
-  const planName = String(
-    subscription.plan || ""
-  ).toUpperCase();
-
-  if (
-    planName.includes("3MONTH") ||
-    planName.includes("3M")
-  ) {
-    totalMeals = 72;
-  }
-
-  else if (
-    planName.includes("2MONTH") ||
-    planName.includes("2M")
-  ) {
-    totalMeals = 48;
-  }
-
-  else if (
-    planName.includes("1MONTH") ||
-    planName.includes("1M")
-  ) {
-    totalMeals = 24;
-  }
-}
-
-
-// =======================================
-// CALCULATE CONSUMED MEALS
-// =======================================
-
-// ---------------------------------------
-// Subscription start date
-// ---------------------------------------
-
-const subscriptionStartDate =
-  subscription.startDate
-    ? new Date(subscription.startDate)
-    : null;
-
-let consumedMeals = 0;
-
-
-// =======================================
-// COUNT PREVIOUS DELIVERED MEALS
-// =======================================
-//
-// IMPORTANT:
-// Count only dates BEFORE today's date.
-//
-// Do NOT include today's DeliveryLog here.
-// Today's status is handled separately below.
-//
-// =======================================
-
-if (
-  subscriptionStartDate &&
-  !Number.isNaN(
-    subscriptionStartDate.getTime()
-  )
-) {
-
-  const countStart =
-    new Date(subscriptionStartDate);
-
-  countStart.setHours(
-    0,
-    0,
-    0,
-    0
-  );
-
-
-  const countEnd =
-    new Date(selectedDate);
-
-  // IMPORTANT:
-  // End at the day BEFORE selected date.
-
-  countEnd.setDate(
-    countEnd.getDate() - 1
-  );
-
-  countEnd.setHours(
-    23,
-    59,
-    59,
-    999
-  );
-
-
-  // Only query if start date is before today
-
-  if (countStart <= countEnd) {
-
-    consumedMeals =
-      await DeliveryLog.countDocuments({
-
-        membershipId:
-          order.membershipId,
-
-        date: {
-          $gte: countStart,
-          $lte: countEnd,
-        },
-
-        deliveryStatus:
-          "DELIVERED",
-
-      });
-  }
-}
-
-
-// =======================================
-// TODAY'S DELIVERY
-// =======================================
-//
-// Add today's meal ONLY when today's
-// selected status is Delivered.
-//
-// =======================================
-
-if (
-  normalizedDeliveryStatus === "DELIVERED"
-) {
-  consumedMeals += 1;
-}
-
-
-// =======================================
-// PREVENT INVALID VALUE
-// =======================================
-
-if (consumedMeals < 0) {
-  consumedMeals = 0;
-}
-
-
-// =======================================
-// CONSUMED CANNOT EXCEED TOTAL
-// =======================================
-
-if (
-  totalMeals > 0 &&
-  consumedMeals > totalMeals
-) {
-  consumedMeals = totalMeals;
-}
-
-
-// =======================================
-// REMAINING
-// =======================================
-
-const remainingMeals =
-  Math.max(
-    totalMeals - consumedMeals,
-    0
-  );
-
-
-// =======================================
-// MEAL DAY
-// =======================================
-
-const mealDay =
-  consumedMeals;
-
-
-console.log(
-  `🍱 MEAL COUNTS | ${order.membershipId} | ` +
-  `Total: ${totalMeals} | ` +
-  `Consumed: ${consumedMeals} | ` +
-  `Remaining: ${remainingMeals}`
-);
+        console.log(
+          `🍱 MEAL COUNTS | ${order.membershipId} | ` +
+          `Total: ${totalMeals} | ` +
+          `Consumed: ${consumedMeals} | ` +
+          `Remaining: ${remainingMeals}`
+        );
 
         // =======================================
         // 7. Save / Update Delivery Log
@@ -560,37 +392,35 @@ console.log(
         // =======================================
         // 8. Update Order Meal Count
         //
-        // Only when meal is Delivered
+        // Always keep Order in sync with the
+        // date-based calculation, regardless of
+        // today's delivery status — this is what
+        // makes it match the client dashboard,
+        // which never depends on whether the
+        // admin logged today or not.
         // =======================================
 
-      if (item.status === "Delivered") {
+        order.subscription.totalMeals =
+          totalMeals;
 
-  // =========================================
-  // SAVE CALCULATED MEAL COUNTS
-  // =========================================
+        order.subscription.consumedMeals =
+          consumedMeals;
 
-  order.subscription.totalMeals =
-    totalMeals;
+        order.subscription.remainingMeals =
+          remainingMeals;
 
-  order.subscription.consumedMeals =
-    consumedMeals;
+        order.subscription.mealDay =
+          mealDay;
 
-  order.subscription.remainingMeals =
-    remainingMeals;
+        await order.save();
 
-  order.subscription.mealDay =
-    mealDay;
-
-  await order.save();
-
-  console.log(
-    `🍱 Subscription updated | ` +
-    `${order.membershipId} | ` +
-    `Total: ${totalMeals} | ` +
-    `Consumed: ${consumedMeals} | ` +
-    `Remaining: ${remainingMeals}`
-  );
-}
+        console.log(
+          `🍱 Subscription updated | ` +
+          `${order.membershipId} | ` +
+          `Total: ${totalMeals} | ` +
+          `Consumed: ${consumedMeals} | ` +
+          `Remaining: ${remainingMeals}`
+        );
 
 
         // =======================================

@@ -351,6 +351,24 @@ export const createMonthlySheet = async (date) => {
 //     ADD
 //
 // =====================================================
+//
+// IMPORTANT (updated):
+//
+// Total / Consumed / Remaining are now calculated
+// ONCE, upstream, in the delivery-log controller via
+// getCompletedMealDays() — the exact same date-based
+// logic the CLIENT dashboard uses (activation date,
+// pauses, no-delivery days, Sundays skipped, etc).
+//
+// This service must NOT re-derive or "fall back" to
+// its own guesses anymore. Doing so risks disagreeing
+// with what was just saved to the Order and the
+// DeliveryLog — the whole point of the fix was to have
+// ONE source of truth. So this function simply trusts
+// `delivery.totalMeals` / `delivery.consumedMeals`
+// exactly as passed in by the caller.
+//
+// =====================================================
 
 export const updateGoogleSheet = async ({
   order,
@@ -495,103 +513,29 @@ export const updateGoogleSheet = async ({
       const subscription =
         order.subscription || {};
 
-     // =====================================================
-// MEAL COUNTS
-// =====================================================
+      // =====================================================
+      // MEAL COUNTS
+      // =====================================================
+      //
+      // Trust the caller (delivery-log controller).
+      // No fallback guessing here anymore — the controller
+      // already ran getCompletedMealDays() and is the single
+      // source of truth for these numbers.
+      // =====================================================
 
-// -----------------------------------------------------
-// TOTAL DAYS
-// -----------------------------------------------------
+      const totalDays = Number(delivery.totalMeals ?? 0);
+      const consumed = Number(delivery.consumedMeals ?? 0);
+      const remaining = Number(
+        delivery.remainingMeals ?? Math.max(totalDays - consumed, 0)
+      );
 
-let totalDays = Number(
-  delivery.totalMeals ??
-  subscription.totalMeals ??
-  subscription.totalMealDays ??
-  subscription.mealDays ??
-  0
-);
-
-// -----------------------------------------------------
-// FALLBACK:
-// Monday - Saturday = 24 meal days / month
-// -----------------------------------------------------
-
-if (
-  (!totalDays || totalDays <= 0) &&
-  subscription.durationMonths
-) {
-  totalDays =
-    Number(subscription.durationMonths) * 24;
-}
-
-// -----------------------------------------------------
-// PLAN NAME FALLBACK
-// -----------------------------------------------------
-
-if (!totalDays || totalDays <= 0) {
-  const planName = String(
-    subscription.plan || ""
-  ).toUpperCase();
-
-  if (
-    planName.includes("3MONTH") ||
-    planName.includes("3M")
-  ) {
-    totalDays = 72;
-  } else if (
-    planName.includes("2MONTH") ||
-    planName.includes("2M")
-  ) {
-    totalDays = 48;
-  } else if (
-    planName.includes("1MONTH") ||
-    planName.includes("1M")
-  ) {
-    totalDays = 24;
-  }
-}
-
-// -----------------------------------------------------
-// CONSUMED
-// -----------------------------------------------------
-
-let consumed = Number(
-  delivery.consumedMeals ??
-  subscription.consumedMeals ??
-  0
-);
-
-if (consumed < 0) {
-  consumed = 0;
-}
-
-// -----------------------------------------------------
-// DON'T ALLOW CONSUMED > TOTAL
-// -----------------------------------------------------
-
-if (
-  totalDays > 0 &&
-  consumed > totalDays
-) {
-  consumed = totalDays;
-}
-
-// -----------------------------------------------------
-// REMAINING
-// -----------------------------------------------------
-
-const remaining = Math.max(
-  totalDays - consumed,
-  0
-);
-
-console.log(
-  `📊 Google Sheet Meal Counts | ` +
-  `${order.membershipId} | ` +
-  `Total: ${totalDays} | ` +
-  `Consumed: ${consumed} | ` +
-  `Remaining: ${remaining}`
-);
+      console.log(
+        `📊 Google Sheet Meal Counts | ` +
+        `${order.membershipId} | ` +
+        `Total: ${totalDays} | ` +
+        `Consumed: ${consumed} | ` +
+        `Remaining: ${remaining}`
+      );
 
       // =================================================
       // STATUS
