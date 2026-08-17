@@ -217,30 +217,219 @@ export const saveDeliveryLog = async (req, res) => {
                 : "NOT_DELIVERED";
 
 
-        // =======================================
-        // 6. Prepare Meal Values
-        // =======================================
+// =======================================
+// 6. PREPARE MEAL VALUES
+// =======================================
 
-        const totalMeals =
-          item.totalMeals ??
-          subscription.totalMeals ??
-          0;
+// ---------------------------------------
+// TOTAL MEAL DAYS
+// ---------------------------------------
 
-        const mealDay =
-          item.mealDay ??
-          subscription.mealDay ??
-          0;
+let totalMeals = Number(
+  item.totalMeals ??
+  subscription.totalMeals ??
+  subscription.totalMealDays ??
+  subscription.mealDays ??
+  0
+);
 
-        const consumedMeals =
-          item.consumedMeals ??
-          subscription.consumedMeals ??
-          0;
+// ---------------------------------------
+// FALLBACK FROM DURATION
+// 1 month = 24 meal days
+// 2 months = 48 meal days
+// 3 months = 72 meal days
+// ---------------------------------------
 
-        const remainingMeals =
-          item.remainingMeals ??
-          subscription.remainingMeals ??
-          0;
+if (
+  (!totalMeals || totalMeals <= 0) &&
+  subscription.durationMonths
+) {
+  totalMeals =
+    Number(subscription.durationMonths) * 24;
+}
 
+// ---------------------------------------
+// FALLBACK FROM PLAN NAME
+// ---------------------------------------
+
+if (!totalMeals || totalMeals <= 0) {
+
+  const planName = String(
+    subscription.plan || ""
+  ).toUpperCase();
+
+  if (
+    planName.includes("3MONTH") ||
+    planName.includes("3M")
+  ) {
+    totalMeals = 72;
+  }
+
+  else if (
+    planName.includes("2MONTH") ||
+    planName.includes("2M")
+  ) {
+    totalMeals = 48;
+  }
+
+  else if (
+    planName.includes("1MONTH") ||
+    planName.includes("1M")
+  ) {
+    totalMeals = 24;
+  }
+}
+
+
+// =======================================
+// CALCULATE CONSUMED MEALS
+// =======================================
+
+// ---------------------------------------
+// Subscription start date
+// ---------------------------------------
+
+const subscriptionStartDate =
+  subscription.startDate
+    ? new Date(subscription.startDate)
+    : null;
+
+let consumedMeals = 0;
+
+
+// =======================================
+// COUNT PREVIOUS DELIVERED MEALS
+// =======================================
+//
+// IMPORTANT:
+// Count only dates BEFORE today's date.
+//
+// Do NOT include today's DeliveryLog here.
+// Today's status is handled separately below.
+//
+// =======================================
+
+if (
+  subscriptionStartDate &&
+  !Number.isNaN(
+    subscriptionStartDate.getTime()
+  )
+) {
+
+  const countStart =
+    new Date(subscriptionStartDate);
+
+  countStart.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+
+  const countEnd =
+    new Date(selectedDate);
+
+  // IMPORTANT:
+  // End at the day BEFORE selected date.
+
+  countEnd.setDate(
+    countEnd.getDate() - 1
+  );
+
+  countEnd.setHours(
+    23,
+    59,
+    59,
+    999
+  );
+
+
+  // Only query if start date is before today
+
+  if (countStart <= countEnd) {
+
+    consumedMeals =
+      await DeliveryLog.countDocuments({
+
+        membershipId:
+          order.membershipId,
+
+        date: {
+          $gte: countStart,
+          $lte: countEnd,
+        },
+
+        deliveryStatus:
+          "DELIVERED",
+
+      });
+  }
+}
+
+
+// =======================================
+// TODAY'S DELIVERY
+// =======================================
+//
+// Add today's meal ONLY when today's
+// selected status is Delivered.
+//
+// =======================================
+
+if (
+  normalizedDeliveryStatus === "DELIVERED"
+) {
+  consumedMeals += 1;
+}
+
+
+// =======================================
+// PREVENT INVALID VALUE
+// =======================================
+
+if (consumedMeals < 0) {
+  consumedMeals = 0;
+}
+
+
+// =======================================
+// CONSUMED CANNOT EXCEED TOTAL
+// =======================================
+
+if (
+  totalMeals > 0 &&
+  consumedMeals > totalMeals
+) {
+  consumedMeals = totalMeals;
+}
+
+
+// =======================================
+// REMAINING
+// =======================================
+
+const remainingMeals =
+  Math.max(
+    totalMeals - consumedMeals,
+    0
+  );
+
+
+// =======================================
+// MEAL DAY
+// =======================================
+
+const mealDay =
+  consumedMeals;
+
+
+console.log(
+  `🍱 MEAL COUNTS | ${order.membershipId} | ` +
+  `Total: ${totalMeals} | ` +
+  `Consumed: ${consumedMeals} | ` +
+  `Remaining: ${remainingMeals}`
+);
 
         // =======================================
         // 7. Save / Update Delivery Log
@@ -374,62 +563,34 @@ export const saveDeliveryLog = async (req, res) => {
         // Only when meal is Delivered
         // =======================================
 
-        if (item.status === "Delivered") {
+      if (item.status === "Delivered") {
 
-          // -------------------------------------
-          // Make sure subscription exists
-          // -------------------------------------
+  // =========================================
+  // SAVE CALCULATED MEAL COUNTS
+  // =========================================
 
-          if (!order.subscription) {
-            order.subscription = {};
-          }
+  order.subscription.totalMeals =
+    totalMeals;
 
+  order.subscription.consumedMeals =
+    consumedMeals;
 
-          // -------------------------------------
-          // Consumed Meals
-          // -------------------------------------
+  order.subscription.remainingMeals =
+    remainingMeals;
 
-          if (
-            item.consumedMeals !== undefined &&
-            item.consumedMeals !== null
-          ) {
-            order.subscription.consumedMeals =
-              item.consumedMeals;
-          }
+  order.subscription.mealDay =
+    mealDay;
 
+  await order.save();
 
-          // -------------------------------------
-          // Remaining Meals
-          // -------------------------------------
-
-          if (
-            item.remainingMeals !== undefined &&
-            item.remainingMeals !== null
-          ) {
-            order.subscription.remainingMeals =
-              item.remainingMeals;
-          }
-
-
-          // -------------------------------------
-          // Meal Day
-          // -------------------------------------
-
-          if (
-            item.mealDay !== undefined &&
-            item.mealDay !== null
-          ) {
-            order.subscription.mealDay =
-              item.mealDay;
-          }
-
-
-          // -------------------------------------
-          // Save Order
-          // -------------------------------------
-
-          await order.save();
-        }
+  console.log(
+    `🍱 Subscription updated | ` +
+    `${order.membershipId} | ` +
+    `Total: ${totalMeals} | ` +
+    `Consumed: ${consumedMeals} | ` +
+    `Remaining: ${remainingMeals}`
+  );
+}
 
 
         // =======================================

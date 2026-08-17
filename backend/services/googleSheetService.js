@@ -495,28 +495,103 @@ export const updateGoogleSheet = async ({
       const subscription =
         order.subscription || {};
 
-      // =================================================
-      // MEAL COUNTS
-      // =================================================
+     // =====================================================
+// MEAL COUNTS
+// =====================================================
 
-      const totalDays =
-        delivery.totalMeals ??
-        subscription.totalMeals ??
-        0;
+// -----------------------------------------------------
+// TOTAL DAYS
+// -----------------------------------------------------
 
-      const consumed =
-        delivery.consumedMeals ??
-        subscription.consumedMeals ??
-        0;
+let totalDays = Number(
+  delivery.totalMeals ??
+  subscription.totalMeals ??
+  subscription.totalMealDays ??
+  subscription.mealDays ??
+  0
+);
 
-      const remaining =
-        delivery.remainingMeals ??
-        subscription.remainingMeals ??
-        Math.max(
-          Number(totalDays) -
-            Number(consumed),
-          0
-        );
+// -----------------------------------------------------
+// FALLBACK:
+// Monday - Saturday = 24 meal days / month
+// -----------------------------------------------------
+
+if (
+  (!totalDays || totalDays <= 0) &&
+  subscription.durationMonths
+) {
+  totalDays =
+    Number(subscription.durationMonths) * 24;
+}
+
+// -----------------------------------------------------
+// PLAN NAME FALLBACK
+// -----------------------------------------------------
+
+if (!totalDays || totalDays <= 0) {
+  const planName = String(
+    subscription.plan || ""
+  ).toUpperCase();
+
+  if (
+    planName.includes("3MONTH") ||
+    planName.includes("3M")
+  ) {
+    totalDays = 72;
+  } else if (
+    planName.includes("2MONTH") ||
+    planName.includes("2M")
+  ) {
+    totalDays = 48;
+  } else if (
+    planName.includes("1MONTH") ||
+    planName.includes("1M")
+  ) {
+    totalDays = 24;
+  }
+}
+
+// -----------------------------------------------------
+// CONSUMED
+// -----------------------------------------------------
+
+let consumed = Number(
+  delivery.consumedMeals ??
+  subscription.consumedMeals ??
+  0
+);
+
+if (consumed < 0) {
+  consumed = 0;
+}
+
+// -----------------------------------------------------
+// DON'T ALLOW CONSUMED > TOTAL
+// -----------------------------------------------------
+
+if (
+  totalDays > 0 &&
+  consumed > totalDays
+) {
+  consumed = totalDays;
+}
+
+// -----------------------------------------------------
+// REMAINING
+// -----------------------------------------------------
+
+const remaining = Math.max(
+  totalDays - consumed,
+  0
+);
+
+console.log(
+  `📊 Google Sheet Meal Counts | ` +
+  `${order.membershipId} | ` +
+  `Total: ${totalDays} | ` +
+  `Consumed: ${consumed} | ` +
+  `Remaining: ${remaining}`
+);
 
       // =================================================
       // STATUS
