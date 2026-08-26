@@ -107,115 +107,27 @@ export const ADD_ON_FEATURE_PLANS = {
 // GET ADD-ON PLAN CONFIG
 // =====================================================
 
-export const getAddOnPlanConfig = (
-  planKey,
-  durationMonths = 1
-) => {
+export const getAddOnPlanConfig = (planKey) => {
 
-  let resolvedPlanKey = planKey;
-
-
-  // ===================================================
-  // SUPPORT OLD FRONTEND ADD-ON KEYS
-  // ===================================================
-  //
-  // Old frontend:
-  //
-  // SILVER_ADDON
-  // GOLD_ADDON
-  // PLATINUM_ADDON
-  //
-  // We automatically convert them according to
-  // the selected duration.
-  // ===================================================
-
-  const oldAddonMap = {
-
-    SILVER_ADDON: {
-      1: "SILVER_1MONTH_ADDON",
-      3: "SILVER_3MONTH_ADDON",
-    },
-
-    GOLD_ADDON: {
-      1: "GOLD_1MONTH_ADDON",
-      3: "GOLD_3MONTH_ADDON",
-    },
-
-    PLATINUM_ADDON: {
-      1: "PLATINUM_1MONTH_ADDON",
-      3: "PLATINUM_3MONTH_ADDON",
-    },
-
-  };
-
-
-  // ===================================================
-  // IF OLD KEY IS RECEIVED
-  // ===================================================
-
-  if (oldAddonMap[planKey]) {
-
-    const selectedDuration =
-      Number(durationMonths) === 3
-        ? 3
-        : 1;
-
-
-    resolvedPlanKey =
-      oldAddonMap[planKey][selectedDuration];
-
-  }
-
-
-  // ===================================================
-  // FIND ADD-ON CONFIG
-  // ===================================================
-
-  const addOnPlan =
-    ADD_ON_FEATURE_PLANS[
-      resolvedPlanKey
-    ];
-
+  const addOnPlan = ADD_ON_FEATURE_PLANS[planKey];
 
   if (!addOnPlan) {
     return null;
   }
 
-
-  // ===================================================
-  // FIND BASE PLAN
-  // ===================================================
-
-  const basePlan =
-    PLANS[
-      addOnPlan.basePlan
-    ];
-
+  const basePlan = PLANS[addOnPlan.basePlan];
 
   if (!basePlan) {
     return null;
   }
 
-
-  // ===================================================
-  // RETURN COMPLETE CONFIG
-  // ===================================================
-
   return {
-
     ...addOnPlan,
 
-    // Automatically comes from PLANS
-
-    basePlanPrice:
-      basePlan.price,
-
-    durationMonths:
-      basePlan.durationMonths,
-
-    durationDays:
-      basePlan.durationDays,
-
+    // Automatically get price/duration
+    // from your existing PLANS
+    basePlanPrice: basePlan.price,
+    durationMonths: basePlan.durationMonths,
+    durationDays: basePlan.durationDays,
   };
-
 };

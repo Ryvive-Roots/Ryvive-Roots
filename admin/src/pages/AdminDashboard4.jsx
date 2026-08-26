@@ -37,9 +37,14 @@ const PLAN_PRICES = {
 };
 
 const ADDON_BASE_PRICES = {
-  SILVER_ADDON: 4999,
-  GOLD_ADDON: 5999,
-  PLATINUM_ADDON: 6999,
+  SILVER_1MONTH_ADDON: 4999,
+  SILVER_3MONTH_ADDON: 14999,
+
+  GOLD_1MONTH_ADDON: 5999,
+  GOLD_3MONTH_ADDON: 17499,
+
+  PLATINUM_1MONTH_ADDON: 6999,
+  PLATINUM_3MONTH_ADDON: 19999,
 };
 
 const ADD_ON_FEATURES = [
@@ -1168,20 +1173,40 @@ const handleImpersonate = async () => {
     return PLAN_PRICES[planName] || ADDON_BASE_PRICES[planName] || 0;
   };
 
-  const handlePlanChange = (planName) => {
-    const isAddon = planName.endsWith('_ADDON');
-    const basePlanPrice = getPlanPrice(planName);
+ const handlePlanChange = (planName) => {
+  const isAddon = planName.endsWith('_ADDON');
 
-    setCustomPackage(prev => ({
-      ...prev,
-      name: planName,
-      basePlanPrice,
-      isAddon,
-      customPackagePrice: '',
-      price: basePlanPrice,
-      addOnFeatures: isAddon ? prev.addOnFeatures : [],
-    }));
-  };
+  const basePlanPrice =
+    getPlanPrice(planName);
+
+  let duration = '';
+
+  if (planName.includes('_1MONTH')) {
+    duration = '1-month';
+  } else if (planName.includes('_3MONTH')) {
+    duration = '3-month';
+  }
+
+  setCustomPackage(prev => ({
+    ...prev,
+
+    name: planName,
+
+    basePlanPrice,
+
+    isAddon,
+
+    duration,
+
+    customPackagePrice: '',
+
+    price: basePlanPrice,
+
+    addOnFeatures: isAddon
+      ? prev.addOnFeatures
+      : [],
+  }));
+};
 
   const handleAddOnToggle = (feature) => {
     setCustomPackage(prev => {
@@ -2731,11 +2756,33 @@ const handleSendTicketReply = async (ticketId) => {
                             <option value="GOLD_3MONTH">Gold – 3 Months</option>
                             <option value="PLATINUM_3MONTH">Platinum – 3 Months</option>
                           </optgroup>
-                          <optgroup label="Add-on Feature Plans">
-                            <option value="SILVER_ADDON">Silver + Add on Features</option>
-                            <option value="GOLD_ADDON">Gold + Add on Features</option>
-                            <option value="PLATINUM_ADDON">Platinum + Add on Features</option>
-                          </optgroup>
+                         <optgroup label="Add-on Feature Plans">
+
+  <option value="SILVER_1MONTH_ADDON">
+    Silver + Add on Features – 1 Month
+  </option>
+
+  <option value="SILVER_3MONTH_ADDON">
+    Silver + Add on Features – 3 Months
+  </option>
+
+  <option value="GOLD_1MONTH_ADDON">
+    Gold + Add on Features – 1 Month
+  </option>
+
+  <option value="GOLD_3MONTH_ADDON">
+    Gold + Add on Features – 3 Months
+  </option>
+
+  <option value="PLATINUM_1MONTH_ADDON">
+    Platinum + Add on Features – 1 Month
+  </option>
+
+  <option value="PLATINUM_3MONTH_ADDON">
+    Platinum + Add on Features – 3 Months
+  </option>
+
+</optgroup>
                         </select>
                       </div>
 
@@ -2750,10 +2797,8 @@ const handleSendTicketReply = async (ticketId) => {
                         <label style={labelStyle}>Duration *</label>
                         <select value={customPackage.duration} onChange={e => { const total = calculateTotalMeals(e.target.value, customPackage.mealsPerWeek); setCustomPackage(prev => ({ ...prev, duration: e.target.value, totalMeals: total.toString() })); }} style={selectStyle}>
                           <option value="">Select duration</option>
-                          <option value="1-month">1 Month</option>
-                          <option value="2-month">2 Months</option>
-                          <option value="3-month">3 Months</option>
-                          <option value="6-month">6 Months</option>
+<option value="1-month">1 Month</option>
+<option value="3-month">3 Months</option>
                         </select>
                       </div>
 
