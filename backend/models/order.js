@@ -88,6 +88,10 @@ plan: {
     "PLATINUM_3MONTH",
   ],
 },
+ isAddon: { type: Boolean, default: false },
+  addOnFeatures: { type: [String], default: [] },
+  basePlanPrice: Number,
+  customPackagePrice: { type: Number, default: 0 },
       amount: {
         type: Number,
         required: true,

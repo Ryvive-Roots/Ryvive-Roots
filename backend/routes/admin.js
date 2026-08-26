@@ -179,6 +179,18 @@ router.post("/manual-order", async (req, res) => {
     const isAddon =
       String(plan || "").endsWith("_ADDON");
 
+    // =====================================================
+    // ✅ FIX: strip the "_ADDON" suffix so subscription.plan
+    // always stores one of the 6 clean enum values that
+    // Order schema's subscription.plan enum accepts.
+    // "isAddon" (above) is what records whether this was an
+    // add-on purchase — the enum field itself must never see
+    // the "_ADDON" suffix.
+    // =====================================================
+
+    const basePlanKey =
+      isAddon ? plan.replace("_ADDON", "") : plan;
+
 
     // =====================================================
     // PLAN CONFIGURATION
@@ -737,9 +749,12 @@ router.post("/manual-order", async (req, res) => {
       // ===================================================
 
       // 🔄 Apply the new plan on top of the same document
+      //
+      // ✅ FIX: use basePlanKey (never the raw "_ADDON" value)
+      // so this always matches subscription.plan's enum.
 
       existingOrder.subscription.plan =
-        plan;
+        basePlanKey;
 
 
       existingOrder.subscription.amount =
@@ -1125,10 +1140,16 @@ router.post("/manual-order", async (req, res) => {
 
           subscription: {
 
+            // -----------------------------------------------
+            // ✅ FIX: use basePlanKey — never the raw plan
+            // value, which may still carry the "_ADDON"
+            // suffix and would fail the schema's enum check.
+            // -----------------------------------------------
+
             plan:
 
 
-              plan,
+              basePlanKey,
 
 
             // ---------------------------------------------
@@ -1404,10 +1425,15 @@ router.post("/manual-order", async (req, res) => {
 
       // For Add-on plans, display the actual
       // base plan + duration.
+      //
+      // NOTE: order.subscription.plan is now ALWAYS the
+      // clean base key (e.g. "SILVER_1MONTH") — it never
+      // carries "_ADDON" anymore. The replace() below is
+      // kept as a harmless no-op safety net.
 
       if (order.subscription?.isAddon) {
 
-        const basePlanKey =
+        const emailBasePlanKey =
           rawPlan.replace(
             "_ADDON",
             ""
@@ -1415,7 +1441,7 @@ router.post("/manual-order", async (req, res) => {
 
 
         const baseParts =
-          basePlanKey.split("_");
+          emailBasePlanKey.split("_");
 
 
         const basePlanName =
@@ -2690,7 +2716,10 @@ ${
       success:
         false,
 
+      // TEMP: surfacing error.message helps debugging from the
+      // browser Network tab / alert. Remove once confirmed stable.
       message:
+        error.message ||
         "Failed to create manual order",
 
     });
@@ -2880,7 +2909,7 @@ await sendEmail({
       ? `
       <li>
         <b>Name:</b>
-        ${oldFirstName} ${oldLastName}
+        ${oldOrder.user.firstName} ${oldOrder.user.lastName}
         →
         ${order.user.firstName} ${order.user.lastName}
       </li>
@@ -2893,7 +2922,7 @@ await sendEmail({
       ? `
       <li>
         <b>Phone Number:</b>
-        ${oldPhone}
+        ${oldOrder.user.phone}
         →
         ${order.user.phone}
       </li>
@@ -2906,7 +2935,7 @@ await sendEmail({
       ? `
       <li>
         <b>Email Address:</b>
-        ${oldEmail || "N/A"}
+        ${oldOrder.user.email || "N/A"}
         →
         ${order.user.email}
       </li>

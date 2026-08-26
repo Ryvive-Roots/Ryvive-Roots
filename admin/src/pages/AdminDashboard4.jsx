@@ -1169,42 +1169,91 @@ const handleImpersonate = async () => {
     return getDurationDays(customPackage.duration) + Number(customPackage.additionalDurationDays || 0);
   };
 
-  const getPlanPrice = (planName) => {
-    return PLAN_PRICES[planName] || ADDON_BASE_PRICES[planName] || 0;
-  };
+ const getPlanPrice = (planName) => {
+  return (
+    PLAN_PRICES[planName] ||
+    ADDON_BASE_PRICES[planName] ||
+    0
+  );
+};
 
- const handlePlanChange = (planName) => {
-  const isAddon = planName.endsWith('_ADDON');
 
-  const basePlanPrice =
-    getPlanPrice(planName);
+const handlePlanChange = (planName) => {
 
-  let duration = '';
+  const safePlanName = String(planName || "").trim();
 
-  if (planName.includes('_1MONTH')) {
-    duration = '1-month';
-  } else if (planName.includes('_3MONTH')) {
-    duration = '3-month';
+  if (!safePlanName) {
+    setCustomPackage(prev => ({
+      ...prev,
+      name: "",
+      duration: "",
+      basePlanPrice: 0,
+      customPackagePrice: "",
+      additionalDurationDays: "",
+      price: 0,
+      isAddon: false,
+      addOnFeatures: [],
+    }));
+
+    return;
   }
 
+  const isAddon =
+    safePlanName.endsWith("_ADDON");
+
+  const basePlanPrice =
+    Number(getPlanPrice(safePlanName));
+
+
+  // =====================================================
+  // DETERMINE DURATION
+  // =====================================================
+
+  let duration = "";
+
+  if (safePlanName.includes("_1MONTH")) {
+    duration = "1-month";
+  }
+
+  if (safePlanName.includes("_3MONTH")) {
+    duration = "3-month";
+  }
+
+
+  // =====================================================
+  // UPDATE PACKAGE
+  // =====================================================
+
   setCustomPackage(prev => ({
+
     ...prev,
 
-    name: planName,
+    name: safePlanName,
+
+    duration,
 
     basePlanPrice,
 
     isAddon,
 
-    duration,
+    customPackagePrice:
+      isAddon
+        ? ""
+        : "",
 
-    customPackagePrice: '',
+    additionalDurationDays:
+      isAddon
+        ? ""
+        : "",
 
-    price: basePlanPrice,
+    price:
+      basePlanPrice,
 
-    addOnFeatures: isAddon
-      ? prev.addOnFeatures
-      : [],
+    addOnFeatures:
+      isAddon
+        ? []
+        : [],
+
   }));
 };
 
@@ -1219,16 +1268,34 @@ const handleImpersonate = async () => {
     });
   };
 
-  const updateCustomPackagePrice = (value) => {
-    const customPackagePrice = value;
-    const price = Number(customPackage.basePlanPrice || 0) + Number(customPackagePrice || 0);
+const updateCustomPackagePrice = (value) => {
 
-    setCustomPackage(prev => ({
-      ...prev,
-      customPackagePrice,
-      price,
-    }));
-  };
+  const customPackagePrice =
+    Math.max(
+      0,
+      Number(value || 0)
+    );
+
+  const basePlanPrice =
+    Number(
+      customPackage.basePlanPrice || 0
+    );
+
+  const price =
+    basePlanPrice +
+    customPackagePrice;
+
+
+  setCustomPackage(prev => ({
+
+    ...prev,
+
+    customPackagePrice,
+
+    price,
+
+  }));
+};
 
   const resetCreateForm = () => {
     setCreateStep(1);
@@ -1331,122 +1398,586 @@ const handleImpersonate = async () => {
     }
   };
 
-  const handleCreateAccount = async () => {
-    const member = teamMembers.find(t => t.id === selectedTeamMember);
+const handleCreateAccount = async () => {
 
-    const commonPackageData = {
-      plan: customPackage.name,
-      basePlanPrice: Number(customPackage.basePlanPrice || 0),
-      customPackagePrice: Number(customPackage.customPackagePrice || 0),
-      totalPrice: Number(customPackage.price || 0),
-      isAddon: Boolean(customPackage.isAddon),
-      addOnFeatures: customPackage.addOnFeatures || [],
-      packageDuration: customPackage.duration,
-      durationMonths: getDurationMonths(customPackage.duration),
-      baseDurationDays: getDurationDays(customPackage.duration),
-      additionalDurationDays: Number(customPackage.additionalDurationDays || 0),
-      durationDays: getFinalDurationDays(),
-      mealsPerWeek: Number(customPackage.mealsPerWeek || 0),
-      totalMeals: Number(customPackage.totalMeals || 0),
-    };
+  try {
+
+    const member =
+      teamMembers.find(
+        t => t.id === selectedTeamMember
+      );
+
+
+    // =====================================================
+    // BASIC VALIDATION
+    // =====================================================
+
+    if (!customPackage.name) {
+      alert("Please select a package.");
+      return;
+    }
+
+    if (!customPackage.duration) {
+      alert("Please select package duration.");
+      return;
+    }
+
+    if (!createCustomerData.fullName?.trim()) {
+      alert("Customer name is required.");
+      return;
+    }
+
+    if (!createCustomerData.phone?.trim()) {
+      alert("Customer phone is required.");
+      return;
+    }
+
+    if (!createCustomerData.email?.trim()) {
+      alert("Customer email is required.");
+      return;
+    }
+
+    if (!createCustomerData.pincode?.trim()) {
+      alert("Pincode is required.");
+      return;
+    }
+
+    if (!createCustomerData.timeSlot) {
+      alert("Delivery slot is required.");
+      return;
+    }
+
+    if (createPaymentData.received === null) {
+      alert("Please select payment status.");
+      return;
+    }
+
+
+    // =====================================================
+    // PACKAGE VALUES
+    // =====================================================
+
+    const basePlanPrice =
+      Number(
+        customPackage.basePlanPrice || 0
+      );
+
+    const customPackagePrice =
+      customPackage.isAddon
+        ? Math.max(
+            0,
+            Number(
+              customPackage.customPackagePrice || 0
+            )
+          )
+        : 0;
+
+    const totalPrice =
+      customPackage.isAddon
+        ? basePlanPrice + customPackagePrice
+        : Number(
+            customPackage.price || 0
+          );
+
+
+    // =====================================================
+    // DURATION
+    // =====================================================
+
+    const durationMonths =
+      getDurationMonths(
+        customPackage.duration
+      );
+
+    const baseDurationDays =
+      getDurationDays(
+        customPackage.duration
+      );
+
+    const additionalDurationDays =
+      customPackage.isAddon
+        ? Math.max(
+            0,
+            Number(
+              customPackage.additionalDurationDays || 0
+            )
+          )
+        : 0;
+
+    const durationDays =
+      baseDurationDays +
+      additionalDurationDays;
+
+
+    // =====================================================
+    // VALIDATE PACKAGE
+    // =====================================================
+
+    if (basePlanPrice <= 0) {
+      alert("Invalid package price.");
+      return;
+    }
+
+    if (durationMonths <= 0) {
+      alert("Invalid package duration.");
+      return;
+    }
+
+    if (durationDays <= 0) {
+      alert("Invalid package duration days.");
+      return;
+    }
+
+
+    // =====================================================
+    // PAYMENT
+    // =====================================================
+
+    const paymentMethod =
+      createPaymentData.method
+        ?.trim()
+        .toUpperCase() || "CASH";
+
+    const paymentAmount =
+      Number(
+        createPaymentData.amount || 0
+      );
+
+
+    // =====================================================
+    // PAYMENT RECEIVED VALIDATION
+    // =====================================================
+
+    if (createPaymentData.received === true) {
+
+      if (!createPaymentData.method) {
+        alert("Please select payment method.");
+        return;
+      }
+
+      if (paymentAmount <= 0) {
+        alert("Please enter amount received.");
+        return;
+      }
+
+      if (
+        paymentAmount !== totalPrice
+      ) {
+        alert(
+          `Amount received must be ₹${totalPrice.toLocaleString("en-IN")}.`
+        );
+        return;
+      }
+
+    }
+
+
+    // =====================================================
+    // COMMON PAYLOAD
+    // =====================================================
 
     const payload = {
+
       user: {
-        firstName: createCustomerData.fullName.split(' ')[0] || createCustomerData.fullName,
-        lastName: createCustomerData.fullName.split(' ').slice(1).join(' ') || '',
-        phone: createCustomerData.phone,
-        email: createCustomerData.email,
-        dob: createCustomerData.dob,
+
+        firstName:
+          createCustomerData.fullName
+            .trim()
+            .split(" ")[0] ||
+          createCustomerData.fullName.trim(),
+
+        lastName:
+          createCustomerData.fullName
+            .trim()
+            .split(" ")
+            .slice(1)
+            .join(" ") || "",
+
+        phone:
+          createCustomerData.phone.trim(),
+
+        email:
+          createCustomerData.email.trim(),
+
+        dob:
+          createCustomerData.dob || null,
+
       },
+
+
+      // ===================================================
+      // ADDRESS
+      // ===================================================
+
       address: {
-        pincode: createCustomerData.pincode,
-        area: createCustomerData.area,
-        house: createCustomerData.house,
-        street: createCustomerData.street,
-        landmark: createCustomerData.landmark,
-        city: createCustomerData.city,
-        state: 'Maharashtra',
-        country: 'India',
+
+        pincode:
+          createCustomerData.pincode.trim(),
+
+        area:
+          createCustomerData.area?.trim() || "",
+
+        house:
+          createCustomerData.house?.trim() || "",
+
+        street:
+          createCustomerData.street?.trim() || "",
+
+        landmark:
+          createCustomerData.landmark?.trim() || "",
+
+        city:
+          createCustomerData.city || "Dombivli",
+
+        state:
+          "Maharashtra",
+
+        country:
+          "India",
+
       },
+
+
+      // ===================================================
+      // HEALTH
+      // ===================================================
+
       healthInfo: {
-        allergies: createCustomerData.allergies,
-        medicalConditions: createCustomerData.medicalConditions,
+
+        allergies:
+          createCustomerData.allergies?.trim() || "",
+
+        medicalConditions:
+          createCustomerData.medicalConditions?.trim() || "",
+
       },
-      remarks: createCustomerData.remarks,
-      ...commonPackageData,
-      slot: createCustomerData.timeSlot,
-      paymentMethod: createPaymentData.method?.toUpperCase() || 'CASH',
-      startDate: createCustomerData.startDate,
-      createdBy: member?.name,
+
+
+      remarks:
+        createCustomerData.remarks?.trim() || "",
+
+
+      // ===================================================
+      // PLAN
+      // ===================================================
+
+      plan:
+        customPackage.name,
+
+
+      basePlanPrice,
+
+      customPackagePrice,
+
+      totalPrice,
+
+      isAddon:
+        Boolean(customPackage.isAddon),
+
+      addOnFeatures:
+        Array.isArray(
+          customPackage.addOnFeatures
+        )
+          ? customPackage.addOnFeatures
+          : [],
+
+
+      // ===================================================
+      // DURATION
+      // ===================================================
+
+      packageDuration:
+        customPackage.duration,
+
+      durationMonths,
+
+      baseDurationDays,
+
+      additionalDurationDays,
+
+      durationDays,
+
+
+      // ===================================================
+      // MEALS
+      // ===================================================
+
+      mealsPerWeek:
+        Number(
+          customPackage.mealsPerWeek || 0
+        ),
+
+      totalMeals:
+        Number(
+          customPackage.totalMeals || 0
+        ),
+
+
+      // ===================================================
+      // DELIVERY
+      // ===================================================
+
+      slot:
+        createCustomerData.timeSlot,
+
+      startDate:
+        createCustomerData.startDate || null,
+
+
+      // ===================================================
+      // PAYMENT
+      // ===================================================
+
+      paymentMethod,
+
+      paymentAmount,
+
+      transactionId:
+        createPaymentData.transactionId?.trim() || "",
+
+      paymentDate:
+        createPaymentData.date || null,
+
+      paymentNotes:
+        createPaymentData.notes?.trim() || "",
+
+
+      // ===================================================
+      // ADMIN
+      // ===================================================
+
+      createdBy:
+        member?.name || "Admin",
+
     };
 
-    if (createPaymentData.received) {
+
+    // =====================================================
+    // PAYMENT RECEIVED
+    // =====================================================
+
+    if (createPaymentData.received === true) {
+
+      setSaving(true);
+
       try {
-        setSaving(true);
-        const res = await fetch('https://api.ryviveroots.com/api/admin/manual-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || 'Failed to add member');
-        if (data.success) {
-          alert('Member added successfully!');
-          resetCreateForm();
-          setActiveView('customers');
-          fetchOrders();
+
+        const res = await fetch(
+          "https://api.ryviveroots.com/api/admin/manual-order",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify(payload),
+          }
+        );
+
+
+        const data =
+          await res.json();
+
+
+        if (!res.ok) {
+
+          throw new Error(
+            data.message ||
+            "Failed to create customer."
+          );
+
         }
-      } catch (error) {
-        alert(error.message || 'Server error.');
+
+
+        if (!data.success) {
+
+          throw new Error(
+            data.message ||
+            "Failed to create customer."
+          );
+
+        }
+
+
+        alert(
+          `Member added successfully!\nMembership ID: ${
+            data.membershipId ||
+            "Created successfully"
+          }`
+        );
+
+
+        resetCreateForm();
+
+        setActiveView(
+          "customers"
+        );
+
+        fetchOrders();
+
       } finally {
+
         setSaving(false);
+
       }
-    } else {
+
+      return;
+    }
+
+
+    // =====================================================
+    // PAYMENT NOT RECEIVED
+    // =====================================================
+
+    if (createPaymentData.received === false) {
+
+      setSaving(true);
+
       try {
-        setSaving(true);
+
         const pendingPayload = {
-          user: payload.user,
-          address: payload.address,
-          healthInfo: payload.healthInfo,
-          remarks: payload.remarks,
-          deliverySlot: createCustomerData.timeSlot,
+
+          user:
+            payload.user,
+
+          address:
+            payload.address,
+
+          healthInfo:
+            payload.healthInfo,
+
+          remarks:
+            payload.remarks,
+
+          deliverySlot:
+            payload.slot,
+
           subscription: {
-            plan: customPackage.name,
-            amount: Number(customPackage.price || 0),
-            basePlanPrice: Number(customPackage.basePlanPrice || 0),
-            customPackagePrice: Number(customPackage.customPackagePrice || 0),
-            isAddon: Boolean(customPackage.isAddon),
-            addOnFeatures: customPackage.addOnFeatures || [],
-            durationMonths: commonPackageData.durationMonths,
-            baseDurationDays: commonPackageData.baseDurationDays,
-            additionalDurationDays: commonPackageData.additionalDurationDays,
-            durationDays: commonPackageData.durationDays,
-            startDate: createCustomerData.startDate,
-            mealsPerWeek: commonPackageData.mealsPerWeek,
-            totalMeals: commonPackageData.totalMeals,
+
+            plan:
+              payload.plan,
+
+            amount:
+              payload.totalPrice,
+
+            basePlanPrice:
+              payload.basePlanPrice,
+
+            customPackagePrice:
+              payload.customPackagePrice,
+
+            isAddon:
+              payload.isAddon,
+
+            addOnFeatures:
+              payload.addOnFeatures,
+
+            durationMonths:
+              payload.durationMonths,
+
+            baseDurationDays:
+              payload.baseDurationDays,
+
+            additionalDurationDays:
+              payload.additionalDurationDays,
+
+            durationDays:
+              payload.durationDays,
+
+            startDate:
+              payload.startDate,
+
+            mealsPerWeek:
+              payload.mealsPerWeek,
+
+            totalMeals:
+              payload.totalMeals,
+
           },
-          paymentMethod: createPaymentData.method?.toUpperCase() || 'CASH',
-          createdBy: member?.name || 'Admin',
+
+          paymentMethod:
+            payload.paymentMethod,
+
+          createdBy:
+            payload.createdBy,
+
         };
 
-        const res = await fetch('https://api.ryviveroots.com/api/admin/pending-payment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(pendingPayload),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || 'Failed to save pending payment');
-        alert('Customer saved as Pending Payment!');
+
+        const res = await fetch(
+          "https://api.ryviveroots.com/api/admin/pending-payment",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify(
+                pendingPayload
+              ),
+          }
+        );
+
+
+        const data =
+          await res.json();
+
+
+        if (!res.ok) {
+
+          throw new Error(
+            data.message ||
+            "Failed to save pending payment."
+          );
+
+        }
+
+
+        alert(
+          "Customer saved as Pending Payment!"
+        );
+
+
         resetCreateForm();
-        setActiveView('pending');
+
+        setActiveView(
+          "pending"
+        );
+
         fetchPendingPayments();
-      } catch (error) {
-        alert(error.message || 'Failed to create pending payment');
+
       } finally {
+
         setSaving(false);
+
       }
+
     }
-  };
+
+  } catch (error) {
+
+    console.error(
+      "Create account error:",
+      error
+    );
+
+    alert(
+      error.message ||
+      "Server error. Please try again."
+    );
+
+  } finally {
+
+    setSaving(false);
+
+  }
+};
 
   const sendIndividualMessage = async () => {
     try {
