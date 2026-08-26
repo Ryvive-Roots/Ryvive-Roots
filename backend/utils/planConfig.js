@@ -7,7 +7,7 @@ export const PLANS = {
   // 1 MONTH PLANS (24 days)
   // ======================
   SILVER_1MONTH: {
-    price: 4999,
+    price: 2,
     durationMonths: 1,
     durationDays: 24,
   },
