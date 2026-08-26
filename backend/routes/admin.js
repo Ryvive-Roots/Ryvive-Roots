@@ -6,7 +6,11 @@ import sendEmail from "../utils/sendEmail.js";
 import generateInvoice from "../utils/generateInvoice.js";
 import generateReceiptNumber from "../utils/generateReceiptNumber.js";
 import generateMembershipId from "../utils/generateMembershipId.js";
-import { PLANS } from "../utils/planConfig.js";
+import {
+  PLANS,
+  ADD_ON_FEATURE_PLANS,
+  getAddOnPlanConfig,
+} from "../utils/planConfig.js";
 import User from "../models/User.js";
 import { rebuildExcelFromMongo } from "../utils/excelHelper.js";
 import path from "path";
@@ -123,7 +127,26 @@ router.get("/orders", async (req, res) => {
 =========================== */
 router.post("/manual-order", async (req, res) => {
   try {
-    const { user, address, plan, slot, paymentMethod, healthInfo, remarks, totalPrice } = req.body;
+    const {
+      user,
+      address,
+      plan,
+      slot,
+      paymentMethod,
+      healthInfo,
+      remarks,
+      totalPrice,
+
+      // NEW CUSTOM PACKAGE FIELDS
+      customPackagePrice,
+      additionalDurationDays,
+      addOnFeatures,
+    } = req.body;
+
+
+    // =====================================================
+    // BASIC VALIDATION
+    // =====================================================
 
     if (!user?.firstName || !user?.phone) {
       return res.status(400).json({
@@ -132,12 +155,14 @@ router.post("/manual-order", async (req, res) => {
       });
     }
 
+
     if (!address?.pincode) {
       return res.status(400).json({
         success: false,
         message: "Address pincode is required",
       });
     }
+
 
     if (!slot) {
       return res.status(400).json({
@@ -146,420 +171,2532 @@ router.post("/manual-order", async (req, res) => {
       });
     }
 
-    const selectedPlan = PLANS[plan];
-    if (!selectedPlan) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid plan selected",
-      });
-    }
 
-    // ✅ Find existing customer — guard against empty-string phone/email
-    // both being "" and accidentally matching each other
-    const existingUser = await User.findOne({
-      $or: [
-        ...(user.phone ? [{ phone: user.phone }] : []),
-        ...(user.email ? [{ email: user.email }] : []),
-      ],
-    });
+    // =====================================================
+    // ADD-ON / CUSTOMIZED PACKAGE DETECTION
+    // =====================================================
 
-    let existingOrder = null;
-    if (existingUser?.membershipId) {
-      existingOrder = await Order.findOne({ membershipId: existingUser.membershipId });
-    }
+    const isAddon =
+      String(plan || "").endsWith("_ADDON");
 
-    // 🛑 Prevent accidental duplicate order (double click protection)
-    const tenSecondsAgo = new Date(Date.now() - 10 * 1000);
 
-    if (existingOrder) {
-      const recentOrder = await Order.findOne({
-        membershipId: existingOrder.membershipId,
-        updatedAt: { $gte: tenSecondsAgo },
-      });
-      if (recentOrder) {
-        return res.status(429).json({
+    // =====================================================
+    // PLAN CONFIGURATION
+    // =====================================================
+    //
+    // IMPORTANT:
+    // Existing standard plans continue using PLANS.
+    //
+    // Add-on plans use getAddOnPlanConfig().
+    //
+    // This prevents:
+    // PLANS["GOLD_1MONTH_ADDON"]
+    // from incorrectly returning undefined.
+    // =====================================================
+
+    let selectedPlan = null;
+    let addonPlanConfig = null;
+
+
+    if (isAddon) {
+
+      // ===================================================
+      // ADD-ON PLAN
+      // ===================================================
+
+      addonPlanConfig =
+        getAddOnPlanConfig(plan);
+
+
+      if (!addonPlanConfig) {
+        return res.status(400).json({
           success: false,
-          message: "Order already submitted. Please wait a few seconds.",
+          message: "Invalid add-on package selected",
         });
       }
-    }
 
-    const durationDays =
-      Number(selectedPlan.durationDays) || (Number(selectedPlan.durationMonths) || 1) * 24;
-    const months = Number(selectedPlan.durationMonths) || 1;
-    const amount = totalPrice || selectedPlan.price;
 
-    // ✅ Calculate activation/start dates (same rule for both branches)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+      // Get the original standard plan
+      selectedPlan =
+        PLANS[addonPlanConfig.basePlan];
 
-    let startDate;
-    let activationAt;
-    let status = "UNDER_PROCESS";
 
-    if (req.body.startDate) {
-      startDate = new Date(req.body.startDate);
-      startDate.setHours(0, 0, 0, 0);
-      activationAt = new Date(startDate);
-      status = startDate <= today ? "ACTIVE" : "UNDER_PROCESS";
-    } else {
-      activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-      startDate = new Date(activationAt);
-      status = "UNDER_PROCESS";
-    }
-
-    let order;
-    let isRenewal = false;
-
-    if (existingOrder) {
-      /* =====================================
-         ♻️ EXISTING CLIENT — reuse SAME Order document
-         Record the old subscription into renewalHistory
-      ===================================== */
-      isRenewal = true;
-
-      const oldPlan = existingOrder.subscription.plan;
-      const oldAmount = existingOrder.subscription.amount;
-      const oldDurationMonths = existingOrder.subscription.durationMonths;
-      const oldStartDate = existingOrder.subscription.startDate;
-      const oldActivationAt = existingOrder.subscription.activationAt;
-      const oldEndDate = existingOrder.subscription.endDate;
-
-      // Extend from whichever is later: existing endDate or new activation
-      const baseEndDate = oldEndDate ? new Date(oldEndDate) : new Date(activationAt);
-      const extendFrom = baseEndDate > activationAt ? baseEndDate : activationAt;
-      const newEndDate = addMealDays(extendFrom, durationDays);
-
-      const receiptNumber = await generateReceiptNumber(Order);
-
-      existingOrder.subscription.renewalHistory = existingOrder.subscription.renewalHistory || [];
-      existingOrder.subscription.renewalHistory.push({
-        date: new Date(),
-        plan: oldPlan,
-        durationMonths: oldDurationMonths,
-        amount: oldAmount,
-        paymentMethod: paymentMethod || "CASH",
-        startDate: oldStartDate,
-        activationAt: oldActivationAt,
-        endDate: oldEndDate,
-      });
-
-      // 🔄 Apply the new plan on top of the same document
-      existingOrder.subscription.plan = plan;
-      existingOrder.subscription.amount = amount;
-      existingOrder.subscription.originalAmount = amount;
-      existingOrder.subscription.durationMonths = months;
-      existingOrder.subscription.activationAt = activationAt;
-      existingOrder.subscription.startDate = startDate;
-      existingOrder.subscription.endDate = newEndDate;
-      existingOrder.subscription.status = status;
-      existingOrder.subscription.renewedAt = new Date();
-      existingOrder.subscription.renewalTriggeredBy = "ADMIN";
-
-      if (status === "ACTIVE") {
-        existingOrder.subscription.pause = { used: 0, history: existingOrder.subscription.pause?.history || [] };
+      if (!selectedPlan) {
+        return res.status(400).json({
+          success: false,
+          message: "Base plan configuration not found",
+        });
       }
 
-      existingOrder.receiptNumber = receiptNumber;
-      existingOrder.paymentMethod = paymentMethod || "CASH";
-      existingOrder.paymentStatus = "PAID";
-
-      // Update contact / address / health info with whatever was submitted
-      existingOrder.user.firstName = user.firstName;
-      existingOrder.user.lastName = user.lastName || existingOrder.user.lastName || "";
-      existingOrder.user.phone = user.phone;
-      existingOrder.user.email = user.email || existingOrder.user.email || "";
-      if (user.dob) existingOrder.user.dob = user.dob;
-
-      existingOrder.address = {
-        pincode: address.pincode,
-        house: address.house,
-        street: address.street,
-        landmark: address.landmark || existingOrder.address?.landmark || "",
-        city: address.city || existingOrder.address?.city || "Dombivli",
-        state: address.state || existingOrder.address?.state || "Maharashtra",
-      };
-
-      existingOrder.healthInfo = {
-        allergies: healthInfo?.allergies || existingOrder.healthInfo?.allergies || "N/A",
-        medicalConditions:
-          healthInfo?.medicalConditions || existingOrder.healthInfo?.medicalConditions || "N/A",
-      };
-
-      existingOrder.remarks = remarks || existingOrder.remarks || "";
-      existingOrder.deliverySlot = slot;
-
-      await existingOrder.save();
-      order = existingOrder;
-
-      console.log("♻️ EXISTING CLIENT RENEWED VIA MANUAL ORDER:", order.membershipId);
     } else {
-      /* =====================================
-         🆕 TRUE NEW CUSTOMER — create a fresh Order document
-      ===================================== */
-      const membershipId = await generateMembershipId(Order, totalPrice);
-      const receiptNumber = await generateReceiptNumber(Order);
-      const endDate = addMealDays(startDate, durationDays);
 
-      order = await Order.create({
-        membershipId,
-        receiptNumber,
+      // ===================================================
+      // STANDARD PLAN
+      // ===================================================
 
-        user: {
-          firstName: user.firstName,
-          lastName: user.lastName || "",
-          phone: user.phone,
-          email: user.email || "",
-          dob: user.dob || new Date("2000-01-01"),
-        },
+      selectedPlan =
+        PLANS[plan];
 
-        healthInfo: {
-          allergies: healthInfo?.allergies || "N/A",
-          medicalConditions: healthInfo?.medicalConditions || "N/A",
-        },
 
-        remarks: remarks || "",
+      if (!selectedPlan) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid plan selected",
+        });
+      }
 
-        address: {
-          pincode: address.pincode,
-          house: address.house,
-          street: address.street,
-          landmark: address.landmark || "",
-          city: address.city || "Dombivli",
-          state: address.state || "Maharashtra",
-        },
+    }
 
-        deliverySlot: slot,
 
-        subscription: {
-          plan,
-          amount,
-          originalAmount: amount,
-          durationMonths: months,
-          activationAt,
-          startDate,
-          endDate,
-          pause: { used: 0, history: [] },
-          status,
-        },
-        paymentStatus: "PAID",
-        paymentMethod: paymentMethod || "CASH",
+    // =====================================================
+    // ADD-ON FEATURES
+    // =====================================================
+
+    const selectedAddOnFeatures =
+      isAddon && Array.isArray(addOnFeatures)
+        ? addOnFeatures
+        : [];
+
+
+    // =====================================================
+    // BASE PLAN PRICE
+    // =====================================================
+    //
+    // Standard:
+    //     PLANS price
+    //
+    // Add-on:
+    //     Base plan price from original PLANS
+    //
+    // The custom/add-on amount is NOT stored in planConfig.
+    // It comes manually from the admin.
+    // =====================================================
+
+    const basePlanPrice =
+      isAddon
+        ? Number(
+            addonPlanConfig.basePlanPrice ||
+            selectedPlan.price ||
+            0
+          )
+        : Number(
+            selectedPlan.price || 0
+          );
+
+
+    // =====================================================
+    // CUSTOM PACKAGE PRICE
+    // =====================================================
+    //
+    // Admin manually enters this amount.
+    //
+    // Example:
+    //
+    // Gold 1 Month = ₹5,999
+    // Custom amount = ₹2,000
+    // Final = ₹7,999
+    // =====================================================
+
+    const finalCustomPackagePrice =
+      isAddon
+        ? Math.max(
+            0,
+            Number(customPackagePrice || 0)
+          )
+        : 0;
+
+
+    // =====================================================
+    // ADDITIONAL DURATION
+    // =====================================================
+    //
+    // Admin manually enters additional days.
+    //
+    // Example:
+    //
+    // Gold 1 Month = 24 days
+    // Additional = 5 days
+    // Final = 29 days
+    // =====================================================
+
+    const finalAdditionalDurationDays =
+      isAddon
+        ? Math.max(
+            0,
+            Number(additionalDurationDays || 0)
+          )
+        : 0;
+
+
+    // =====================================================
+    // BASE DURATION
+    // =====================================================
+
+    const baseDurationDays =
+      isAddon
+        ? (
+            Number(
+              addonPlanConfig.durationDays
+            ) ||
+            Number(
+              selectedPlan.durationDays
+            ) ||
+            (
+              Number(
+                selectedPlan.durationMonths || 1
+              ) * 24
+            )
+          )
+        : (
+            Number(
+              selectedPlan.durationDays
+            ) ||
+            (
+              Number(
+                selectedPlan.durationMonths || 1
+              ) * 24
+            )
+          );
+
+
+    // =====================================================
+    // DURATION MONTHS
+    // =====================================================
+
+    const months =
+      isAddon
+        ? Number(
+            addonPlanConfig.durationMonths
+          ) || 1
+        : Number(
+            selectedPlan.durationMonths
+          ) || 1;
+
+
+    // =====================================================
+    // FINAL DURATION
+    // =====================================================
+
+    const durationDays =
+      baseDurationDays +
+      finalAdditionalDurationDays;
+
+
+    // =====================================================
+    // FINAL AMOUNT
+    // =====================================================
+    //
+    // STANDARD:
+    //     Existing behavior remains.
+    //
+    // ADD-ON:
+    //     Base Plan Price + Manual Custom Price
+    // =====================================================
+
+    const amount =
+      isAddon
+        ? (
+            basePlanPrice +
+            finalCustomPackagePrice
+          )
+        : (
+            totalPrice ||
+            selectedPlan.price
+          );
+
+
+    // =====================================================
+    // ADD-ON VALIDATION
+    // =====================================================
+
+    if (isAddon) {
+
+      if (basePlanPrice <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Base plan price is invalid",
+        });
+      }
+
+
+      if (finalCustomPackagePrice < 0) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Custom package price cannot be negative",
+        });
+      }
+
+
+      if (durationDays <= 0) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Invalid package duration",
+        });
+      }
+
+    }
+
+
+    // =====================================================
+    // FIND EXISTING CUSTOMER
+    // =====================================================
+
+    // ✅ Find existing customer — guard against
+    // empty-string phone/email
+    //
+    // This prevents both "" values accidentally
+    // matching each other.
+
+    const existingUser =
+      await User.findOne({
+        $or: [
+          ...(user.phone
+            ? [{ phone: user.phone }]
+            : []),
+
+          ...(user.email
+            ? [{ email: user.email }]
+            : []),
+        ],
       });
 
-      console.log("✅ NEW MANUAL ORDER SAVED:", order.membershipId);
+
+    let existingOrder = null;
+
+
+    if (existingUser?.membershipId) {
+
+      existingOrder =
+        await Order.findOne({
+          membershipId:
+            existingUser.membershipId,
+        });
+
     }
 
-    // 📊 Rebuild Excel
-    try {
-      await rebuildExcelFromMongo();
-      console.log("📊 Excel updated successfully");
-    } catch (err) {
-      console.error("❌ Excel rebuild failed:", err.message);
+
+    // =====================================================
+    // PREVENT ACCIDENTAL DUPLICATE ORDER
+    // =====================================================
+
+    // 🛑 Prevent accidental duplicate order
+    // double click protection
+
+    const tenSecondsAgo =
+      new Date(
+        Date.now() -
+        10 * 1000
+      );
+
+
+    if (existingOrder) {
+
+      const recentOrder =
+        await Order.findOne({
+          membershipId:
+            existingOrder.membershipId,
+
+          updatedAt: {
+            $gte:
+              tenSecondsAgo,
+          },
+        });
+
+
+      if (recentOrder) {
+
+        return res.status(429).json({
+          success: false,
+          message:
+            "Order already submitted. Please wait a few seconds.",
+        });
+
+      }
+
     }
 
-    // 🔗 Sync User collection (upsert on membershipId either way)
-    await User.findOneAndUpdate(
-      { membershipId: order.membershipId },
-      {
-        firstName: order.user.firstName,
-        lastName: order.user.lastName,
-        email: order.user.email,
-        phone: order.user.phone,
-        membershipId: order.membershipId,
-      },
-      { upsert: true, new: true }
+
+    // =====================================================
+    // CALCULATE ACTIVATION / START DATE
+    // =====================================================
+
+    // ✅ Calculate activation/start dates
+    // same rule for both branches
+
+    const today =
+      new Date();
+
+
+    today.setHours(
+      0,
+      0,
+      0,
+      0
     );
 
+
+    let startDate;
+
+    let activationAt;
+
+    let status =
+      "UNDER_PROCESS";
+
+
+    if (req.body.startDate) {
+
+      startDate =
+        new Date(
+          req.body.startDate
+        );
+
+
+      startDate.setHours(
+        0,
+        0,
+        0,
+        0
+      );
+
+
+      activationAt =
+        new Date(
+          startDate
+        );
+
+
+      status =
+        startDate <= today
+          ? "ACTIVE"
+          : "UNDER_PROCESS";
+
+    } else {
+
+      activationAt =
+        new Date(
+          Date.now() +
+          48 * 60 * 60 * 1000
+        );
+
+
+      startDate =
+        new Date(
+          activationAt
+        );
+
+
+      status =
+        "UNDER_PROCESS";
+
+    }
+
+
+    // =====================================================
+    // ORDER VARIABLES
+    // =====================================================
+
+    let order;
+
+    let isRenewal =
+      false;
+
+
+    // =====================================================
+    // EXISTING CUSTOMER
+    // =====================================================
+
+    if (existingOrder) {
+
+      /*
+        =====================================
+        ♻️ EXISTING CLIENT — reuse SAME Order document
+
+        Record the old subscription into renewalHistory
+        =====================================
+      */
+
+      isRenewal =
+        true;
+
+
+      // ===================================================
+      // OLD SUBSCRIPTION SNAPSHOT
+      // ===================================================
+
+      const oldPlan =
+        existingOrder.subscription.plan;
+
+
+      const oldAmount =
+        existingOrder.subscription.amount;
+
+
+      const oldDurationMonths =
+        existingOrder.subscription.durationMonths;
+
+
+      const oldStartDate =
+        existingOrder.subscription.startDate;
+
+
+      const oldActivationAt =
+        existingOrder.subscription.activationAt;
+
+
+      const oldEndDate =
+        existingOrder.subscription.endDate;
+
+
+      // ===================================================
+      // EXTEND FROM EXISTING END DATE
+      // ===================================================
+
+      // Extend from whichever is later:
+      // existing endDate or new activation
+
+      const baseEndDate =
+        oldEndDate
+          ? new Date(
+              oldEndDate
+            )
+          : new Date(
+              activationAt
+            );
+
+
+      const extendFrom =
+        baseEndDate > activationAt
+          ? baseEndDate
+          : activationAt;
+
+
+      // ===================================================
+      // NEW END DATE
+      // ===================================================
+
+      const newEndDate =
+        addMealDays(
+          extendFrom,
+          durationDays
+        );
+
+
+      // ===================================================
+      // RECEIPT
+      // ===================================================
+
+      const receiptNumber =
+        await generateReceiptNumber(
+          Order
+        );
+
+
+      // ===================================================
+      // RENEWAL HISTORY
+      // ===================================================
+
+      existingOrder.subscription.renewalHistory =
+        existingOrder.subscription.renewalHistory ||
+        [];
+
+
+      existingOrder.subscription.renewalHistory.push({
+
+        date:
+          new Date(),
+
+        plan:
+          oldPlan,
+
+        durationMonths:
+          oldDurationMonths,
+
+        amount:
+          oldAmount,
+
+        paymentMethod:
+          paymentMethod ||
+          "CASH",
+
+        startDate:
+          oldStartDate,
+
+        activationAt:
+          oldActivationAt,
+
+        endDate:
+          oldEndDate,
+
+      });
+
+
+      // ===================================================
+      // APPLY NEW PLAN
+      // ===================================================
+
+      // 🔄 Apply the new plan on top of the same document
+
+      existingOrder.subscription.plan =
+        plan;
+
+
+      existingOrder.subscription.amount =
+        amount;
+
+
+      existingOrder.subscription.originalAmount =
+        amount;
+
+
+      existingOrder.subscription.durationMonths =
+        months;
+
+
+      // ===================================================
+      // NEW CUSTOM PACKAGE DATA
+      // =====================================================
+
+      existingOrder.subscription.isAddon =
+        isAddon;
+
+
+      existingOrder.subscription.basePlanPrice =
+        basePlanPrice;
+
+
+      existingOrder.subscription.customPackagePrice =
+        finalCustomPackagePrice;
+
+
+      existingOrder.subscription.addOnFeatures =
+        selectedAddOnFeatures;
+
+
+      existingOrder.subscription.baseDurationDays =
+        baseDurationDays;
+
+
+      existingOrder.subscription.additionalDurationDays =
+        finalAdditionalDurationDays;
+
+
+      existingOrder.subscription.durationDays =
+        durationDays;
+
+
+      // ===================================================
+      // DATES
+      // ===================================================
+
+      existingOrder.subscription.activationAt =
+        activationAt;
+
+
+      existingOrder.subscription.startDate =
+        startDate;
+
+
+      existingOrder.subscription.endDate =
+        newEndDate;
+
+
+      existingOrder.subscription.status =
+        status;
+
+
+      existingOrder.subscription.renewedAt =
+        new Date();
+
+
+      existingOrder.subscription.renewalTriggeredBy =
+        "ADMIN";
+
+
+      // ===================================================
+      // RESET PAUSE WHEN ACTIVE
+      // ===================================================
+
+      if (status === "ACTIVE") {
+
+        existingOrder.subscription.pause = {
+
+          used:
+            0,
+
+          history:
+            existingOrder.subscription.pause?.history ||
+            [],
+
+        };
+
+      }
+
+
+      // ===================================================
+      // PAYMENT
+      // ===================================================
+
+      existingOrder.receiptNumber =
+        receiptNumber;
+
+
+      existingOrder.paymentMethod =
+        paymentMethod ||
+        "CASH";
+
+
+      existingOrder.paymentStatus =
+        "PAID";
+
+
+      // ===================================================
+      // UPDATE CONTACT INFORMATION
+      // ===================================================
+
+      // Update contact / address / health info
+      // with whatever was submitted
+
+      existingOrder.user.firstName =
+        user.firstName;
+
+
+      existingOrder.user.lastName =
+        user.lastName ||
+        existingOrder.user.lastName ||
+        "";
+
+
+      existingOrder.user.phone =
+        user.phone;
+
+
+      existingOrder.user.email =
+        user.email ||
+        existingOrder.user.email ||
+        "";
+
+
+      if (user.dob) {
+
+        existingOrder.user.dob =
+          user.dob;
+
+      }
+
+
+      // ===================================================
+      // ADDRESS
+      // ===================================================
+
+      existingOrder.address = {
+
+        pincode:
+          address.pincode,
+
+        house:
+          address.house,
+
+        street:
+          address.street,
+
+        landmark:
+          address.landmark ||
+          existingOrder.address?.landmark ||
+          "",
+
+        city:
+          address.city ||
+          existingOrder.address?.city ||
+          "Dombivli",
+
+        state:
+          address.state ||
+          existingOrder.address?.state ||
+          "Maharashtra",
+
+      };
+
+
+      // ===================================================
+      // HEALTH INFO
+      // ===================================================
+
+      existingOrder.healthInfo = {
+
+        allergies:
+          healthInfo?.allergies ||
+          existingOrder.healthInfo?.allergies ||
+          "N/A",
+
+        medicalConditions:
+          healthInfo?.medicalConditions ||
+          existingOrder.healthInfo?.medicalConditions ||
+          "N/A",
+
+      };
+
+
+      // ===================================================
+      // REMARKS
+      // ===================================================
+
+      existingOrder.remarks =
+        remarks ||
+        existingOrder.remarks ||
+        "";
+
+
+      existingOrder.deliverySlot =
+        slot;
+
+
+      // ===================================================
+      // SAVE EXISTING ORDER
+      // ===================================================
+
+      await existingOrder.save();
+
+
+      order =
+        existingOrder;
+
+
+      console.log(
+        "♻️ EXISTING CLIENT RENEWED VIA MANUAL ORDER:",
+        order.membershipId
+      );
+
+
+    } else {
+
+      /*
+        =====================================
+        🆕 TRUE NEW CUSTOMER — create a fresh Order document
+        =====================================
+      */
+
+
+      // ===================================================
+      // MEMBERSHIP ID
+      // ===================================================
+
+      // IMPORTANT:
+      // Use backend-calculated final amount
+      // instead of raw totalPrice.
+
+      const membershipId =
+        await generateMembershipId(
+          Order,
+          amount
+        );
+
+
+      // ===================================================
+      // RECEIPT NUMBER
+      // ===================================================
+
+      const receiptNumber =
+        await generateReceiptNumber(
+          Order
+        );
+
+
+      // ===================================================
+      // END DATE
+      // ===================================================
+
+      const endDate =
+        addMealDays(
+          startDate,
+          durationDays
+        );
+
+
+      // ===================================================
+      // CREATE ORDER
+      // ===================================================
+
+      order =
+        await Order.create({
+
+          membershipId,
+
+          receiptNumber,
+
+
+          // ===============================================
+          // USER
+          // ===============================================
+
+          user: {
+
+            firstName:
+              user.firstName,
+
+            lastName:
+              user.lastName ||
+              "",
+
+            phone:
+              user.phone,
+
+            email:
+              user.email ||
+              "",
+
+            dob:
+              user.dob ||
+              new Date(
+                "2000-01-01"
+              ),
+
+          },
+
+
+          // ===============================================
+          // HEALTH
+          // ===============================================
+
+          healthInfo: {
+
+            allergies:
+              healthInfo?.allergies ||
+              "N/A",
+
+            medicalConditions:
+              healthInfo?.medicalConditions ||
+              "N/A",
+
+          },
+
+
+          // ===============================================
+          // REMARKS
+          // ===============================================
+
+          remarks:
+            remarks ||
+            "",
+
+
+          // ===============================================
+          // ADDRESS
+          // ===============================================
+
+          address: {
+
+            pincode:
+              address.pincode,
+
+            house:
+              address.house,
+
+            street:
+              address.street,
+
+            landmark:
+              address.landmark ||
+              "",
+
+            city:
+              address.city ||
+              "Dombivli",
+
+            state:
+              address.state ||
+              "Maharashtra",
+
+          },
+
+
+          // ===============================================
+          // DELIVERY SLOT
+          // ===============================================
+
+          deliverySlot:
+            slot,
+
+
+          // ===============================================
+          // SUBSCRIPTION
+          // ===============================================
+
+          subscription: {
+
+            plan:
+
+
+              plan,
+
+
+            // ---------------------------------------------
+            // PRICE
+            // ---------------------------------------------
+
+            amount:
+
+
+              amount,
+
+
+            originalAmount:
+
+
+              amount,
+
+
+            // ---------------------------------------------
+            // CUSTOM PACKAGE PRICE
+            // ---------------------------------------------
+
+            isAddon:
+
+
+              isAddon,
+
+
+            basePlanPrice:
+
+
+              basePlanPrice,
+
+
+            customPackagePrice:
+
+
+              finalCustomPackagePrice,
+
+
+            // ---------------------------------------------
+            // ADD-ON FEATURES
+            // ---------------------------------------------
+
+            addOnFeatures:
+
+
+              selectedAddOnFeatures,
+
+
+            // ---------------------------------------------
+            // DURATION
+            // ---------------------------------------------
+
+            durationMonths:
+
+
+              months,
+
+
+            baseDurationDays:
+
+
+              baseDurationDays,
+
+
+            additionalDurationDays:
+
+
+              finalAdditionalDurationDays,
+
+
+            durationDays:
+
+
+              durationDays,
+
+
+            // ---------------------------------------------
+            // DATES
+            // ---------------------------------------------
+
+            activationAt:
+
+
+              activationAt,
+
+
+            startDate:
+
+
+              startDate,
+
+
+            endDate:
+
+
+              endDate,
+
+
+            // ---------------------------------------------
+            // PAUSE
+            // ---------------------------------------------
+
+            pause: {
+
+              used:
+                0,
+
+              history:
+                [],
+
+            },
+
+
+            // ---------------------------------------------
+            // STATUS
+            // ---------------------------------------------
+
+            status:
+
+
+              status,
+
+          },
+
+
+          // ===============================================
+          // PAYMENT
+          // ===============================================
+
+          paymentStatus:
+            "PAID",
+
+          paymentMethod:
+            paymentMethod ||
+            "CASH",
+
+        });
+
+
+      console.log(
+        "✅ NEW MANUAL ORDER SAVED:",
+        order.membershipId
+      );
+
+    }
+
+
+    // =====================================================
+    // REBUILD EXCEL
+    // =====================================================
+
+    // 📊 Rebuild Excel
+
+    try {
+
+      await rebuildExcelFromMongo();
+
+
+      console.log(
+        "📊 Excel updated successfully"
+      );
+
+    } catch (err) {
+
+      console.error(
+        "❌ Excel rebuild failed:",
+        err.message
+      );
+
+    }
+
+
+    // =====================================================
+    // SYNC USER COLLECTION
+    // =====================================================
+
+    // 🔗 Sync User collection
+    // upsert on membershipId either way
+
+    await User.findOneAndUpdate(
+
+      {
+        membershipId:
+          order.membershipId,
+      },
+
+
+      {
+
+        firstName:
+          order.user.firstName,
+
+        lastName:
+          order.user.lastName,
+
+        email:
+          order.user.email,
+
+        phone:
+          order.user.phone,
+
+        membershipId:
+          order.membershipId,
+
+      },
+
+
+      {
+        upsert:
+          true,
+
+        new:
+          true,
+      }
+
+    );
+
+
+    // =====================================================
+    // GENERATE INVOICE PDF
+    // =====================================================
+
     // 📄 Generate Invoice PDF
-    const invoicePath = await generateInvoice(order);
-    order.invoiceUrl = invoicePath;
+
+    const invoicePath =
+      await generateInvoice(
+        order
+      );
+
+
+    order.invoiceUrl =
+      invoicePath;
+
+
     await order.save();
 
-    const excelPath = path.join(__dirname, "..", "exports", "members.xlsx");
+
+    // =====================================================
+    // EXCEL PATH
+    // =====================================================
+
+    const excelPath =
+      path.join(
+        __dirname,
+        "..",
+        "exports",
+        "members.xlsx"
+      );
+
+
+    // =====================================================
+    // CUSTOMER EMAIL
+    // =====================================================
 
     // 📩 SEND CUSTOMER EMAIL
+
     if (order.user.email) {
-      const rawPlan = order.subscription?.plan || "";
-      const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
+
+      const rawPlan =
+        order.subscription?.plan ||
+        "";
+
+
+      // ===================================================
+      // PLAN NAME
+      // ===================================================
+
+      let formattedPlan =
+        `RYVIVE ${rawPlan.split("_")[0]}`;
+
+
+      // For Add-on plans, display the actual
+      // base plan + duration.
+
+      if (order.subscription?.isAddon) {
+
+        const basePlanKey =
+          rawPlan.replace(
+            "_ADDON",
+            ""
+          );
+
+
+        const baseParts =
+          basePlanKey.split("_");
+
+
+        const basePlanName =
+          baseParts[0] ||
+          "RYVIVE";
+
+
+        const baseDuration =
+          baseParts[1] ||
+          "";
+
+
+        formattedPlan =
+          `RYVIVE ${basePlanName} ${baseDuration.replace(
+            "MONTH",
+            " MONTH"
+          )}`;
+
+      }
+
+
+      // ===================================================
+      // SUBSCRIPTION DATA
+      // ===================================================
+
+      const subscription =
+        order.subscription ||
+        {};
+
+
+      const emailIsAddon =
+        Boolean(
+          subscription.isAddon
+        );
+
+
+      const emailAddOnFeatures =
+        Array.isArray(
+          subscription.addOnFeatures
+        )
+          ? subscription.addOnFeatures
+          : [];
+
+
+      // ===================================================
+      // ADD-ON HTML
+      // ===================================================
+
+      const addOnFeaturesHtml =
+        emailAddOnFeatures.length > 0
+
+          ? emailAddOnFeatures
+              .map(
+                feature =>
+                  `• ${feature}`
+              )
+              .join("<br>")
+
+          : "None";
+
+
+      // ===================================================
+      // CUSTOMER EMAIL
+      // ===================================================
 
       await sendEmail({
-        to: order.user.email,
-        subject: isRenewal
-          ? "You're Back, And We're Glad 🌿"
-          : "Payment successful for RYVIVE ROOTS LLP",
-        html: isRenewal
-          ? `
-<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
 
-  <h2>Hi ${order.user.firstName},</h2>
+        to:
+          order.user.email,
 
-  <p><b>Welcome back. We're glad you stayed.</b></p>
+
+        subject:
+
+          isRenewal
+
+            ? (
+                emailIsAddon
+                  ? "Your Customized Package Has Been Renewed 🌿"
+                  : "You're Back, And We're Glad 🌿"
+              )
+
+            : (
+                emailIsAddon
+                  ? "Your Customized RYVIVE ROOTS Package Is Confirmed 🌿"
+                  : "Payment successful for RYVIVE ROOTS LLP"
+              ),
+
+
+        // =================================================
+        // EMAIL HTML
+        // =================================================
+
+        html:
+
+          isRenewal
+
+            ? `
+
+<div style="
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+">
+
+  <h2>
+    Hi ${order.user.firstName},
+  </h2>
+
+
+  <p>
+    <b>
+      ${
+        emailIsAddon
+          ? "Your customized package has been renewed successfully."
+          : "Welcome back. We're glad you stayed."
+      }
+    </b>
+  </p>
+
 
   <p>
     Thank you for continuing your wellness journey with us.
     Here's your subscription summary for your records:
   </p>
 
-  <table style="border-collapse: collapse; margin-top: 10px;">
+
+  <table style="
+    border-collapse: collapse;
+    margin-top: 10px;
+  ">
+
+
     <tr>
-      <td style="padding: 6px 10px;"><b>Receipt Number</b></td>
-      <td style="padding: 6px 10px;">: ${order.receiptNumber}</td>
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        <b>
+          Receipt Number
+        </b>
+
+      </td>
+
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        :
+        ${order.receiptNumber}
+
+      </td>
+
     </tr>
+
+
     <tr>
-      <td style="padding: 6px 10px;"><b>Plan</b></td>
-      <td style="padding: 6px 10px;">: ${formattedPlan}</td>
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        <b>
+          Plan
+        </b>
+
+      </td>
+
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        :
+        ${formattedPlan}
+
+      </td>
+
     </tr>
+
+
+    ${
+      emailIsAddon
+
+        ? `
+
     <tr>
-      <td style="padding: 6px 10px;"><b>Amount Paid</b></td>
-      <td style="padding: 6px 10px;">: ₹${order.subscription.amount}</td>
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        <b>
+          Package Type
+        </b>
+
+      </td>
+
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        :
+        <b>
+          Customized Package
+        </b>
+
+      </td>
+
     </tr>
+
+
     <tr>
-      <td style="padding: 6px 10px;"><b>Payment Date</b></td>
-      <td style="padding: 6px 10px;">: ${new Date().toLocaleDateString("en-IN")}</td>
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        <b>
+          Base Plan Price
+        </b>
+
+      </td>
+
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        :
+        ₹${Number(
+          subscription.basePlanPrice ||
+          0
+        ).toLocaleString("en-IN")}
+
+      </td>
+
     </tr>
+
+
     <tr>
-      <td style="padding: 6px 10px;"><b>New Expiry Date</b></td>
-      <td style="padding: 6px 10px;">: ${new Date(order.subscription.endDate).toLocaleDateString("en-IN")}</td>
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        <b>
+          Customized Package Price
+        </b>
+
+      </td>
+
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        :
+        ₹${Number(
+          subscription.customPackagePrice ||
+          0
+        ).toLocaleString("en-IN")}
+
+      </td>
+
     </tr>
-  </table>
 
-  <br/>
 
-  <p>Your membership ID remains <b>${order.membershipId}</b>.</p>
+    <tr>
 
-  <p>
-    If you ever have a question or concern, reach out anytime at
-    customersupport@ryviveroots.com.
-  </p>
+      <td style="
+        padding: 6px 10px;
+        vertical-align: top;
+      ">
 
-  <p>Warmly,<br/><b>Team Ryvive Roots</b></p>
-</div>
-`
-          : `
-<div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <b>
+          Add-on Features
+        </b>
 
-<h2 style="font-family: Georgia, 'Times New Roman', serif;  font-size:16px; margin-bottom:2px;">
-  Dear ${order.user.firstName},
-</h2>
+      </td>
 
-  <p font-family: Arial, 'Times New Roman', serif; font-weight: bold; font-size:22px; margin-bottom:10px;>
-    We just wanted to say thank you so much! We're genuinely thrilled to have you as part of the 
-    <b>Ryvive Roots family</b>, and we can't wait to walk alongside you on this wonderful wellness journey.
-  </p>
 
-  <p>
-    Your payment has gone through successfully and everything is all set on our end. 
-    Here's a quick summary for your records:
-  </p>
+      <td style="
+        padding: 6px 10px;
+      ">
 
-<table style="font-family: Arial, 'Times New Roman', serif;  font-size:15px; margin-bottom:10px;">
-  <tr>
-    <td><b>Receipt Number</b></td>
-    <td>: <b>${order.receiptNumber}</b></td>
-  </tr>
-  <tr>
-    <td><b>Your Plan</b></td>
-    <td>: <b>${formattedPlan}</b></td>
-  </tr>
-  <tr>
-    <td><b>Amount Paid</b></td>
-    <td>: <b>₹${order.subscription.amount}</b></td>
-  </tr>
-  <tr>
-    <td><b>Payment Date</b></td>
-    <td>: <b>${order.createdAt.toLocaleDateString("en-IN")}</b></td>
-  </tr>
-</table>
+        :
+        ${addOnFeaturesHtml}
 
-  <br/>
+      </td>
 
-  <p>
-    Keep an eye on your inbox. You'll be hearing from us shortly with your 
-    <b>membership number</b> and all the details to get you started. 
-    The good stuff is just around the corner.
-  </p>
+    </tr>
 
-  <p>
-  And hey, if you ever have a question, a concern, or just want to say hello, we're always here for you. Reach out anytime at customersupport@ryviveroots.com and we'll get back to you with a smile.
-  </p>
 
-  <p>
-    Here's to a healthier, happier you. We're so glad you're here!
-  </p>
+    <tr>
 
-  <p>
-    Warmly,<br/>
-    <b>Team Ryvive Roots</b>
-  </p>
-</div>
-`,
-        attachments: [
-          {
-            filename: `invoice-${order.receiptNumber}.pdf`,
-            path: invoicePath,
-          },
-        ],
-      });
+      <td style="
+        padding: 6px 10px;
+      ">
 
-      order.subscription.thankYouEmailSentAt = new Date();
-      order.subscription.welcomeEmailSent = false;
-      await order.save();
+        <b>
+          Base Duration
+        </b>
+
+      </td>
+
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        :
+        ${subscription.baseDurationDays || 0}
+        days
+
+      </td>
+
+    </tr>
+
+
+    <tr>
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        <b>
+          Additional Duration
+        </b>
+
+      </td>
+
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        :
+        +${subscription.additionalDurationDays || 0}
+        days
+
+      </td>
+
+    </tr>
+
+
+    <tr>
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        <b>
+          Final Duration
+        </b>
+
+      </td>
+
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        :
+        ${subscription.durationDays || 0}
+        days
+
+      </td>
+
+    </tr>
+
+    `
+
+        : ""
     }
 
+
+    <tr>
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        <b>
+          Amount Paid
+        </b>
+
+      </td>
+
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        :
+        ₹${Number(
+          order.subscription.amount ||
+          0
+        ).toLocaleString("en-IN")}
+
+      </td>
+
+    </tr>
+
+
+    <tr>
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        <b>
+          Payment Date
+        </b>
+
+      </td>
+
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        :
+        ${new Date().toLocaleDateString(
+          "en-IN"
+        )}
+
+      </td>
+
+    </tr>
+
+
+    <tr>
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        <b>
+          New Expiry Date
+        </b>
+
+      </td>
+
+
+      <td style="
+        padding: 6px 10px;
+      ">
+
+        :
+        ${new Date(
+          order.subscription.endDate
+        ).toLocaleDateString(
+          "en-IN"
+        )}
+
+      </td>
+
+    </tr>
+
+
+  </table>
+
+
+  <br/>
+
+
+  <p>
+
+    Your membership ID remains
+    <b>
+      ${order.membershipId}
+    </b>.
+
+  </p>
+
+
+  <p>
+
+    If you ever have a question or concern,
+    reach out anytime at
+    customersupport@ryviveroots.com.
+
+  </p>
+
+
+  <p>
+
+    Warmly,<br/>
+
+    <b>
+      Team Ryvive Roots
+    </b>
+
+  </p>
+
+
+</div>
+
+`
+
+
+            : `
+
+<div style="
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+">
+
+
+  <h2 style="
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 16px;
+    margin-bottom: 2px;
+  ">
+
+    Dear ${order.user.firstName},
+
+  </h2>
+
+
+  <p style="
+    font-family: Arial, 'Times New Roman', serif;
+    font-weight: bold;
+    font-size: 22px;
+    margin-bottom: 10px;
+  ">
+
+    We just wanted to say thank you so much!
+    We're genuinely thrilled to have you as part of the
+    <b>Ryvive Roots family</b>,
+    and we can't wait to walk alongside you
+    on this wonderful wellness journey.
+
+  </p>
+
+
+  <p>
+
+    Your payment has gone through successfully
+    and everything is all set on our end.
+
+    Here's a quick summary for your records:
+
+  </p>
+
+
+  ${
+    emailIsAddon
+
+      ? `
+
+  <p>
+
+    Your
+    <b>
+      Customized RYVIVE ROOTS Package
+    </b>
+    has been successfully created.
+
+  </p>
+
+  `
+
+      : ""
+  }
+
+
+  <table style="
+    font-family: Arial, 'Times New Roman', serif;
+    font-size: 15px;
+    margin-bottom: 10px;
+  ">
+
+
+    <tr>
+
+      <td>
+        <b>
+          Receipt Number
+        </b>
+      </td>
+
+
+      <td>
+        :
+        <b>
+          ${order.receiptNumber}
+        </b>
+      </td>
+
+    </tr>
+
+
+    <tr>
+
+      <td>
+        <b>
+          Your Plan
+        </b>
+      </td>
+
+
+      <td>
+        :
+        <b>
+          ${formattedPlan}
+        </b>
+      </td>
+
+    </tr>
+
+
+    ${
+      emailIsAddon
+
+        ? `
+
+    <tr>
+
+      <td>
+        <b>
+          Package Type
+        </b>
+      </td>
+
+
+      <td>
+        :
+        <b>
+          Customized Package
+        </b>
+      </td>
+
+    </tr>
+
+
+    <tr>
+
+      <td>
+        <b>
+          Base Plan Price
+        </b>
+      </td>
+
+
+      <td>
+        :
+        ₹${Number(
+          subscription.basePlanPrice ||
+          0
+        ).toLocaleString("en-IN")}
+
+      </td>
+
+    </tr>
+
+
+    <tr>
+
+      <td>
+        <b>
+          Customized Package Price
+        </b>
+      </td>
+
+
+      <td>
+        :
+        ₹${Number(
+          subscription.customPackagePrice ||
+          0
+        ).toLocaleString("en-IN")}
+
+      </td>
+
+    </tr>
+
+
+    <tr>
+
+      <td style="
+        vertical-align: top;
+      ">
+
+        <b>
+          Add-on Features
+        </b>
+
+      </td>
+
+
+      <td>
+
+        :
+        ${addOnFeaturesHtml}
+
+      </td>
+
+    </tr>
+
+
+    <tr>
+
+      <td>
+        <b>
+          Base Duration
+        </b>
+      </td>
+
+
+      <td>
+
+        :
+        ${subscription.baseDurationDays || 0}
+        days
+
+      </td>
+
+    </tr>
+
+
+    <tr>
+
+      <td>
+        <b>
+          Additional Duration
+        </b>
+      </td>
+
+
+      <td>
+
+        :
+        +${subscription.additionalDurationDays || 0}
+        days
+
+      </td>
+
+    </tr>
+
+
+    <tr>
+
+      <td>
+        <b>
+          Final Duration
+        </b>
+      </td>
+
+
+      <td>
+
+        :
+        ${subscription.durationDays || 0}
+        days
+
+      </td>
+
+    </tr>
+
+    `
+
+        : ""
+    }
+
+
+    <tr>
+
+      <td>
+        <b>
+          Amount Paid
+        </b>
+      </td>
+
+
+      <td>
+
+        :
+        <b>
+          ₹${Number(
+            order.subscription.amount ||
+            0
+          ).toLocaleString("en-IN")}
+        </b>
+
+      </td>
+
+    </tr>
+
+
+    <tr>
+
+      <td>
+        <b>
+          Payment Date
+        </b>
+      </td>
+
+
+      <td>
+
+        :
+        <b>
+          ${order.createdAt
+            ? order.createdAt.toLocaleDateString(
+                "en-IN"
+              )
+            : new Date().toLocaleDateString(
+                "en-IN"
+              )}
+        </b>
+
+      </td>
+
+    </tr>
+
+
+  </table>
+
+
+  <br/>
+
+
+  <p>
+
+    Keep an eye on your inbox.
+    You'll be hearing from us shortly with your
+    <b>membership number</b>
+    and all the details to get you started.
+
+    The good stuff is just around the corner.
+
+  </p>
+
+
+  <p>
+
+    And hey, if you ever have a question,
+    a concern, or just want to say hello,
+    we're always here for you.
+
+    Reach out anytime at
+    customersupport@ryviveroots.com
+    and we'll get back to you with a smile.
+
+  </p>
+
+
+  <p>
+
+    Here's to a healthier, happier you.
+    We're so glad you're here!
+
+  </p>
+
+
+  <p>
+
+    Warmly,<br/>
+
+    <b>
+      Team Ryvive Roots
+    </b>
+
+  </p>
+
+
+</div>
+
+`,
+
+        // =================================================
+        // INVOICE ATTACHMENT
+        // =================================================
+
+        attachments: [
+
+          {
+
+            filename:
+              `invoice-${order.receiptNumber}.pdf`,
+
+            path:
+              invoicePath,
+
+          },
+
+        ],
+
+      });
+
+
+      // ===================================================
+      // EMAIL TRACKING
+      // ===================================================
+
+      order.subscription.thankYouEmailSentAt =
+        new Date();
+
+
+      order.subscription.welcomeEmailSent =
+        false;
+
+
+      await order.save();
+
+    }
+
+
+    // =====================================================
+    // COMPANY EMAIL
+    // =====================================================
+
     // 📩 SEND COMPANY EMAIL
+
     await sendEmail({
-      to: process.env.COMPANY_EMAIL,
-      subject: isRenewal
-        ? `🔁 Manual Renewal - ${order.membershipId}`
-        : `🧾 Manual Membership Added - ${order.membershipId}`,
+
+      to:
+        process.env.COMPANY_EMAIL,
+
+
+      subject:
+
+        isRenewal
+
+          ? `🔁 Manual Renewal - ${order.membershipId}`
+
+          : `🧾 Manual Membership Added - ${order.membershipId}`,
+
+
       html: `
-        <h2>${isRenewal ? "Existing Member Renewed (Manual)" : "New Walk-in Member Added"}</h2>
 
-        <p><b>Name:</b> ${order.user.firstName} ${order.user.lastName}</p>
-        <p><b>Phone:</b> ${order.user.phone}</p>
-        <p><b>Email:</b> ${order.user.email || "N/A"}</p>
-        <p><b> Allergies:</b> ${order.healthInfo?.allergies || "N/A"}</p>
-        <p><b> Medical Conditions:</b> ${order.healthInfo?.medicalConditions || "N/A"}</p>
-        <p><b>📝 Remarks:</b> ${order.remarks || "—"}</p>
+<h2>
 
-        <p><b>Plan:</b> ${order.subscription.plan}</p>
-        <p><b>Amount:</b> ₹${order.subscription.amount}</p>
-        <p><b>Slot:</b> ${order.deliverySlot}</p>
-        <p><b>Membership ID:</b> ${order.membershipId}</p>
-        <p><b>Receipt:</b> ${order.receiptNumber}</p>
+  ${
+    isRenewal
+      ? "Existing Member Renewed (Manual)"
+      : "New Walk-in Member Added"
+  }
 
-        <p><b>Address:</b><br/>
-          ${order.address.house}, ${order.address.street}<br/>
-          ${order.address.landmark}<br/>
-          ${order.address.city} - ${order.address.pincode}
-        </p>
+</h2>
 
-        <p>🕒 Created: ${new Date().toLocaleString("en-IN")}</p>
-      `,
+
+<p>
+
+  <b>
+    Name:
+  </b>
+
+  ${order.user.firstName}
+  ${order.user.lastName}
+
+</p>
+
+
+<p>
+
+  <b>
+    Phone:
+  </b>
+
+  ${order.user.phone}
+
+</p>
+
+
+<p>
+
+  <b>
+    Email:
+  </b>
+
+  ${order.user.email || "N/A"}
+
+</p>
+
+
+<p>
+
+  <b>
+    Allergies:
+  </b>
+
+  ${order.healthInfo?.allergies || "N/A"}
+
+</p>
+
+
+<p>
+
+  <b>
+    Medical Conditions:
+  </b>
+
+  ${order.healthInfo?.medicalConditions || "N/A"}
+
+</p>
+
+
+<p>
+
+  <b>
+    📝 Remarks:
+  </b>
+
+  ${order.remarks || "—"}
+
+</p>
+
+
+<p>
+
+  <b>
+    Plan:
+  </b>
+
+  ${order.subscription.plan}
+
+</p>
+
+
+${
+  order.subscription?.isAddon
+
+    ? `
+
+<p>
+
+  <b>
+    Package Type:
+  </b>
+
+  Customized Package
+
+</p>
+
+
+<p>
+
+  <b>
+    Base Plan Price:
+  </b>
+
+  ₹${Number(
+    order.subscription.basePlanPrice ||
+    0
+  ).toLocaleString("en-IN")}
+
+</p>
+
+
+<p>
+
+  <b>
+    Customized Package Price:
+  </b>
+
+  ₹${Number(
+    order.subscription.customPackagePrice ||
+    0
+  ).toLocaleString("en-IN")}
+
+</p>
+
+
+<p>
+
+  <b>
+    Add-on Features:
+  </b>
+
+  ${
+    order.subscription.addOnFeatures?.length
+
+      ? order.subscription.addOnFeatures.join(
+          ", "
+        )
+
+      : "None"
+  }
+
+</p>
+
+
+<p>
+
+  <b>
+    Base Duration:
+  </b>
+
+  ${order.subscription.baseDurationDays || 0}
+  days
+
+</p>
+
+
+<p>
+
+  <b>
+    Additional Duration:
+  </b>
+
+  +${order.subscription.additionalDurationDays || 0}
+  days
+
+</p>
+
+
+<p>
+
+  <b>
+    Final Duration:
+  </b>
+
+  ${order.subscription.durationDays || 0}
+  days
+
+</p>
+
+`
+
+    : ""
+}
+
+
+<p>
+
+  <b>
+    Amount:
+  </b>
+
+  ₹${Number(
+    order.subscription.amount ||
+    0
+  ).toLocaleString("en-IN")}
+
+</p>
+
+
+<p>
+
+  <b>
+    Slot:
+  </b>
+
+  ${order.deliverySlot}
+
+</p>
+
+
+<p>
+
+  <b>
+    Membership ID:
+  </b>
+
+  ${order.membershipId}
+
+</p>
+
+
+<p>
+
+  <b>
+    Receipt:
+  </b>
+
+  ${order.receiptNumber}
+
+</p>
+
+
+<p>
+
+  <b>
+    Address:
+  </b>
+
+  <br/>
+
+  ${order.address.house},
+  ${order.address.street}
+
+  <br/>
+
+  ${order.address.landmark}
+
+  <br/>
+
+  ${order.address.city}
+  -
+  ${order.address.pincode}
+
+</p>
+
+
+<p>
+
+  🕒 Created:
+  ${new Date().toLocaleString("en-IN")}
+
+</p>
+
+`,
+
+      // =================================================
+      // COMPANY EMAIL ATTACHMENTS
+      // =================================================
+
       attachments: [
+
         {
-          filename: "members.xlsx",
-          path: excelPath,
+
+          filename:
+            "members.xlsx",
+
+          path:
+            excelPath,
+
         },
+
+
         {
-          filename: `invoice-${order.receiptNumber}.pdf`,
-          path: invoicePath,
+
+          filename:
+            `invoice-${order.receiptNumber}.pdf`,
+
+          path:
+            invoicePath,
+
         },
+
       ],
+
     });
+
+
+    // =====================================================
+    // SUCCESS RESPONSE
+    // =====================================================
 
     return res.json({
-      success: true,
+
+      success:
+        true,
+
       order,
-      renewed: isRenewal,
+
+      renewed:
+        isRenewal,
+
     });
+
+
   } catch (error) {
-    console.error("❌ MANUAL ORDER ERROR:", error);
+
+    // =====================================================
+    // ERROR HANDLING
+    // =====================================================
+
+    console.error(
+      "❌ MANUAL ORDER ERROR:",
+      error
+    );
+
+
     return res.status(500).json({
-      success: false,
-      message: "Failed to create manual order",
+
+      success:
+        false,
+
+      message:
+        "Failed to create manual order",
+
     });
+
   }
+
 });
 
 router.put("/order/:id/health", async (req, res) => {

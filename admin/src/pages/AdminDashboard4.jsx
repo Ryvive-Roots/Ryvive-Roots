@@ -27,9 +27,305 @@ const teamMembers = [
   { id: 'sakshi', name: 'Sakshi', role: 'Operations Associate' }
 ];
 
-const packageFeatures = [
-  'High-Protein Meals', 'Gut-Friendly Recipes', 'Detox Juices', 'Priority Support',
-  'Flexible Pauses (3/month)', 'Menu Customization', 'Weekend Delivery', 'Nutrition Consultation'
+const PLAN_PRICES = {
+  SILVER_1MONTH: 4999,
+  GOLD_1MONTH: 5999,
+  PLATINUM_1MONTH: 6999,
+  SILVER_3MONTH: 14999,
+  GOLD_3MONTH: 17499,
+  PLATINUM_3MONTH: 19999,
+};
+
+const ADDON_BASE_PRICES = {
+  SILVER_ADDON: 4999,
+  GOLD_ADDON: 5999,
+  PLATINUM_ADDON: 6999,
+};
+
+const ADD_ON_FEATURES = [
+
+
+  {
+    heading: 'SIGNATURE DETOX COLLECTION',
+    subMenus: [
+      {
+        title: 'COLD-PRESSED BLENDS',
+        items: [
+          'TESTO PLUS',
+          'IMMUNI BOOST+',
+          'RED RYVIVE',
+          'CLEAN RYVIVE',
+          'STAMINA BOOSTER',
+          'LIBIDO BOOSTER',
+          'GLOWX',
+          'RYVIVE CARROT',
+        ],
+      },
+    ],
+  },
+
+  {
+    heading: 'FRUIT & VEGETABLE ELIXIRS',
+    subMenus: [
+      {
+        title: 'FRESH FRUIT VEGETABLE BLENDS',
+        items: [
+          'BE FOR BRAIN',
+          'DRAGON PINE',
+          'APB SHAKE',
+          'POMEGRANATE DELIGHT',
+          'FRUIT FUSION',
+          'ORANGE PINE TWIST',
+          'HEALTHY HEART',
+          'GOLDEN PINE',
+          'KIWI BLISS',
+          'MOHITO MORNING',
+          'CLAM CUCUMBER',
+          'FRESH MELON',
+          'O-JUICE',
+        ],
+      },
+    ],
+  },
+
+  {
+    heading: 'WELLNESS BLENDS',
+    subMenus: [
+      {
+        title: 'TARGETED WELLNESS BLENDS',
+        items: [
+          'BRIGHT EYES',
+          'HAPPY GUT',
+          'FOR SKIN SAKE',
+          'THYROID BALANCE+',
+          'SWEET CONTROLLER',
+          'DIGESTION BOOSTER',
+        ],
+      },
+    ],
+  },
+
+  {
+    heading: 'CREAMY & NOURISHING SMOOTHIES',
+    subMenus: [
+      {
+        title: 'RICH & NOURISHING',
+        items: [
+          'MANGO MAGIC',
+          'ALL AVOCADO SMOOTHIE',
+          'DRAGON DELIGHT',
+          'SUPER SMOOTHIE',
+        ],
+      },
+    ],
+  },
+
+  {
+    heading: 'CURATED SALAD COLLECTION',
+    subMenus: [
+      {
+        title: 'PLANT PROTEIN SIGNATURES',
+        items: [
+          'SPROUT GLOW MIX',
+          'SIGNATURE TWIN PULSE',
+          'HIGH PROTEIN BLACK CHANA',
+          'HIGH PROTEIN PANEER SALAD',
+          'CREAMY DOUBLE CHICKPEA',
+          'CHICKPEA PANEER FUSION',
+          'ROASTED ZUCCHINI BOWL',
+          'RAJMA PANEER POWER LEAN',
+          'MAXICAN AVOCADO SALAD',
+        ],
+      },
+    ],
+  },
+
+  {
+    heading: 'SALADS',
+    subMenus: [
+      {
+        title: 'CREAMY & INDULGENT',
+        items: [
+          'BROCCOLI CASHEW CREAM',
+          'GREEN GARDEN BOWL',
+          'THAI MUSHROOM SALAD',
+        ],
+      },
+      {
+        title: 'SPICY & TANGY',
+        items: [
+          'CHILLI LIME SOYA SALAD',
+          'SWEET POTATO BLISS',
+        ],
+      },
+      {
+        title: 'FRESH & CRISP',
+        items: [
+          'CLASSIC VEGGIE BOWL',
+          'CHILLI CRUNCH SALAD',
+          'CORN PANEER BALANCE BOWL',
+          'CUCUMBER CHILL BOWL',
+        ],
+      },
+    ],
+  },
+
+  {
+    heading: 'SANDWICHES',
+    subMenus: [
+      {
+        title: 'THE LUXURY AVOCADO SERIES',
+        items: [
+          'AVOCADO PANEER ROYAL GRILL',
+          'AVOCADO SUPREME FRESH GRILL',
+          'SWEET CORN AVOCADO DELIGHT',
+          'CHEESY AVOCADO MELT',
+        ],
+      },
+      {
+        title: 'THE ROYAL PANEER SERIES',
+        items: [
+          'CORN & PANEER CREME MELT',
+          'CLASSIC PANEER SLICED CHEESE GRILL',
+          'RAINBOW VEGGIE PANEER PRESS',
+          'THE HEALTHY GREEN TOASTIE',
+        ],
+      },
+      {
+        title: 'THE CORN & VEG SERIES',
+        items: [
+          'BROCCOLI CORN CHEESE',
+          'SPICY CORN CREAM GRILL',
+          'SPICY CORN GRILL',
+          'THE GRILLED SOYA MASALA',
+        ],
+      },
+      {
+        title: 'THE MUSHROOM & GOURMIT GRILL SERIES',
+        items: [
+          'SAUTEED MUSHROOM CREME MELT',
+          'GARLIC MUSHROOM & VEGGIE MELT',
+        ],
+      },
+      {
+        title: 'THE WHOLESOME VEG COLLECTION',
+        items: [
+          'WHOLESOME VEGGIE CHEESE GRILL',
+          'WHOLESOME VEGGIE GRILL',
+          'RAINBOW VEGGIE GRILL',
+          'SMASHED POTATO & HERB TOASTIE',
+        ],
+      },
+    ],
+  },
+
+  {
+    heading: 'WRAPS',
+    subMenus: [
+      {
+        title: 'SIGNATURE & CHEF SELECTED',
+        items: [
+          'PINK POWER WELLNESS WRAP',
+          'VEG PROTEIN SUPREME WRAP',
+        ],
+      },
+      {
+        title: 'CLASSIC HUNG CURD MINT WRAPS',
+        items: [
+          'PANEER CRUNCH WRAP',
+          'CHICKPEA AVOCADO WRAP',
+          'SOYA PROTEIN WRAP',
+        ],
+      },
+      {
+        title: 'CASHEW CHEESE INDULGENCE',
+        items: [
+          'VEG PROTEIN SUPREME CHEESE WRAP',
+          'PANEER CRUNCH CHEESE WRAP',
+          'CHICKPEA AVOCADO CHEESE WRAP',
+        ],
+      },
+      {
+        title: 'GREEN & ROOT INFUSED FINISH',
+        items: [
+          'BEETROOT CHEESE WRAP',
+        ],
+      },
+    ],
+  },
+
+  {
+    heading: 'SOUPS',
+    subMenus: [
+      {
+        title: 'SLOW SIMMERED SOUPS',
+        items: [
+          'BROCCOLI ALMOND HUG',
+          'SPINACH SOUL BOWL',
+          'CORN MEETS PALAK',
+          'TOMATO TWIST',
+          'TOMATO BEET BLEND',
+          'GARDEN VEGETABLE SOUP',
+          'CARROT CARE',
+          'CARROT & BEET HARMONY',
+        ],
+      },
+    ],
+  },
+
+  {
+    heading: 'CHAAT',
+    subMenus: [
+      {
+        title: "CHEF'S PICK",
+        items: [
+          'SWEET POTATO & PEA',
+        ],
+      },
+      {
+        title: 'SIGNATURE FAVOURITES',
+        items: [
+          'CORN N, CHEESE',
+          'APPLE FRESH',
+          'PINEAPPLE',
+        ],
+      },
+      {
+        title: 'LIGHT BITE',
+        items: [
+          'SPROUT SUPREME',
+          "SWEET'N FRESH CORN",
+        ],
+      },
+    ],
+  },
+
+  {
+    heading: 'PASTA ZOODLE COLLECTIONS',
+    subMenus: [
+      {
+        title: 'GRAIN-FREE HOUSE-CRAFTED',
+        items: [
+          'THE ZOODLE FLAME',
+          'THE PESTO ZOODLE HOUR',
+        ],
+      },
+    ],
+  },
+
+  {
+    heading: 'DIP HOUSE CRAFTED',
+    subMenus: [
+      {
+        title: 'HOUSE CRAFTED DIPS',
+        items: [
+          'THE CHIPOTLE',
+          'BEET MINT SPREAD',
+          'AVOCADO LIME MOUSSE',
+        ],
+      },
+    ],
+  },
 ];
 
 // ── THEME HELPERS ──────────────────────────────────────────────────────────
@@ -113,7 +409,18 @@ export default function AdminDashboard4() {
 
   const [createStep, setCreateStep] = useState(1);
   const [selectedTeamMember, setSelectedTeamMember] = useState('');
-  const [customPackage, setCustomPackage] = useState({ name: '', duration: '', mealsPerWeek: '', totalMeals: '', price: '', features: [] });
+  const [customPackage, setCustomPackage] = useState({
+    name: '',
+    duration: '',
+    mealsPerWeek: '',
+    totalMeals: '',
+    basePlanPrice: 0,
+    customPackagePrice: '',
+    additionalDurationDays: '',
+    price: 0,
+    isAddon: false,
+    addOnFeatures: [],
+  });
   const [createCustomerData, setCreateCustomerData] = useState({ fullName: '', phone: '', email: '', dob: '', timeSlot: '', startDate: '', allergies: '', medicalConditions: '', remarks: '', pincode: '', area: '', house: '', street: '', landmark: '', city: 'Dombivli' });
   const [createPaymentData, setCreatePaymentData] = useState({ received: null, method: '', amount: '', transactionId: '', date: new Date().toISOString().split('T')[0], notes: '' });
 
@@ -157,6 +464,23 @@ const [tickets, setTickets] = useState([]);
 const [ticketReplyDrafts, setTicketReplyDrafts] = useState({});
 const [ticketLoading, setTicketLoading] = useState(false);
 const [ticketUpdating, setTicketUpdating] = useState({});
+
+const [openAddonSections, setOpenAddonSections] = useState({});
+const [openAddonSubMenus, setOpenAddonSubMenus] = useState({});
+
+const toggleAddonSection = (heading) => {
+  setOpenAddonSections(prev => ({
+    ...prev,
+    [heading]: !prev[heading],
+  }));
+};
+
+const toggleAddonSubMenu = (key) => {
+  setOpenAddonSubMenus(prev => ({
+    ...prev,
+    [key]: !prev[key],
+  }));
+};
 
   // ── Lifecycle ──
   useEffect(() => {
@@ -828,16 +1152,74 @@ const handleImpersonate = async () => {
     return weeks * parseInt(mealsPerWeek || 0);
   };
 
-  const handleFeatureToggle = (feature) => {
-    const updated = customPackage.features.includes(feature)
-      ? customPackage.features.filter(f => f !== feature)
-      : [...customPackage.features, feature];
-    setCustomPackage({ ...customPackage, features: updated });
+  const getDurationMonths = (dur) => {
+    return dur === '1-month' ? 1 : dur === '2-month' ? 2 : dur === '3-month' ? 3 : dur === '6-month' ? 6 : 0;
+  };
+
+  const getDurationDays = (dur) => {
+    return getDurationMonths(dur) * 24;
+  };
+
+  const getFinalDurationDays = () => {
+    return getDurationDays(customPackage.duration) + Number(customPackage.additionalDurationDays || 0);
+  };
+
+  const getPlanPrice = (planName) => {
+    return PLAN_PRICES[planName] || ADDON_BASE_PRICES[planName] || 0;
+  };
+
+  const handlePlanChange = (planName) => {
+    const isAddon = planName.endsWith('_ADDON');
+    const basePlanPrice = getPlanPrice(planName);
+
+    setCustomPackage(prev => ({
+      ...prev,
+      name: planName,
+      basePlanPrice,
+      isAddon,
+      customPackagePrice: '',
+      price: basePlanPrice,
+      addOnFeatures: isAddon ? prev.addOnFeatures : [],
+    }));
+  };
+
+  const handleAddOnToggle = (feature) => {
+    setCustomPackage(prev => {
+      const selected = prev.addOnFeatures.includes(feature);
+      const addOnFeatures = selected
+        ? prev.addOnFeatures.filter(item => item !== feature)
+        : [...prev.addOnFeatures, feature];
+
+      return { ...prev, addOnFeatures };
+    });
+  };
+
+  const updateCustomPackagePrice = (value) => {
+    const customPackagePrice = value;
+    const price = Number(customPackage.basePlanPrice || 0) + Number(customPackagePrice || 0);
+
+    setCustomPackage(prev => ({
+      ...prev,
+      customPackagePrice,
+      price,
+    }));
   };
 
   const resetCreateForm = () => {
-    setCreateStep(1); setSelectedTeamMember('');
-    setCustomPackage({ name: '', duration: '', mealsPerWeek: '', totalMeals: '', price: '', features: [] });
+    setCreateStep(1);
+    setSelectedTeamMember('');
+    setCustomPackage({
+      name: '',
+      duration: '',
+      mealsPerWeek: '',
+      totalMeals: '',
+      basePlanPrice: 0,
+      customPackagePrice: '',
+      additionalDurationDays: '',
+      price: 0,
+      isAddon: false,
+      addOnFeatures: [],
+    });
     setCreateCustomerData({ fullName: '', phone: '', email: '', dob: '', timeSlot: '', startDate: '', allergies: '', medicalConditions: '', remarks: '', pincode: '', area: '', house: '', street: '', landmark: '', city: 'Dombivli' });
     setCreatePaymentData({ received: null, method: '', amount: '', transactionId: '', date: new Date().toISOString().split('T')[0], notes: '' });
   };
@@ -926,34 +1308,71 @@ const handleImpersonate = async () => {
 
   const handleCreateAccount = async () => {
     const member = teamMembers.find(t => t.id === selectedTeamMember);
+
+    const commonPackageData = {
+      plan: customPackage.name,
+      basePlanPrice: Number(customPackage.basePlanPrice || 0),
+      customPackagePrice: Number(customPackage.customPackagePrice || 0),
+      totalPrice: Number(customPackage.price || 0),
+      isAddon: Boolean(customPackage.isAddon),
+      addOnFeatures: customPackage.addOnFeatures || [],
+      packageDuration: customPackage.duration,
+      durationMonths: getDurationMonths(customPackage.duration),
+      baseDurationDays: getDurationDays(customPackage.duration),
+      additionalDurationDays: Number(customPackage.additionalDurationDays || 0),
+      durationDays: getFinalDurationDays(),
+      mealsPerWeek: Number(customPackage.mealsPerWeek || 0),
+      totalMeals: Number(customPackage.totalMeals || 0),
+    };
+
     const payload = {
       user: {
         firstName: createCustomerData.fullName.split(' ')[0] || createCustomerData.fullName,
         lastName: createCustomerData.fullName.split(' ').slice(1).join(' ') || '',
-        phone: createCustomerData.phone, email: createCustomerData.email, dob: createCustomerData.dob
+        phone: createCustomerData.phone,
+        email: createCustomerData.email,
+        dob: createCustomerData.dob,
       },
-      address: { pincode: createCustomerData.pincode, area: createCustomerData.area, house: createCustomerData.house, street: createCustomerData.street, landmark: createCustomerData.landmark, city: createCustomerData.city, state: 'Maharashtra', country: 'India' },
-      healthInfo: { allergies: createCustomerData.allergies, medicalConditions: createCustomerData.medicalConditions },
-      remarks: createCustomerData.remarks, plan: customPackage.name, slot: createCustomerData.timeSlot,
+      address: {
+        pincode: createCustomerData.pincode,
+        area: createCustomerData.area,
+        house: createCustomerData.house,
+        street: createCustomerData.street,
+        landmark: createCustomerData.landmark,
+        city: createCustomerData.city,
+        state: 'Maharashtra',
+        country: 'India',
+      },
+      healthInfo: {
+        allergies: createCustomerData.allergies,
+        medicalConditions: createCustomerData.medicalConditions,
+      },
+      remarks: createCustomerData.remarks,
+      ...commonPackageData,
+      slot: createCustomerData.timeSlot,
       paymentMethod: createPaymentData.method?.toUpperCase() || 'CASH',
-      startDate: createCustomerData.startDate, totalPrice: customPackage.price, createdBy: member?.name,
+      startDate: createCustomerData.startDate,
+      createdBy: member?.name,
     };
 
     if (createPaymentData.received) {
       try {
         setSaving(true);
-        const res = await fetch("https://api.ryviveroots.com/api/admin/manual-order", {
-          method: "POST", headers: { "Content-Type": "application/json" },
+        const res = await fetch('https://api.ryviveroots.com/api/admin/manual-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to add member");
+        if (!res.ok) throw new Error(data.message || 'Failed to add member');
         if (data.success) {
-          alert("Member added successfully!");
-          resetCreateForm(); setActiveView('customers'); fetchOrders();
+          alert('Member added successfully!');
+          resetCreateForm();
+          setActiveView('customers');
+          fetchOrders();
         }
       } catch (error) {
-        alert(error.message || "Server error.");
+        alert(error.message || 'Server error.');
       } finally {
         setSaving(false);
       }
@@ -961,24 +1380,43 @@ const handleImpersonate = async () => {
       try {
         setSaving(true);
         const pendingPayload = {
-          user: { firstName: createCustomerData.fullName.split(' ')[0] || createCustomerData.fullName, lastName: createCustomerData.fullName.split(' ').slice(1).join(' ') || '', phone: createCustomerData.phone, email: createCustomerData.email, dob: createCustomerData.dob },
-          address: { pincode: createCustomerData.pincode, area: createCustomerData.area, house: createCustomerData.house, street: createCustomerData.street, landmark: createCustomerData.landmark, city: createCustomerData.city, state: 'Maharashtra', country: 'India' },
-          healthInfo: { allergies: createCustomerData.allergies, medicalConditions: createCustomerData.medicalConditions },
-          remarks: createCustomerData.remarks, deliverySlot: createCustomerData.timeSlot,
-          subscription: { plan: customPackage.name, amount: Number(customPackage.price), durationMonths: customPackage.name?.includes("3MONTH") ? 3 : 1, startDate: createCustomerData.startDate },
+          user: payload.user,
+          address: payload.address,
+          healthInfo: payload.healthInfo,
+          remarks: payload.remarks,
+          deliverySlot: createCustomerData.timeSlot,
+          subscription: {
+            plan: customPackage.name,
+            amount: Number(customPackage.price || 0),
+            basePlanPrice: Number(customPackage.basePlanPrice || 0),
+            customPackagePrice: Number(customPackage.customPackagePrice || 0),
+            isAddon: Boolean(customPackage.isAddon),
+            addOnFeatures: customPackage.addOnFeatures || [],
+            durationMonths: commonPackageData.durationMonths,
+            baseDurationDays: commonPackageData.baseDurationDays,
+            additionalDurationDays: commonPackageData.additionalDurationDays,
+            durationDays: commonPackageData.durationDays,
+            startDate: createCustomerData.startDate,
+            mealsPerWeek: commonPackageData.mealsPerWeek,
+            totalMeals: commonPackageData.totalMeals,
+          },
           paymentMethod: createPaymentData.method?.toUpperCase() || 'CASH',
           createdBy: member?.name || 'Admin',
         };
-        const res = await fetch("https://api.ryviveroots.com/api/admin/pending-payment", {
-          method: "POST", headers: { "Content-Type": "application/json" },
+
+        const res = await fetch('https://api.ryviveroots.com/api/admin/pending-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(pendingPayload),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to save pending payment");
-        alert("Customer saved as Pending Payment!");
-        resetCreateForm(); setActiveView('pending'); fetchPendingPayments();
+        if (!res.ok) throw new Error(data.message || 'Failed to save pending payment');
+        alert('Customer saved as Pending Payment!');
+        resetCreateForm();
+        setActiveView('pending');
+        fetchPendingPayments();
       } catch (error) {
-        alert(error.message || "Failed to create pending payment");
+        alert(error.message || 'Failed to create pending payment');
       } finally {
         setSaving(false);
       }
@@ -2275,26 +2713,42 @@ const handleSendTicketReply = async (ticketId) => {
               {/* Step 2 */}
               {createStep === 2 && (
                 <div style={{ ...cardStyle, padding: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
-                  <h3 className="font-serif" style={{ margin: '0 0 0.5rem', fontSize: '1.5rem', fontWeight: 400, color: INK }}>Create Custom Package</h3>
-                  <p style={{ margin: '0 0 2rem', color: 'rgba(42,37,32,0.6)' }}>Design a personalized package for this customer</p>
+                  <h3 className="font-serif" style={{ margin: '0 0 0.5rem', fontSize: '1.5rem', fontWeight: 400, color: INK }}>Select Package</h3>
+                  <p style={{ margin: '0 0 2rem', color: 'rgba(42,37,32,0.6)' }}>Select the subscription plan and customize add-on features if required.</p>
+
                   <div style={{ background: CREAM_2, padding: 'clamp(1.25rem, 3vw, 2rem)', borderRadius: 4, marginBottom: '2rem' }}>
                     <h4 className="font-serif" style={{ margin: '0 0 1.25rem', color: INK, fontSize: '1.2rem', fontWeight: 400 }}>Package Information</h4>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '1.25rem' }}>
-                      <div>
-                        <label style={labelStyle}>Package Name *</label>
-                        <select value={customPackage.name} onChange={e => setCustomPackage({ ...customPackage, name: e.target.value })} style={selectStyle}>
+                      <div style={{ gridColumn: '1 / -1' }}>
+                        <label style={labelStyle}>Package *</label>
+                        <select value={customPackage.name} onChange={e => handlePlanChange(e.target.value)} style={selectStyle}>
                           <option value="">Select Package</option>
-                          <option value="SILVER_1MONTH">Silver – 1 Month</option>
-                          <option value="GOLD_1MONTH">Gold – 1 Month</option>
-                          <option value="PLATINUM_1MONTH">Platinum – 1 Month</option>
-                          <option value="SILVER_3MONTH">Silver – 3 Months</option>
-                          <option value="GOLD_3MONTH">Gold – 3 Months</option>
-                          <option value="PLATINUM_3MONTH">Platinum – 3 Months</option>
+                          <optgroup label="Standard Plans">
+                            <option value="SILVER_1MONTH">Silver – 1 Month</option>
+                            <option value="GOLD_1MONTH">Gold – 1 Month</option>
+                            <option value="PLATINUM_1MONTH">Platinum – 1 Month</option>
+                            <option value="SILVER_3MONTH">Silver – 3 Months</option>
+                            <option value="GOLD_3MONTH">Gold – 3 Months</option>
+                            <option value="PLATINUM_3MONTH">Platinum – 3 Months</option>
+                          </optgroup>
+                          <optgroup label="Add-on Feature Plans">
+                            <option value="SILVER_ADDON">Silver + Add on Features</option>
+                            <option value="GOLD_ADDON">Gold + Add on Features</option>
+                            <option value="PLATINUM_ADDON">Platinum + Add on Features</option>
+                          </optgroup>
                         </select>
                       </div>
+
+                      {customPackage.name && (
+                        <div>
+                          <label style={labelStyle}>Plan Price</label>
+                          <input type="text" value={`₹${Number(customPackage.basePlanPrice || 0).toLocaleString('en-IN')}`} readOnly style={{ ...inputStyle, background: 'rgba(42,37,32,0.04)', cursor: 'not-allowed', fontWeight: 600 }} />
+                        </div>
+                      )}
+
                       <div>
                         <label style={labelStyle}>Duration *</label>
-                        <select value={customPackage.duration} onChange={e => { const total = calculateTotalMeals(e.target.value, customPackage.mealsPerWeek); setCustomPackage({ ...customPackage, duration: e.target.value, totalMeals: total.toString() }); }} style={selectStyle}>
+                        <select value={customPackage.duration} onChange={e => { const total = calculateTotalMeals(e.target.value, customPackage.mealsPerWeek); setCustomPackage(prev => ({ ...prev, duration: e.target.value, totalMeals: total.toString() })); }} style={selectStyle}>
                           <option value="">Select duration</option>
                           <option value="1-month">1 Month</option>
                           <option value="2-month">2 Months</option>
@@ -2302,54 +2756,324 @@ const handleSendTicketReply = async (ticketId) => {
                           <option value="6-month">6 Months</option>
                         </select>
                       </div>
+
                       <div>
                         <label style={labelStyle}>Meals Per Week *</label>
-                        <select value={customPackage.mealsPerWeek} onChange={e => { const total = calculateTotalMeals(customPackage.duration, e.target.value); setCustomPackage({ ...customPackage, mealsPerWeek: e.target.value, totalMeals: total.toString() }); }} style={selectStyle}>
+                        <select value={customPackage.mealsPerWeek} onChange={e => { const total = calculateTotalMeals(customPackage.duration, e.target.value); setCustomPackage(prev => ({ ...prev, mealsPerWeek: e.target.value, totalMeals: total.toString() })); }} style={selectStyle}>
                           <option value="">Select meals/week</option>
                           {[3, 4, 5, 6, 7].map(n => <option key={n} value={n}>{n} meals/week</option>)}
                         </select>
                       </div>
+
                       <div>
                         <label style={labelStyle}>Total Meals (auto)</label>
                         <input type="text" value={customPackage.totalMeals || '0'} readOnly style={{ ...inputStyle, background: 'rgba(42,37,32,0.04)', cursor: 'not-allowed' }} />
                       </div>
-                      <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={labelStyle}>Package Price (₹) *</label>
-                        <input type="number" placeholder="Enter price" value={customPackage.price} onChange={e => setCustomPackage({ ...customPackage, price: e.target.value })} style={inputStyle} />
-                      </div>
                     </div>
                   </div>
-                  <div style={{ marginBottom: '2rem' }}>
-                    <h4 className="font-serif" style={{ margin: '0 0 1rem', color: INK, fontSize: '1.2rem', fontWeight: 400 }}>Select Features</h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '0.75rem' }}>
-                      {packageFeatures.map((feature, idx) => {
-                        const on = customPackage.features.includes(feature);
+
+                  {customPackage.isAddon && (
+                    <>
+                      <div style={{ marginBottom: '2rem' }}>
+                        <h4 className="font-serif" style={{ margin: '0 0 0.5rem', color: INK, fontSize: '1.2rem', fontWeight: 400 }}>Add on Features</h4>
+                        <p style={{ margin: '0 0 1rem', color: 'rgba(42,37,32,0.6)', fontSize: '0.85rem' }}>Select the additional food items included in this package.</p>
+                       <div style={{ display: 'grid', gap: '0.85rem' }}>
+
+  {ADD_ON_FEATURES.map((section) => {
+
+    const sectionOpen = openAddonSections[section.heading];
+
+    return (
+      <div
+        key={section.heading}
+        style={{
+          border: `1px solid ${CARD_BORDER}`,
+          borderRadius: 6,
+          overflow: 'hidden',
+          background: CREAM,
+        }}
+      >
+
+        {/* MAIN HEADING */}
+        <button
+          type="button"
+          onClick={() => toggleAddonSection(section.heading)}
+          style={{
+            width: '100%',
+            padding: '1rem 1.1rem',
+            border: 'none',
+            background: sectionOpen ? CREAM_2 : CREAM,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+            color: INK,
+            fontFamily: 'Inter, sans-serif',
+          }}
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+          }}>
+            <div
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                background: SAGE_DARK,
+              }}
+            />
+
+            <span
+              style={{
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                letterSpacing: '0.12em',
+              }}
+            >
+              {section.heading}
+            </span>
+          </div>
+
+          <ChevronRight
+            size={18}
+            style={{
+              transform: sectionOpen
+                ? 'rotate(90deg)'
+                : 'rotate(0deg)',
+              transition: 'transform 0.2s ease',
+              color: SAGE_DARK,
+            }}
+          />
+        </button>
+
+
+        {/* SUB MENUS */}
+        {sectionOpen && (
+          <div
+            style={{
+              padding: '0 1rem 1rem',
+              display: 'grid',
+              gap: '0.75rem',
+            }}
+          >
+
+            {section.subMenus.map((subMenu) => {
+
+              const subKey = `${section.heading}-${subMenu.title}`;
+              const subOpen = openAddonSubMenus[subKey];
+
+              return (
+                <div
+                  key={subKey}
+                  style={{
+                    borderTop: `1px solid ${CARD_BORDER}`,
+                    paddingTop: '0.8rem',
+                  }}
+                >
+
+                  {/* SUB HEADING */}
+                  <button
+                    type="button"
+                    onClick={() => toggleAddonSubMenu(subKey)}
+                    style={{
+                      width: '100%',
+                      border: 'none',
+                      background: 'transparent',
+                      padding: '0.35rem 0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      color: SAGE_DARK,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.14em',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {subMenu.title}
+                    </span>
+
+                    <ChevronRight
+                      size={15}
+                      style={{
+                        transform: subOpen
+                          ? 'rotate(90deg)'
+                          : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease',
+                      }}
+                    />
+                  </button>
+
+
+                  {/* ITEMS */}
+                  {subOpen && (
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns:
+                          'repeat(auto-fit, minmax(190px, 1fr))',
+                        gap: '0.65rem',
+                        marginTop: '0.7rem',
+                      }}
+                    >
+                      {subMenu.items.map((item) => {
+
+                        const selected =
+                          customPackage.addOnFeatures.includes(item);
+
                         return (
-                          <div key={idx} onClick={() => handleFeatureToggle(feature)} style={{ padding: '0.85rem 1rem', borderRadius: 3, border: on ? `2px solid ${SAGE}` : `1px solid ${CARD_BORDER}`, background: on ? 'rgba(107,117,96,0.08)' : CREAM, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.88rem', fontWeight: 500, color: INK }}>{feature}</span>
-                            {on && <span style={{ color: SAGE_DARK, fontWeight: 700 }}>✓</span>}
+                          <div
+                            key={item}
+                            onClick={() => handleAddOnToggle(item)}
+                            style={{
+                              padding: '0.75rem 0.85rem',
+                              borderRadius: 5,
+                              border: selected
+                                ? `1.5px solid ${SAGE_DARK}`
+                                : `1px solid ${CARD_BORDER}`,
+                              background: selected
+                                ? 'rgba(107,117,96,0.10)'
+                                : CREAM,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.65rem',
+                              transition: 'all 0.2s ease',
+                            }}
+                          >
+
+                            {/* CHECKBOX */}
+                            <div
+                              style={{
+                                width: 18,
+                                height: 18,
+                                minWidth: 18,
+                                borderRadius: 4,
+                                border: selected
+                                  ? `1.5px solid ${SAGE_DARK}`
+                                  : '1px solid rgba(42,37,32,0.25)',
+                                background: selected
+                                  ? SAGE_DARK
+                                  : CREAM,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: CREAM,
+                                fontSize: '0.65rem',
+                                fontWeight: 700,
+                              }}
+                            >
+                              {selected ? '✓' : ''}
+                            </div>
+
+                            <span
+                              style={{
+                                fontSize: '0.82rem',
+                                fontWeight: selected ? 600 : 500,
+                                color: INK,
+                                lineHeight: 1.25,
+                              }}
+                            >
+                              {item}
+                            </span>
+
                           </div>
                         );
                       })}
                     </div>
-                  </div>
-                  {customPackage.name && customPackage.price && (
-                    <div style={{ background: CREAM_2, padding: '1.25rem', borderRadius: 3, border: `1px solid ${CARD_BORDER}`, marginBottom: '2rem' }}>
-                      <h4 className="font-serif" style={{ margin: '0 0 0.75rem', color: INK, fontSize: '1.1rem', fontWeight: 400 }}>Package Summary</h4>
-                      {[['Package', customPackage.name], ['Duration', customPackage.duration || '—'], ['Meals/week', customPackage.mealsPerWeek || '—'], ['Total meals', customPackage.totalMeals || '0'], ['Features', `${customPackage.features.length} selected`]].map(([label, value]) => (
-                        <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem', fontSize: '0.9rem' }}>
-                          <span style={{ color: 'rgba(42,37,32,0.6)' }}>{label}:</span><strong style={{ color: INK }}>{value}</strong>
-                        </div>
-                      ))}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.5rem', borderTop: `1px solid ${CARD_BORDER}`, marginTop: '0.5rem' }}>
-                        <span style={{ fontWeight: 700, color: INK }}>Price:</span>
-                        <strong style={{ fontSize: '1.1rem', color: SAGE_DARK }}>₹{customPackage.price}</strong>
+                  )}
+
+                </div>
+              );
+            })}
+
+          </div>
+        )}
+
+      </div>
+    );
+  })}
+
+</div>
                       </div>
+
+                      <div style={{ background: CREAM_2, padding: '1.5rem', borderRadius: 4, marginBottom: '2rem' }}>
+                        <h4 className="font-serif" style={{ margin: '0 0 0.75rem', color: INK, fontSize: '1.15rem', fontWeight: 400 }}>Customize Package Price</h4>
+                        <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: 'rgba(42,37,32,0.6)' }}>The plan price is automatic. Enter the additional custom package amount manually.</p>
+                        <label style={labelStyle}>Additional / Custom Package Price (₹) *</label>
+                        <input type="number" min="0" placeholder="Enter additional amount" value={customPackage.customPackagePrice} onChange={e => updateCustomPackagePrice(e.target.value)} style={inputStyle} />
+
+                        <div style={{ marginTop: '1rem' }}>
+                          <label style={labelStyle}>Additional Duration (Days)</label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            placeholder="Enter extra days"
+                            value={customPackage.additionalDurationDays}
+                            onChange={e => {
+                              const value = e.target.value;
+                              setCustomPackage(prev => ({ ...prev, additionalDurationDays: value }));
+                            }}
+                            style={inputStyle}
+                          />
+                          <p style={{ margin: '0.45rem 0 0', fontSize: '0.78rem', color: 'rgba(42,37,32,0.55)' }}>
+                            Extra days will be added to the selected plan duration.
+                          </p>
+                        </div>
+
+                        <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: `1px solid ${CARD_BORDER}` }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}><span>Base Plan</span><strong>₹{Number(customPackage.basePlanPrice || 0).toLocaleString('en-IN')}</strong></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}><span>Custom Package</span><strong>₹{Number(customPackage.customPackagePrice || 0).toLocaleString('en-IN')}</strong></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}><span>Base Duration</span><strong>{getDurationDays(customPackage.duration)} days</strong></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}><span>Additional Duration</span><strong>+{Number(customPackage.additionalDurationDays || 0)} days</strong></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.75rem', borderTop: `1px solid ${CARD_BORDER}` }}><span style={{ fontWeight: 700, color: INK }}>Final Duration</span><strong style={{ fontSize: '1.05rem', color: SAGE_DARK }}>{getFinalDurationDays()} days</strong></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.75rem', marginTop: '0.5rem', borderTop: `1px solid ${CARD_BORDER}` }}><span style={{ fontWeight: 700, color: INK }}>Final Package Price</span><strong style={{ fontSize: '1.25rem', color: SAGE_DARK }}>₹{Number(customPackage.price || 0).toLocaleString('en-IN')}</strong></div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {!customPackage.isAddon && customPackage.name && (
+                    <div style={{ background: CREAM_2, padding: '1.25rem', borderRadius: 4, marginBottom: '2rem', border: `1px solid ${CARD_BORDER}` }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontWeight: 600, color: INK }}>Plan Price</span><strong style={{ fontSize: '1.2rem', color: SAGE_DARK }}>₹{Number(customPackage.basePlanPrice || 0).toLocaleString('en-IN')}</strong></div>
                     </div>
                   )}
+
+                  {customPackage.name && (
+                    <div style={{ background: CREAM_2, padding: '1.5rem', borderRadius: 4, border: `1px solid ${CARD_BORDER}`, marginBottom: '2rem' }}>
+                      <h4 className="font-serif" style={{ margin: '0 0 1rem', color: INK, fontSize: '1.15rem', fontWeight: 400 }}>Package Summary</h4>
+                      {[['Package', customPackage.name], ['Duration', `${customPackage.duration || '—'} (${getFinalDurationDays()} days)`], ['Meals / Week', customPackage.mealsPerWeek || '—'], ['Total Meals', customPackage.totalMeals || '0']].map(([label, value]) => (
+                        <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.5rem', fontSize: '0.9rem' }}><span style={{ color: 'rgba(42,37,32,0.6)' }}>{label}:</span><strong style={{ color: INK, textAlign: 'right' }}>{value}</strong></div>
+                      ))}
+
+                      {customPackage.isAddon && (
+                        <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: `1px solid ${CARD_BORDER}` }}>
+                          <div style={{ fontSize: '0.85rem', color: 'rgba(42,37,32,0.6)', marginBottom: '0.5rem' }}>Add on Features:</div>
+                          {customPackage.addOnFeatures.length > 0 ? (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                              {customPackage.addOnFeatures.map(feature => <span key={feature} style={{ background: 'rgba(107,117,96,0.12)', color: SAGE_DARK, padding: '0.4rem 0.7rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>{feature}</span>)}
+                            </div>
+                          ) : (
+                            <span style={{ fontSize: '0.85rem', color: 'rgba(42,37,32,0.45)' }}>No add-on selected</span>
+                          )}
+                        </div>
+                      )}
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: `1px solid ${CARD_BORDER}`, marginTop: '1rem' }}><span style={{ fontWeight: 700, color: INK }}>Final Package Price</span><strong style={{ fontSize: '1.35rem', color: SAGE_DARK }}>₹{Number(customPackage.price || 0).toLocaleString('en-IN')}</strong></div>
+                    </div>
+                  )}
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
                     <button onClick={() => setCreateStep(1)} style={ghostBtn}>← Back</button>
-                    <button onClick={() => (customPackage.name && customPackage.duration && customPackage.mealsPerWeek && customPackage.price) && setCreateStep(3)} disabled={!(customPackage.name && customPackage.duration && customPackage.mealsPerWeek && customPackage.price)} style={{ ...primaryBtn, padding: '0.85rem 1.8rem', opacity: (customPackage.name && customPackage.duration && customPackage.mealsPerWeek && customPackage.price) ? 1 : 0.45, cursor: (customPackage.name && customPackage.duration && customPackage.mealsPerWeek && customPackage.price) ? 'pointer' : 'not-allowed' }}>Next: Customer Details →</button>
+                    <button onClick={() => setCreateStep(3)} disabled={!(customPackage.name && customPackage.duration && customPackage.mealsPerWeek && customPackage.price > 0 && (!customPackage.isAddon || customPackage.customPackagePrice !== ''))} style={{ ...primaryBtn, padding: '0.85rem 1.8rem', opacity: (customPackage.name && customPackage.duration && customPackage.mealsPerWeek && customPackage.price > 0 && (!customPackage.isAddon || customPackage.customPackagePrice !== '')) ? 1 : 0.45, cursor: (customPackage.name && customPackage.duration && customPackage.mealsPerWeek && customPackage.price > 0 && (!customPackage.isAddon || customPackage.customPackagePrice !== '')) ? 'pointer' : 'not-allowed' }}>Next: Customer Details →</button>
                   </div>
                 </div>
               )}
@@ -2441,15 +3165,50 @@ const handleSendTicketReply = async (ticketId) => {
                   <p style={{ margin: '0 0 2rem', color: 'rgba(42,37,32,0.6)' }}>Verify payment to activate customer account</p>
                   <div style={{ background: CREAM_2, padding: '1.5rem', borderRadius: 4, marginBottom: '2rem' }}>
                     <h4 className="font-serif" style={{ margin: '0 0 1rem', color: INK, fontSize: '1.15rem', fontWeight: 400 }}>Customer Summary</h4>
-                    {[['Team Member', teamMembers.find(t => t.id === selectedTeamMember)?.name], ['Customer', createCustomerData.fullName], ['Phone', createCustomerData.phone], ['Package', customPackage.name], ['Duration', customPackage.duration]].map(([label, value]) => (
-                      <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
-                        <span style={{ color: 'rgba(42,37,32,0.6)' }}>{label}:</span><strong style={{ color: INK }}>{value || '—'}</strong>
+                    {[
+                      ['Team Member', teamMembers.find(t => t.id === selectedTeamMember)?.name],
+                      ['Customer', createCustomerData.fullName],
+                      ['Phone', createCustomerData.phone],
+                      ['Package', customPackage.name],
+                      ['Duration', customPackage.duration],
+                      ['Meals / Week', customPackage.mealsPerWeek],
+                      ['Total Meals', customPackage.totalMeals],
+                    ].map(([label, value]) => (
+                      <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+                        <span style={{ color: 'rgba(42,37,32,0.6)' }}>{label}:</span>
+                        <strong style={{ color: INK, textAlign: 'right' }}>{value || '—'}</strong>
                       </div>
                     ))}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.5rem', borderTop: `1px solid ${CARD_BORDER}`, marginTop: '0.5rem' }}>
-                      <span style={{ fontWeight: 700, color: INK }}>Amount Due:</span><strong style={{ fontSize: '1.15rem', color: SAGE_DARK }}>₹{customPackage.price}</strong>
+
+                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: `1px solid ${CARD_BORDER}` }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}><span>Base Duration:</span><strong>{getDurationDays(customPackage.duration)} days</strong></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}><span>Additional Duration:</span><strong>+{Number(customPackage.additionalDurationDays || 0)} days</strong></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ fontWeight: 700 }}>Final Duration:</span><strong style={{ color: SAGE_DARK }}>{getFinalDurationDays()} days</strong></div>
+                    </div>
+
+                    {customPackage.isAddon && (
+                      <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: `1px solid ${CARD_BORDER}` }}>
+                        <div style={{ fontSize: '0.85rem', color: 'rgba(42,37,32,0.6)', marginBottom: '0.5rem' }}>Add on Features:</div>
+                        {customPackage.addOnFeatures.length > 0 ? (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                            {customPackage.addOnFeatures.map(feature => <span key={feature} style={{ background: 'rgba(107,117,96,0.12)', color: SAGE_DARK, padding: '0.4rem 0.7rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>{feature}</span>)}
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.85rem', color: 'rgba(42,37,32,0.45)' }}>No add-on selected</span>
+                        )}
+                      </div>
+                    )}
+
+                    <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: `1px solid ${CARD_BORDER}` }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}><span>Base Plan Price:</span><strong>₹{Number(customPackage.basePlanPrice || 0).toLocaleString('en-IN')}</strong></div>
+                      {customPackage.isAddon && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}><span>Custom Package Price:</span><strong>₹{Number(customPackage.customPackagePrice || 0).toLocaleString('en-IN')}</strong></div>}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.75rem', borderTop: `1px solid ${CARD_BORDER}`, marginTop: '0.5rem' }}>
+                        <span style={{ fontWeight: 700, color: INK }}>Amount Due:</span>
+                        <strong style={{ fontSize: '1.15rem', color: SAGE_DARK }}>₹{Number(customPackage.price || 0).toLocaleString('en-IN')}</strong>
+                      </div>
                     </div>
                   </div>
+
                   <div style={{ marginBottom: '2rem' }}>
                     <label style={{ ...labelStyle, fontSize: '0.85rem', marginBottom: '1rem' }}>Has payment been received? *</label>
                     <div style={{ display: 'grid', gap: '1rem' }}>
@@ -2480,7 +3239,7 @@ const handleSendTicketReply = async (ticketId) => {
                         </div>
                         <div>
                           <label style={labelStyle}>Amount Received *</label>
-                          <input type="number" value={createPaymentData.amount} placeholder={customPackage.price} onChange={e => setCreatePaymentData({ ...createPaymentData, amount: e.target.value })} style={inputStyle} />
+                          <input type="number" value={createPaymentData.amount} placeholder={String(customPackage.price || 0)} onChange={e => setCreatePaymentData({ ...createPaymentData, amount: e.target.value })} style={inputStyle} />
                         </div>
                         {createPaymentData.method && createPaymentData.method !== 'Cash' && (
                           <div style={{ gridColumn: '1 / -1' }}>
