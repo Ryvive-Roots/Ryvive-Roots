@@ -737,115 +737,125 @@ Dombivli East, Maharashtra 421201, India
           ? "Your Customized RYVIVE ROOTS Package Is Confirmed 🌿"
           : "Payment successful for RYVIVE ROOTS LLP",
 
+        // =====================================================
+        // EMAIL BODY — colorless, receipt-style layout
+        // =====================================================
         html: isRenewal
           ? `
-<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+<div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a1a;">
 
-  <h2 style="font-family: Georgia, 'Times New Roman', serif; font-size:16px; margin-bottom:2px;">
+  <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 400; margin: 0 0 4px;">
     Hi ${order.user.firstName},
-  </h2>
-
-  <p><b>${
-    emailIsAddon
-      ? "Your customized package has been renewed successfully."
-      : "Welcome back. We're glad you stayed."
-  }</b></p>
-
-  <p>
-    Thank you for continuing your wellness journey with us.
-    Here's your subscription summary for your records:
   </p>
 
-  <table style="border-collapse: collapse; margin-top: 10px;">
-
-    <tr>
-      <td style="padding: 6px 10px;"><b>Receipt Number</b></td>
-      <td style="padding: 6px 10px;">: ${order.receiptNumber}</td>
-    </tr>
-
-    <tr>
-      <td style="padding: 6px 10px;"><b>Plan</b></td>
-      <td style="padding: 6px 10px;">: ${formattedPlan}</td>
-    </tr>
-
+  <p style="font-size: 15px; font-weight: 600; margin: 0 0 18px; letter-spacing: 0.2px;">
     ${
       emailIsAddon
-        ? `
-    <tr>
-      <td style="padding: 6px 10px;"><b>Package Type</b></td>
-      <td style="padding: 6px 10px;">: <b>Customized Package</b></td>
-    </tr>
-
-    <tr>
-      <td style="padding: 6px 10px;"><b>Base Plan Price</b></td>
-      <td style="padding: 6px 10px;">: ₹${Number(
-        subscription.basePlanPrice || 0
-      ).toLocaleString("en-IN")}</td>
-    </tr>
-
-    <tr>
-      <td style="padding: 6px 10px;"><b>Customized Package Price</b></td>
-      <td style="padding: 6px 10px;">: ₹${Number(
-        subscription.customPackagePrice || 0
-      ).toLocaleString("en-IN")}</td>
-    </tr>
-
-    <tr>
-      <td style="padding: 6px 10px; vertical-align: top;"><b>Add-on Features</b></td>
-      <td style="padding: 6px 10px;">: ${addOnFeaturesHtml}</td>
-    </tr>
-
-    <tr>
-      <td style="padding: 6px 10px;"><b>Base Duration</b></td>
-      <td style="padding: 6px 10px;">: ${subscription.baseDurationDays || 0} days</td>
-    </tr>
-
-    <tr>
-      <td style="padding: 6px 10px;"><b>Additional Duration</b></td>
-      <td style="padding: 6px 10px;">: +${subscription.additionalDurationDays || 0} days</td>
-    </tr>
-
-    <tr>
-      <td style="padding: 6px 10px;"><b>Final Duration</b></td>
-      <td style="padding: 6px 10px;">: ${subscription.durationDays || 0} days</td>
-    </tr>
-    `
-        : ""
+        ? "Your customized package has been renewed successfully."
+        : "Welcome back — we're glad you stayed."
     }
-
-    <tr>
-      <td style="padding: 6px 10px;"><b>Amount Paid</b></td>
-      <td style="padding: 6px 10px;">: ₹${Number(
-        order.subscription.amount || 0
-      ).toLocaleString("en-IN")}</td>
-    </tr>
-
-    <tr>
-      <td style="padding: 6px 10px;"><b>Payment Date</b></td>
-      <td style="padding: 6px 10px;">: ${new Date().toLocaleDateString("en-IN")}</td>
-    </tr>
-
-    <tr>
-      <td style="padding: 6px 10px;"><b>New Expiry Date</b></td>
-      <td style="padding: 6px 10px;">: ${new Date(
-        order.subscription.endDate
-      ).toLocaleDateString("en-IN")}</td>
-    </tr>
-
-  </table>
-
-  <br/>
-
-  <p>Your membership ID remains <b>${order.membershipId}</b>.</p>
-
-  <p>
-    If you ever have a question or concern,
-    reach out anytime at customersupport@ryviveroots.com.
   </p>
 
-  <p>
+  <p style="font-size: 14px; line-height: 1.7; color: #444; margin: 0 0 24px;">
+    Thank you for continuing your wellness journey with us. Here is your subscription summary for your records.
+  </p>
+
+  <!-- RECEIPT CARD -->
+  <table style="width: 100%; border-collapse: collapse; border: 1px solid #e0e0e0; margin-bottom: 24px;">
+    <tbody>
+      <tr>
+        <td colspan="2" style="padding: 14px 18px; border-bottom: 1px solid #e0e0e0; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #888;">
+          Subscription Summary
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Receipt Number</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">${order.receiptNumber}</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Plan</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">${formattedPlan}</td>
+      </tr>
+
+      ${
+        emailIsAddon
+          ? `
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Package Type</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">Customized Package</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Base Plan Price</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">₹${Number(
+          subscription.basePlanPrice || 0
+        ).toLocaleString("en-IN")}</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Customized Package Price</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">₹${Number(
+          subscription.customPackagePrice || 0
+        ).toLocaleString("en-IN")}</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666; vertical-align: top;">Add-on Features</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right; line-height: 1.6;">${addOnFeaturesHtml}</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Base Duration</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">${
+          subscription.baseDurationDays || 0
+        } days</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Additional Duration</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">+${
+          subscription.additionalDurationDays || 0
+        } days</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Final Duration</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">${
+          subscription.durationDays || 0
+        } days</td>
+      </tr>
+      `
+          : ""
+      }
+
+      <tr style="border-top: 1px solid #e0e0e0;">
+        <td style="padding: 14px 18px; font-size: 14px; font-weight: 700;">Amount Paid</td>
+        <td style="padding: 14px 18px; font-size: 15px; font-weight: 700; text-align: right;">₹${Number(
+          order.subscription.amount || 0
+        ).toLocaleString("en-IN")}</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Payment Date</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">${new Date().toLocaleDateString(
+          "en-IN"
+        )}</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">New Expiry Date</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">${new Date(
+          order.subscription.endDate
+        ).toLocaleDateString("en-IN")}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="font-size: 13px; color: #666; margin: 0 0 4px;">
+    Your membership ID remains <strong style="color:#111;">${order.membershipId}</strong>.
+  </p>
+
+  <p style="font-size: 13px; line-height: 1.7; color: #666; margin: 16px 0;">
+    If you ever have a question or concern, reach out anytime at
+    <a href="mailto:customersupport@ryviveroots.com" style="color:#111; text-decoration: underline;">customersupport@ryviveroots.com</a>.
+  </p>
+
+  <p style="font-size: 14px; margin: 24px 0 0;">
     Warmly,<br/>
-    <b>Team Ryvive Roots</b>
+    <strong>Team Ryvive Roots</strong>
   </p>
 
 ${emailFooter}
@@ -853,137 +863,126 @@ ${emailFooter}
 </div>
 `
           : `
-<div style="font-family: Arial, sans-serif; line-height: 1.6;">
+<div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a1a;">
 
-  <h2 style="font-family: Georgia, 'Times New Roman', serif; font-size: 16px; margin-bottom: 2px;">
+  <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 400; margin: 0 0 6px;">
     Dear ${order.user.firstName},
-  </h2>
-
-  <p style="font-family: Arial, 'Times New Roman', serif; font-weight: bold; font-size: 22px; margin-bottom: 10px;">
-    We just wanted to say thank you so much!
-    We're genuinely thrilled to have you as part of the
-    <b>Ryvive Roots family</b>,
-    and we can't wait to walk alongside you
-    on this wonderful wellness journey.
   </p>
 
-  <p>
-    Your payment has gone through successfully
-    and everything is all set on our end.
-    Here's a quick summary for your records:
+  <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 17px; font-weight: 600; line-height: 1.55; margin: 0 0 20px;">
+    Thank you so much — we're genuinely thrilled to have you as part of the Ryvive Roots family, and we can't wait to walk alongside you on this wellness journey.
+  </p>
+
+  <p style="font-size: 14px; line-height: 1.7; color: #444; margin: 0 0 20px;">
+    Your payment has gone through successfully and everything is set on our end. Here's a quick summary for your records.
   </p>
 
   ${
     emailIsAddon
       ? `
-  <p>
-    Your <b>Customized RYVIVE ROOTS Package</b>
-    has been successfully created.
+  <p style="font-size: 13px; color: #666; margin: 0 0 20px;">
+    Your <strong style="color:#111;">Customized RYVIVE ROOTS Package</strong> has been successfully created.
   </p>
   `
       : ""
   }
 
-  <table style="font-family: Arial, 'Times New Roman', serif; font-size: 15px; margin-bottom: 10px;">
+  <!-- RECEIPT CARD -->
+  <table style="width: 100%; border-collapse: collapse; border: 1px solid #e0e0e0; margin-bottom: 24px;">
+    <tbody>
+      <tr>
+        <td colspan="2" style="padding: 14px 18px; border-bottom: 1px solid #e0e0e0; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #888;">
+          Order Summary
+        </td>
+      </tr>
 
-    <tr>
-      <td><b>Receipt Number</b></td>
-      <td>: <b>${order.receiptNumber}</b></td>
-    </tr>
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Receipt Number</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">${order.receiptNumber}</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Your Plan</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">${formattedPlan}</td>
+      </tr>
 
-    <tr>
-      <td><b>Your Plan</b></td>
-      <td>: <b>${formattedPlan}</b></td>
-    </tr>
+      ${
+        emailIsAddon
+          ? `
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Package Type</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">Customized Package</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Base Plan Price</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">₹${Number(
+          subscription.basePlanPrice || 0
+        ).toLocaleString("en-IN")}</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Customized Package Price</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">₹${Number(
+          subscription.customPackagePrice || 0
+        ).toLocaleString("en-IN")}</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666; vertical-align: top;">Add-on Features</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right; line-height: 1.6;">${addOnFeaturesHtml}</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Base Duration</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">${
+          subscription.baseDurationDays || 0
+        } days</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Additional Duration</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">+${
+          subscription.additionalDurationDays || 0
+        } days</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Final Duration</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">${
+          subscription.durationDays || 0
+        } days</td>
+      </tr>
+      `
+          : ""
+      }
 
-    ${
-      emailIsAddon
-        ? `
-    <tr>
-      <td><b>Package Type</b></td>
-      <td>: <b>Customized Package</b></td>
-    </tr>
-
-    <tr>
-      <td><b>Base Plan Price</b></td>
-      <td>: ₹${Number(subscription.basePlanPrice || 0).toLocaleString("en-IN")}</td>
-    </tr>
-
-    <tr>
-      <td><b>Customized Package Price</b></td>
-      <td>: ₹${Number(subscription.customPackagePrice || 0).toLocaleString(
-        "en-IN"
-      )}</td>
-    </tr>
-
-    <tr>
-      <td style="vertical-align: top;"><b>Add-on Features</b></td>
-      <td>: ${addOnFeaturesHtml}</td>
-    </tr>
-
-    <tr>
-      <td><b>Base Duration</b></td>
-      <td>: ${subscription.baseDurationDays || 0} days</td>
-    </tr>
-
-    <tr>
-      <td><b>Additional Duration</b></td>
-      <td>: +${subscription.additionalDurationDays || 0} days</td>
-    </tr>
-
-    <tr>
-      <td><b>Final Duration</b></td>
-      <td>: ${subscription.durationDays || 0} days</td>
-    </tr>
-    `
-        : ""
-    }
-
-    <tr>
-      <td><b>Amount Paid</b></td>
-      <td>: <b>₹${Number(order.subscription.amount || 0).toLocaleString(
-        "en-IN"
-      )}</b></td>
-    </tr>
-
-    <tr>
-      <td><b>Payment Date</b></td>
-      <td>: <b>${
-        order.createdAt
-          ? order.createdAt.toLocaleDateString("en-IN")
-          : new Date().toLocaleDateString("en-IN")
-      }</b></td>
-    </tr>
-
+      <tr style="border-top: 1px solid #e0e0e0;">
+        <td style="padding: 14px 18px; font-size: 14px; font-weight: 700;">Amount Paid</td>
+        <td style="padding: 14px 18px; font-size: 15px; font-weight: 700; text-align: right;">₹${Number(
+          order.subscription.amount || 0
+        ).toLocaleString("en-IN")}</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Payment Date</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">${
+          order.createdAt
+            ? order.createdAt.toLocaleDateString("en-IN")
+            : new Date().toLocaleDateString("en-IN")
+        }</td>
+      </tr>
+    </tbody>
   </table>
 
-  <br/>
-
-  <p>
-    Keep an eye on your inbox.
-    You'll be hearing from us shortly with your
-    <b>membership number</b>
-    and all the details to get you started.
-    The good stuff is just around the corner.
+  <p style="font-size: 14px; line-height: 1.7; color: #444; margin: 0 0 16px;">
+    Keep an eye on your inbox — you'll be hearing from us shortly with your <strong style="color:#111;">membership number</strong> and everything you need to get started.
   </p>
 
-  <p>
-    And hey, if you ever have a question,
-    a concern, or just want to say hello,
-    we're always here for you.
-    Reach out anytime at
-    customersupport@ryviveroots.com
-    and we'll get back to you with a smile.
+  <p style="font-size: 13px; line-height: 1.7; color: #666; margin: 0 0 16px;">
+    Have a question or just want to say hello? Reach out anytime at
+    <a href="mailto:customersupport@ryviveroots.com" style="color:#111; text-decoration: underline;">customersupport@ryviveroots.com</a> — we'll get back to you with a smile.
   </p>
 
-  <p>
-    Here's to a healthier, happier you.
-    We're so glad you're here!
+  <p style="font-size: 14px; line-height: 1.7; margin: 0 0 20px;">
+    Here's to a healthier, happier you. We're so glad you're here.
   </p>
 
-  <p>
+  <p style="font-size: 14px; margin: 0;">
     Warmly,<br/>
-    <b>Team Ryvive Roots</b>
+    <strong>Team Ryvive Roots</strong>
   </p>
 
 ${emailFooter}
