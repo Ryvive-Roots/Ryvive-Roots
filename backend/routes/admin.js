@@ -174,9 +174,9 @@ router.post("/manual-order", async (req, res) => {
 
     const isAddon = String(plan || "").endsWith("_ADDON");
 
-    // ✅ FIX: strip the "_ADDON" suffix so subscription.plan
-    // always stores one of the 6 clean enum values that
-    // Order schema's subscription.plan enum accepts.
+    // Strip the "_ADDON" suffix so subscription.plan always
+    // stores one of the 6 clean enum values that the Order
+    // schema's subscription.plan enum accepts.
     const basePlanKey = isAddon ? plan.replace("_ADDON", "") : plan;
 
     // =====================================================
@@ -483,7 +483,7 @@ router.post("/manual-order", async (req, res) => {
       order = existingOrder;
 
       console.log(
-        "♻️ EXISTING CLIENT RENEWED VIA MANUAL ORDER:",
+        "Existing client renewed via manual order:",
         order.membershipId
       );
     } else {
@@ -553,7 +553,7 @@ router.post("/manual-order", async (req, res) => {
         paymentMethod: paymentMethod || "CASH",
       });
 
-      console.log("✅ NEW MANUAL ORDER SAVED:", order.membershipId);
+      console.log("New manual order saved:", order.membershipId);
     }
 
     // =====================================================
@@ -562,9 +562,9 @@ router.post("/manual-order", async (req, res) => {
 
     try {
       await rebuildExcelFromMongo();
-      console.log("📊 Excel updated successfully");
+      console.log("Excel updated successfully");
     } catch (err) {
-      console.error("❌ Excel rebuild failed:", err.message);
+      console.error("Excel rebuild failed:", err.message);
     }
 
     // =====================================================
@@ -632,7 +632,7 @@ router.post("/manual-order", async (req, res) => {
 
 <tr>
 <td style="padding:6px 0; font-size:13px; color:#333; line-height:1.5; text-align:center;">
-You're receiving this email because you recently activated a Ryvive Roots membership.<br>
+You are receiving this email because you recently activated a Ryvive Roots membership.<br>
 If you have any concerns, please contact us at
 <a href="mailto:customersupport@ryviveroots.com" style="text-decoration:none;">
 customersupport@ryviveroots.com
@@ -731,33 +731,33 @@ Dombivli East, Maharashtra 421201, India
 
         subject: isRenewal
           ? emailIsAddon
-            ? "Your Customized Package Has Been Renewed 🌿"
-            : "You're Back, And We're Glad 🌿"
+            ? "Your Customized Package Has Been Renewed"
+            : "Your Membership Has Been Renewed"
           : emailIsAddon
-          ? "Your Customized RYVIVE ROOTS Package Is Confirmed 🌿"
-          : "Payment successful for RYVIVE ROOTS LLP",
+          ? "Your Customized RYVIVE ROOTS Package Is Confirmed"
+          : "Payment Confirmation: RYVIVE ROOTS LLP",
 
         // =====================================================
-        // EMAIL BODY — colorless, receipt-style layout
+        // EMAIL BODY - professional, colorless, receipt-style
         // =====================================================
         html: isRenewal
           ? `
 <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a1a;">
 
   <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 400; margin: 0 0 4px;">
-    Hi ${order.user.firstName},
+    Dear ${order.user.firstName},
   </p>
 
   <p style="font-size: 15px; font-weight: 600; margin: 0 0 18px; letter-spacing: 0.2px;">
     ${
       emailIsAddon
         ? "Your customized package has been renewed successfully."
-        : "Welcome back — we're glad you stayed."
+        : "Your Ryvive Roots membership has been renewed successfully."
     }
   </p>
 
   <p style="font-size: 14px; line-height: 1.7; color: #444; margin: 0 0 24px;">
-    Thank you for continuing your wellness journey with us. Here is your subscription summary for your records.
+    Thank you for continuing your wellness journey with us. Please find your updated subscription summary below for your records.
   </p>
 
   <!-- RECEIPT CARD -->
@@ -849,12 +849,12 @@ Dombivli East, Maharashtra 421201, India
   </p>
 
   <p style="font-size: 13px; line-height: 1.7; color: #666; margin: 16px 0;">
-    If you ever have a question or concern, reach out anytime at
+    Should you have any questions or concerns, please contact us at
     <a href="mailto:customersupport@ryviveroots.com" style="color:#111; text-decoration: underline;">customersupport@ryviveroots.com</a>.
   </p>
 
   <p style="font-size: 14px; margin: 24px 0 0;">
-    Warmly,<br/>
+    Regards,<br/>
     <strong>Team Ryvive Roots</strong>
   </p>
 
@@ -870,18 +870,18 @@ ${emailFooter}
   </p>
 
   <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 17px; font-weight: 600; line-height: 1.55; margin: 0 0 20px;">
-    Thank you so much — we're genuinely thrilled to have you as part of the Ryvive Roots family, and we can't wait to walk alongside you on this wellness journey.
+    Welcome to Ryvive Roots. We are pleased to confirm your membership and look forward to supporting you on your wellness journey.
   </p>
 
   <p style="font-size: 14px; line-height: 1.7; color: #444; margin: 0 0 20px;">
-    Your payment has gone through successfully and everything is set on our end. Here's a quick summary for your records.
+    Your payment has been received successfully and your order is now confirmed. Please find the order summary below for your records.
   </p>
 
   ${
     emailIsAddon
       ? `
   <p style="font-size: 13px; color: #666; margin: 0 0 20px;">
-    Your <strong style="color:#111;">Customized RYVIVE ROOTS Package</strong> has been successfully created.
+    Your <strong style="color:#111;">Customized RYVIVE ROOTS Package</strong> has been created successfully.
   </p>
   `
       : ""
@@ -968,20 +968,20 @@ ${emailFooter}
   </table>
 
   <p style="font-size: 14px; line-height: 1.7; color: #444; margin: 0 0 16px;">
-    Keep an eye on your inbox — you'll be hearing from us shortly with your <strong style="color:#111;">membership number</strong> and everything you need to get started.
+    You will receive a separate communication shortly confirming your <strong style="color:#111;">membership number</strong> along with the details required to get started.
   </p>
 
   <p style="font-size: 13px; line-height: 1.7; color: #666; margin: 0 0 16px;">
-    Have a question or just want to say hello? Reach out anytime at
-    <a href="mailto:customersupport@ryviveroots.com" style="color:#111; text-decoration: underline;">customersupport@ryviveroots.com</a> — we'll get back to you with a smile.
+    For any questions or assistance, please write to us at
+    <a href="mailto:customersupport@ryviveroots.com" style="color:#111; text-decoration: underline;">customersupport@ryviveroots.com</a> and our team will be glad to help.
   </p>
 
   <p style="font-size: 14px; line-height: 1.7; margin: 0 0 20px;">
-    Here's to a healthier, happier you. We're so glad you're here.
+    We look forward to being part of your wellness journey.
   </p>
 
   <p style="font-size: 14px; margin: 0;">
-    Warmly,<br/>
+    Regards,<br/>
     <strong>Team Ryvive Roots</strong>
   </p>
 
@@ -1012,8 +1012,8 @@ ${emailFooter}
       to: process.env.COMPANY_EMAIL,
 
       subject: isRenewal
-        ? `🔁 Manual Renewal - ${order.membershipId}`
-        : `🧾 Manual Membership Added - ${order.membershipId}`,
+        ? `Manual Renewal - ${order.membershipId}`
+        : `Manual Membership Added - ${order.membershipId}`,
 
       html: `
 <h2>${isRenewal ? "Existing Member Renewed (Manual)" : "New Walk-in Member Added"}</h2>
@@ -1028,7 +1028,7 @@ ${emailFooter}
 
 <p><b>Medical Conditions:</b> ${order.healthInfo?.medicalConditions || "N/A"}</p>
 
-<p><b>📝 Remarks:</b> ${order.remarks || "—"}</p>
+<p><b>Remarks:</b> ${order.remarks || "None"}</p>
 
 <p><b>Plan:</b> ${order.subscription.plan}</p>
 
@@ -1073,7 +1073,7 @@ ${order.address.house}, ${order.address.street}<br/>
 ${order.address.landmark}<br/>
 ${order.address.city} - ${order.address.pincode}</p>
 
-<p>🕒 Created: ${new Date().toLocaleString("en-IN")}</p>
+<p>Created: ${new Date().toLocaleString("en-IN")}</p>
 `,
 
       attachments: [
@@ -1098,7 +1098,7 @@ ${order.address.city} - ${order.address.pincode}</p>
       renewed: isRenewal,
     });
   } catch (error) {
-    console.error("❌ MANUAL ORDER ERROR:", error);
+    console.error("Manual order error:", error);
 
     return res.status(500).json({
       success: false,
