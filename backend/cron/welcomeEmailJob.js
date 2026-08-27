@@ -3,10 +3,26 @@ import sendEmail from "../utils/sendEmail.js";
 
 // ─── Plan Details Helper ──────────────────────────────────────────────────────
 
-const getPlanDetails = (plan, durationMonths) => {
+const getPlanDetails = (plan, durationMonths, order) => {
   const basePlan = plan?.split("_")[0]?.toUpperCase();
-  const weeks    = durationMonths === 3 ? 12 : 4;
-  const meals    = weeks * 6; // Mon–Sat
+
+  const subscription = order?.subscription || {};
+  const isAddon = Boolean(subscription.isAddon);
+
+  // ✅ Use the REAL saved durationDays whenever it's available (this now
+  // includes any additionalDurationDays from a customized package). Each
+  // durationDays unit is already a delivery day (Mon–Sat), per addMealDays(),
+  // so it maps 1:1 to meal count — no need to guess from weeks anymore.
+  //
+  // Falls back to the old weeks*6 assumption only for legacy orders that
+  // predate the durationDays field being persisted.
+  const weeks = durationMonths === 3 ? 12 : 4;
+  const legacyMeals = weeks * 6; // Mon–Sat
+
+  const meals =
+    Number(subscription.durationDays) > 0
+      ? Number(subscription.durationDays)
+      : legacyMeals;
 
   const planNames = {
     SILVER:   "Ryvive Silver",
@@ -58,13 +74,24 @@ const getPlanDetails = (plan, durationMonths) => {
     },
   };
 
+  const planName = planNames[basePlan] || basePlan;
+  const description = planDescriptions[basePlan] || planDescriptions.SILVER;
+
+  // ✅ Addon-aware plan title — mirrors the wording used in the
+  // manual-order confirmation email so customers see consistent naming
+  // across every email they get for a customized package.
+  const fullPlanName = isAddon
+    ? `${planName} – Customized ${weeks}-Week Wellness Plan (${meals} Deliveries)`
+    : `${planName} – ${weeks}-Week Wellness Plan (${meals} Deliveries)`;
+
   return {
     basePlan,
     weeks,
     meals,
-    planName:     planNames[basePlan] || basePlan,
-    description:  planDescriptions[basePlan] || planDescriptions.SILVER,
-    fullPlanName: `${planNames[basePlan]} – ${weeks}-Week Wellness Plan (${meals} Deliveries)`,
+    isAddon,
+    planName,
+    description,
+    fullPlanName,
   };
 };
 
@@ -72,13 +99,26 @@ const getPlanDetails = (plan, durationMonths) => {
 
 export const welcomeEmail = ({ order }) => {
   const durationMonths = order.subscription?.durationMonths || 1;
-  const { planName, fullPlanName, description, meals, weeks } = getPlanDetails(
-    order.subscription?.plan,
-    durationMonths
-  );
+  const { planName, fullPlanName, description, meals, weeks, isAddon } =
+    getPlanDetails(order.subscription?.plan, durationMonths, order);
+
+  const subscription = order.subscription || {};
+
+  // ✅ Add-on feature list — same rendering approach as the manual-order
+  // confirmation email, so both emails read consistently.
+  const addOnFeatures = Array.isArray(subscription.addOnFeatures)
+    ? subscription.addOnFeatures
+    : [];
+
+  const addOnFeaturesHtml =
+    addOnFeatures.length > 0
+      ? addOnFeatures.map((feature) => `• ${feature}`).join("<br>")
+      : "None";
 
   return {
-    subject: `Welcome to ${planName} 🌿`,
+    subject: isAddon
+      ? `Welcome to Your Customized ${planName} Package 🌿`
+      : `Welcome to ${planName} 🌿`,
     html: `
 <div style="font-family: Arial, sans-serif; line-height:1.7; color:#333; font-size:14px;">
 
@@ -92,6 +132,17 @@ export const welcomeEmail = ({ order }) => {
 </p>
 
 <p>${description.tagline}</p>
+
+${
+  isAddon
+    ? `
+<p>
+  Your package has been <strong>customized</strong> with additional features tailored
+  to your preferences, on top of your ${planName} base plan.
+</p>
+`
+    : ""
+}
 
 <p>
   Your payment has been successfully received, and your subscription will be 
@@ -108,7 +159,45 @@ export const welcomeEmail = ({ order }) => {
   </tr>
   <tr>
     <td style="padding:6px 10px;"><strong>Plan</strong></td>
-    <td>: ${fullPlanName}</td>
+    <td>: ${planName}</td>
+  </tr>
+  ${
+    isAddon
+      ? `
+  <tr>
+    <td style="padding:6px 10px;"><strong>Package Type</strong></td>
+    <td>: <strong>Customized Package</strong></td>
+  </tr>
+  <tr>
+    <td style="padding:6px 10px;"><strong>Base Plan Price</strong></td>
+    <td>: ₹${Number(subscription.basePlanPrice || 0).toLocaleString("en-IN")}</td>
+  </tr>
+  <tr>
+    <td style="padding:6px 10px;"><strong>Customized Package Price</strong></td>
+    <td>: ₹${Number(subscription.customPackagePrice || 0).toLocaleString("en-IN")}</td>
+  </tr>
+  <tr>
+    <td style="padding:6px 10px; vertical-align:top;"><strong>Add-on Features</strong></td>
+    <td>: ${addOnFeaturesHtml}</td>
+  </tr>
+  <tr>
+    <td style="padding:6px 10px;"><strong>Base Duration</strong></td>
+    <td>: ${subscription.baseDurationDays || 0} days</td>
+  </tr>
+  <tr>
+    <td style="padding:6px 10px;"><strong>Additional Duration</strong></td>
+    <td>: +${subscription.additionalDurationDays || 0} days</td>
+  </tr>
+  <tr>
+    <td style="padding:6px 10px;"><strong>Final Duration</strong></td>
+    <td>: ${subscription.durationDays || 0} days</td>
+  </tr>
+  `
+      : ""
+  }
+  <tr>
+    <td style="padding:6px 10px;"><strong>Amount Paid</strong></td>
+    <td>: ₹${Number(subscription.amount || 0).toLocaleString("en-IN")}</td>
   </tr>
   <tr>
     <td style="padding:6px 10px;"><strong>Activation Date</strong></td>
@@ -145,6 +234,17 @@ export const welcomeEmail = ({ order }) => {
   Across your plan, you will experience a <strong>${meals}-meal rotating menu</strong>, 
   ensuring variety, balanced nutrition, and delightful flavours throughout your wellness journey.
 </p>
+
+${
+  isAddon && addOnFeatures.length > 0
+    ? `
+<p><strong>Your customized add-on selections for this plan:</strong></p>
+<ul>
+  ${addOnFeatures.map((f) => `<li>${f}</li>`).join("\n  ")}
+</ul>
+`
+    : ""
+}
 
 <p><strong>Your ${planName} membership also includes:</strong></p>
 

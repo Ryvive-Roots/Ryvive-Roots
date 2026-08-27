@@ -75,34 +75,41 @@ remarks: String,
       required: true,
     },
 
-    subscription: {
-plan: {
-  type: String,
-  enum: [
-   
-    "SILVER_1MONTH",
-    "GOLD_1MONTH",
-    "PLATINUM_1MONTH",
-    "SILVER_3MONTH",
-    "GOLD_3MONTH",
-    "PLATINUM_3MONTH",
-  ],
-},
- isAddon: { type: Boolean, default: false },
+subscription: {
+  plan: {
+    type: String,
+    enum: [
+      "SILVER_1MONTH",
+      "GOLD_1MONTH",
+      "PLATINUM_1MONTH",
+      "SILVER_3MONTH",
+      "GOLD_3MONTH",
+      "PLATINUM_3MONTH",
+    ],
+  },
+  isAddon: { type: Boolean, default: false },
   addOnFeatures: { type: [String], default: [] },
   basePlanPrice: Number,
   customPackagePrice: { type: Number, default: 0 },
-      amount: {
-        type: Number,
-        required: true,
-      },
-      originalAmount: {
-  type: Number,
-},
-      durationMonths: {
-        type: Number,
-        default: 1, // ✅ 1 month
-      },
+
+  // ✅ ADD THESE THREE — currently missing, which is why
+  // duration always saves as 0 in strict-mode Mongoose
+  baseDurationDays: { type: Number, default: 0 },
+  additionalDurationDays: { type: Number, default: 0 },
+  durationDays: { type: Number, default: 0 },
+
+  amount: {
+    type: Number,
+    required: true,
+  },
+  originalAmount: {
+    type: Number,
+  },
+  durationMonths: {
+    type: Number,
+    default: 1,
+  },
+  // ...rest of the schema stays exactly as-is
 
       // ⏳ ACTIVATION AFTER 48 HOURS
    activationAt: {
