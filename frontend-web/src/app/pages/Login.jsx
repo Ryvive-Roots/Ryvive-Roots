@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ArrowLeft } from 'lucide-react';
 
@@ -12,7 +12,7 @@ export default function Login() {
       const [error, setError] = useState("");
       // 🆕 shown when redirected here right after a successful payment
       const [paymentSuccessMsg, setPaymentSuccessMsg] = useState("");
-    
+    const navigate = useNavigate();
       const location = useLocation();
 
 useEffect(() => {
@@ -68,7 +68,7 @@ useEffect(() => {
           localStorage.setItem("user", JSON.stringify(data.user));
           localStorage.setItem("membershipId", data.membershipId);
     
-          window.location.href = "/dashboard";
+         navigate("/dashboard");
         } else {
           setError("invalid"); // 👈 trigger error
         }
