@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ryviveroots.com/sitemap.xml
