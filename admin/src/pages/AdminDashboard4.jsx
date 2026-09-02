@@ -586,11 +586,18 @@ const fetchCustomerCalendar = async (order, year, month) => {
     return (subStart && dd < subStart) || (subEnd && dd > subEnd);
   };
 
-  // 1. Seed every day of the visible month
+  // 1. Seed the FULL 42-cell grid — not just the days belonging to the
+  // viewed month. The grid always shows a few leading/trailing days from
+  // the previous/next month (e.g. Sep 30 → Oct 1-5 spillover). Those days
+  // need real menu data too, or they render blank instead of a faded
+  // preview of what's actually scheduled.
+  const gridStart = new Date(year, month, 1);
+  gridStart.setDate(gridStart.getDate() - gridStart.getDay());
+
   const map = {};
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  for (let day = 1; day <= daysInMonth; day++) {
-    const d = new Date(year, month, day);
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
     const key = calendarDateKey(d);
     if (isOutOfRange(d)) {
       map[key] = { name: "", restDay: false, isCustom: false, outOfRange: true };
@@ -600,17 +607,32 @@ const fetchCustomerCalendar = async (order, year, month) => {
     }
   }
 
-  // 2. Overlay admin-saved overrides — only within the plan window
+  // 2. Overlay admin-saved overrides — fetch the viewed month PLUS its
+  // immediate neighbors, since spillover cells' saved overrides live under
+  // the adjacent month's records, not the currently viewed one.
+  const prevDate = new Date(year, month - 1, 1);
+  const nextDate = new Date(year, month + 1, 1);
+  const monthsToFetch = [
+    { y: prevDate.getFullYear(), m: prevDate.getMonth() + 1 },
+    { y: year, m: month + 1 },
+    { y: nextDate.getFullYear(), m: nextDate.getMonth() + 1 },
+  ];
+
   try {
-    const res = await fetch(
-      `https://api.ryviveroots.com/api/admin/customer-menu?membershipId=${order.membershipId}&year=${year}&month=${month + 1}`
+    const results = await Promise.all(
+      monthsToFetch.map(({ y, m }) =>
+        fetch(`https://api.ryviveroots.com/api/admin/customer-menu?membershipId=${order.membershipId}&year=${y}&month=${m}`)
+          .then((r) => r.json())
+          .catch(() => null)
+      )
     );
-    const data = await res.json();
-    (data.entries || []).forEach((e) => {
-      const entryDate = new Date(e.date + "T00:00:00");
-      if (!isOutOfRange(entryDate)) {
-        map[e.date] = { name: e.meal || "", restDay: !!e.restDay, isCustom: true, outOfRange: false };
-      }
+    results.forEach((data) => {
+      (data?.entries || []).forEach((e) => {
+        const entryDate = new Date(e.date + "T00:00:00");
+        if (!isOutOfRange(entryDate)) {
+          map[e.date] = { name: e.meal || "", restDay: !!e.restDay, isCustom: true, outOfRange: false };
+        }
+      });
     });
   } catch (err) {
     console.error("Failed to fetch custom menu overrides", err);
@@ -893,6 +915,7 @@ const toggleAddonSubMenu = (key) => {
     return () => { document.body.style.overflow = ''; };
   }, [showPasskeyModal, showBroadcastModal, showCustomerDetail, showIndividualMessage, showRenew, showPaymentModal, showInvoiceModal, showHistoryModal, showImpersonateConfirm, showNoDeliveryModal, mobileNavOpen]);
 
+  
 
   useEffect(() => {
     if (orders.length > 0) {

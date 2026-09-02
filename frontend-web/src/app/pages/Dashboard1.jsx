@@ -479,21 +479,42 @@ const [menuOverrides, setMenuOverrides] = useState({});
     setSelectedWeek(wk);
   }, [order]);
 
-  useEffect(() => {
+ useEffect(() => {
   if (!order) return;
   const mid = localStorage.getItem("membershipId");
   const year = calendarDate.getFullYear();
-  const month = calendarDate.getMonth() + 1;
-  fetch(`https://api.ryviveroots.com/api/user/customer-menu?membershipId=${mid}&year=${year}&month=${month}`)
-    .then((r) => r.json())
-    .then((data) => {
-      if (data.success) {
-        const map = {};
+  const month = calendarDate.getMonth() + 1; // 1-indexed
+
+  // The 42-cell grid always spills a few leading/trailing days from the
+  // neighboring month (e.g. Aug 31 shown at the top of the September grid).
+  // Those days need their own override data too — otherwise they silently
+  // fall back to the computed live menu and lose their "Rest day" /
+  // "Adjusted" status, which is what caused Aug 31 to look correct in
+  // August but wrong in September. Fetch the current month plus its
+  // immediate neighbors and merge by date key.
+  const prevDate = new Date(year, month - 2, 1);
+  const nextDate = new Date(year, month, 1);
+  const monthsToFetch = [
+    { y: prevDate.getFullYear(), m: prevDate.getMonth() + 1 },
+    { y: year, m: month },
+    { y: nextDate.getFullYear(), m: nextDate.getMonth() + 1 },
+  ];
+
+  Promise.all(
+    monthsToFetch.map(({ y, m }) =>
+      fetch(`https://api.ryviveroots.com/api/user/customer-menu?membershipId=${mid}&year=${y}&month=${m}`)
+        .then((r) => r.json())
+        .catch(() => null)
+    )
+  ).then((results) => {
+    const map = {};
+    results.forEach((data) => {
+      if (data?.success && Array.isArray(data.entries)) {
         data.entries.forEach((e) => { map[e.date] = e; });
-        setMenuOverrides(map);
       }
-    })
-    .catch((err) => console.error("Failed to fetch menu overrides", err));
+    });
+    setMenuOverrides(map);
+  });
 }, [order, calendarDate]);
 
   // ── Lock body scroll when modals or mobile nav open ───────────────────────
