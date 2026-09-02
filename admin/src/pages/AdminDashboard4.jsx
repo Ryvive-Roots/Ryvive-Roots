@@ -390,6 +390,22 @@ const isActiveOrderForCalendar = (o) => {
   return st !== 'CANCELLED' && st !== 'EXPIRED' && st !== 'UNDER_PROCESS';
 };
 
+// ── WEEK-SHIFT HELPERS ──────────────────────────────────────────────────
+// Lets an admin move the whole weekly delivery pattern for a month, e.g.
+// normally Mon→Sat delivery with Sunday off, but for a given month it should
+// run Tue→Sun with Monday off instead.
+const DAY_INDEX = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+
+// how many days to shift the week forward so that `offDay` becomes the rest day
+const getShiftDays = (offDay) => (DAY_INDEX[offDay] - DAY_INDEX['Sun'] + 7) % 7;
+
+const getShiftedMenuForDate = (date, basePlan, activationDate, shiftDays) => {
+  if (!shiftDays) return getLiveMenuForDate(date, basePlan, activationDate);
+  const roleDate = new Date(date);
+  roleDate.setDate(roleDate.getDate() - shiftDays);
+  return getLiveMenuForDate(roleDate, basePlan, activationDate);
+};
+
 // ── THEME HELPERS ──────────────────────────────────────────────────────────
 
 const CARD_BORDER = 'rgba(42,37,32,0.08)';
@@ -541,6 +557,15 @@ const [editingCalendarDate, setEditingCalendarDate] = useState(null);
 const [calendarDraftName, setCalendarDraftName] = useState('');
 const [calendarDraftRest, setCalendarDraftRest] = useState(false);
 
+// ── Custom Schedule state (date-range + day, not month-locked) ──
+const [showShiftPanel, setShowShiftPanel] = useState(false);
+const [shiftFromDate, setShiftFromDate] = useState(new Date().toISOString().split('T')[0]);
+const [shiftToDate, setShiftToDate] = useState(new Date().toISOString().split('T')[0]);
+const [shiftOffDay, setShiftOffDay] = useState('Mon'); // which day becomes the rest day in this range
+const [shiftApplying, setShiftApplying] = useState(false);
+const [shiftScope, setShiftScope] = useState('current'); // 'current' | 'select'
+const [selectedShiftCustomers, setSelectedShiftCustomers] = useState({});
+
 
 const calendarDateKey = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -550,24 +575,42 @@ const fetchCustomerCalendar = async (order, year, month) => {
   const basePlan = getPlanTierFromPlan(order.subscription?.plan);
   const activationDate = order.subscription?.activationAt || order.subscription?.startDate;
 
-  // 1. Seed every day of the visible month with the LIVE scheduled menu
+  // Plan window — only dates inside this range get a real menu
+  const subStart = order.subscription?.startDate ? new Date(order.subscription.startDate) : null;
+  const subEnd = order.subscription?.endDate ? new Date(order.subscription.endDate) : null;
+  if (subStart) subStart.setHours(0, 0, 0, 0);
+  if (subEnd) subEnd.setHours(0, 0, 0, 0);
+
+  const isOutOfRange = (d) => {
+    const dd = new Date(d); dd.setHours(0, 0, 0, 0);
+    return (subStart && dd < subStart) || (subEnd && dd > subEnd);
+  };
+
+  // 1. Seed every day of the visible month
   const map = {};
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   for (let day = 1; day <= daysInMonth; day++) {
     const d = new Date(year, month, day);
     const key = calendarDateKey(d);
-    const live = getLiveMenuForDate(d, basePlan, activationDate);
-    map[key] = { ...live, isCustom: false };
+    if (isOutOfRange(d)) {
+      map[key] = { name: "", restDay: false, isCustom: false, outOfRange: true };
+    } else {
+      const live = getLiveMenuForDate(d, basePlan, activationDate);
+      map[key] = { ...live, isCustom: false, outOfRange: false };
+    }
   }
 
-  // 2. Overlay any admin-saved overrides — these win over the live menu
+  // 2. Overlay admin-saved overrides — only within the plan window
   try {
     const res = await fetch(
       `https://api.ryviveroots.com/api/admin/customer-menu?membershipId=${order.membershipId}&year=${year}&month=${month + 1}`
     );
     const data = await res.json();
     (data.entries || []).forEach((e) => {
-      map[e.date] = { name: e.meal || "", restDay: !!e.restDay, isCustom: true };
+      const entryDate = new Date(e.date + "T00:00:00");
+      if (!isOutOfRange(entryDate)) {
+        map[e.date] = { name: e.meal || "", restDay: !!e.restDay, isCustom: true, outOfRange: false };
+      }
     });
   } catch (err) {
     console.error("Failed to fetch custom menu overrides", err);
@@ -618,6 +661,10 @@ const saveCalendarEntry = async () => {
 const openCalendarForCustomer = (order) => {
   setCalendarCustomer(order);
   setActiveView("calendar");
+  setShowShiftPanel(false);
+  setMonthShiftActive(false);
+  setShiftScope('current');
+  setSelectedShiftCustomers({});
   const m = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   setCalendarMonth(m);
   fetchCustomerCalendar(order, m.getFullYear(), m.getMonth());
@@ -626,6 +673,7 @@ const openCalendarForCustomer = (order) => {
 const goCalendarMonth = (delta) => {
   const next = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + delta, 1);
   setCalendarMonth(next);
+   setShowShiftPanel(false);
   if (calendarCustomer) fetchCustomerCalendar(calendarCustomer, next.getFullYear(), next.getMonth());
 };
 
@@ -660,6 +708,156 @@ const resetCalendarEntryToLive = async () => {
   });
   setCalendarSaving(false);
   setEditingCalendarDate(null);
+};
+
+// ── Week Schedule Shift handlers ──────────────────────────────────────
+const toggleShiftCustomer = (id) => {
+  setSelectedShiftCustomers(prev => ({ ...prev, [id]: !prev[id] }));
+};
+const selectAllActiveForShift = () => {
+  const all = {};
+  orders.filter(isActiveOrderForCalendar).forEach(o => { all[o._id] = true; });
+  setSelectedShiftCustomers(all);
+};
+const clearShiftSelection = () => setSelectedShiftCustomers({});
+
+const applyDateRangeShift = async () => {
+  const shiftDays = getShiftDays(shiftOffDay);
+  if (shiftDays === 0) {
+    alert('Select a day other than Sunday — that\'s already the default rest day.');
+    return;
+  }
+  if (!shiftFromDate || !shiftToDate) {
+    alert('Please select both a start and end date.');
+    return;
+  }
+  const rangeStart = new Date(shiftFromDate + 'T00:00:00');
+  const rangeEnd = new Date(shiftToDate + 'T00:00:00');
+  if (rangeEnd < rangeStart) {
+    alert('End date must be on or after the start date.');
+    return;
+  }
+
+  const targets = shiftScope === 'current'
+    ? (calendarCustomer ? [calendarCustomer] : [])
+    : orders.filter(o => selectedShiftCustomers[o._id]);
+
+  if (targets.length === 0) {
+    alert('Select at least one customer.');
+    return;
+  }
+
+  setShiftApplying(true);
+
+  try {
+    for (const customer of targets) {
+      const basePlan = getPlanTierFromPlan(customer.subscription?.plan);
+      const activationDate = customer.subscription?.activationAt || customer.subscription?.startDate;
+      const subStart = customer.subscription?.startDate ? new Date(customer.subscription.startDate) : null;
+      const subEnd = customer.subscription?.endDate ? new Date(customer.subscription.endDate) : null;
+      if (subStart) subStart.setHours(0, 0, 0, 0);
+      if (subEnd) subEnd.setHours(0, 0, 0, 0);
+      const isOutOfRange = (d) => {
+        const dd = new Date(d); dd.setHours(0, 0, 0, 0);
+        return (subStart && dd < subStart) || (subEnd && dd > subEnd);
+      };
+
+      const cursor = new Date(rangeStart);
+      while (cursor <= rangeEnd) {
+        if (!isOutOfRange(cursor)) {
+          const key = calendarDateKey(cursor);
+          const shifted = getShiftedMenuForDate(cursor, basePlan, activationDate, shiftDays);
+
+          const res = await fetch('https://api.ryviveroots.com/api/admin/customer-menu', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              membershipId: customer.membershipId,
+              date: key,
+              meal: shifted.restDay ? '' : shifted.name,
+              restDay: !!shifted.restDay,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) throw new Error(data.message || `Failed to save ${key} for ${customer.membershipId}`);
+
+          if (calendarCustomer && customer._id === calendarCustomer._id) {
+            setCalendarMeals(prev => ({
+              ...prev,
+              [key]: { name: shifted.restDay ? '' : shifted.name, restDay: !!shifted.restDay, isCustom: true, outOfRange: false },
+            }));
+          }
+        }
+        cursor.setDate(cursor.getDate() + 1);
+      }
+
+      createAuditLog({
+        customerName: `${customer.user?.firstName} ${customer.user?.lastName}`,
+        action: 'MENU_RANGE_SHIFTED',
+        details: `${shiftFromDate} → ${shiftToDate}: schedule shifted so ${shiftOffDay} is now the rest day`,
+        performedBy: 'Admin',
+      });
+    }
+
+    setShowShiftPanel(false);
+    alert(`Schedule shifted for ${targets.length} customer${targets.length > 1 ? 's' : ''} from ${shiftFromDate} to ${shiftToDate}.`);
+  } catch (err) {
+    alert(err.message || 'Failed to apply the shifted schedule.');
+  } finally {
+    setShiftApplying(false);
+  }
+};
+
+const revertDateRangeShift = async () => {
+  if (!shiftFromDate || !shiftToDate) {
+    alert('Please select both a start and end date.');
+    return;
+  }
+  const rangeStart = new Date(shiftFromDate + 'T00:00:00');
+  const rangeEnd = new Date(shiftToDate + 'T00:00:00');
+  if (rangeEnd < rangeStart) {
+    alert('End date must be on or after the start date.');
+    return;
+  }
+
+  const targets = shiftScope === 'current'
+    ? (calendarCustomer ? [calendarCustomer] : [])
+    : orders.filter(o => selectedShiftCustomers[o._id]);
+
+  if (targets.length === 0) {
+    alert('Select at least one customer.');
+    return;
+  }
+
+  setShiftApplying(true);
+
+  try {
+    for (const customer of targets) {
+      const cursor = new Date(rangeStart);
+      while (cursor <= rangeEnd) {
+        const key = calendarDateKey(cursor);
+        await fetch(
+          `https://api.ryviveroots.com/api/admin/customer-menu?membershipId=${customer.membershipId}&date=${key}`,
+          { method: 'DELETE' }
+        );
+        cursor.setDate(cursor.getDate() + 1);
+      }
+
+      createAuditLog({
+        customerName: `${customer.user?.firstName} ${customer.user?.lastName}`,
+        action: 'MENU_RANGE_SHIFT_REVERTED',
+        details: `${shiftFromDate} → ${shiftToDate}: reset to normal live schedule`,
+        performedBy: 'Admin',
+      });
+    }
+
+    if (calendarCustomer) await fetchCustomerCalendar(calendarCustomer, calendarMonth.getFullYear(), calendarMonth.getMonth());
+    alert(`Schedule reset for ${targets.length} customer${targets.length > 1 ? 's' : ''} from ${shiftFromDate} to ${shiftToDate}.`);
+  } catch (err) {
+    alert('Some days may have failed to reset — please check the calendar.');
+  } finally {
+    setShiftApplying(false);
+  }
 };
 
 const toggleAddonSection = (heading) => {
@@ -4476,9 +4674,110 @@ const handleSendTicketReply = async (ticketId) => {
               <div style={{ fontSize: '0.78rem', color: 'rgba(42,37,32,0.55)' }}>{calendarCustomer.membershipId} · {calendarCustomer.subscription?.plan}</div>
             </div>
           </div>
-          <button onClick={() => { setCalendarCustomer(null); setCalendarMeals({}); }} style={ghostBtn}>
+          <button onClick={() => { setCalendarCustomer(null); setCalendarMeals({}); setShowShiftPanel(false); setMonthShiftActive(false); }} style={ghostBtn}>
             ← Choose Different Customer
           </button>
+        </div>
+
+              {/* ── Custom Schedule (date range + day) control ── */}
+        <div style={{ ...cardStyle, padding: '1.1rem 1.4rem', marginBottom: '1.25rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div>
+              <p style={{ margin: 0, fontWeight: 600, color: INK, fontSize: '0.92rem' }}>Custom Schedule</p>
+              <p style={{ margin: '0.2rem 0 0', fontSize: '0.8rem', color: 'rgba(42,37,32,0.6)' }}>
+                Default runs Mon → Sat, Sun off. Pick a date range and a new off-day if delivery needs to change for specific dates.
+              </p>
+            </div>
+            <button onClick={() => setShowShiftPanel(v => !v)} style={{ ...ghostBtn, padding: '0.55rem 1rem', fontSize: '0.72rem' }}>
+              {showShiftPanel ? 'Close' : 'Set Custom Schedule'}
+            </button>
+          </div>
+
+          {showShiftPanel && (
+            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: `1px solid ${CARD_BORDER}` }}>
+
+              {/* Scope toggle */}
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                <button
+                  onClick={() => setShiftScope('current')}
+                  style={{ ...(shiftScope === 'current' ? primaryBtn : ghostBtn), padding: '0.45rem 0.9rem', fontSize: '0.72rem' }}
+                >
+                  This customer only
+                </button>
+                <button
+                  onClick={() => setShiftScope('select')}
+                  style={{ ...(shiftScope === 'select' ? primaryBtn : ghostBtn), padding: '0.45rem 0.9rem', fontSize: '0.72rem' }}
+                >
+                  Select customers
+                </button>
+              </div>
+
+              {/* Date range + off-day pickers */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label style={labelStyle}>From Date</label>
+                  <input type="date" value={shiftFromDate} onChange={e => setShiftFromDate(e.target.value)} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>To Date</label>
+                  <input type="date" value={shiftToDate} onChange={e => setShiftToDate(e.target.value)} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>New off day in this range</label>
+                  <select value={shiftOffDay} onChange={e => setShiftOffDay(e.target.value)} style={selectStyle}>
+                    <option value="Mon">Monday</option>
+                    <option value="Tue">Tuesday</option>
+                    <option value="Wed">Wednesday</option>
+                    <option value="Thu">Thursday</option>
+                    <option value="Fri">Friday</option>
+                    <option value="Sat">Saturday</option>
+                    <option value="Sun">Sunday (default)</option>
+                  </select>
+                </div>
+              </div>
+              <p style={{ margin: '0 0 1rem', fontSize: '0.78rem', color: 'rgba(42,37,32,0.55)' }}>
+                e.g. From 10 Sep to 16 Sep, picking <strong>Monday</strong> makes that week run Tue → Sun instead of Mon → Sat.
+              </p>
+
+              {/* Customer checklist — only when "Select customers" is active */}
+              {shiftScope === 'select' && (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <label style={{ ...labelStyle, marginBottom: 0 }}>
+                      Active customers ({orders.filter(isActiveOrderForCalendar).length})
+                    </label>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button onClick={selectAllActiveForShift} style={{ background: 'transparent', border: 'none', color: SAGE_DARK, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Select All</button>
+                      <button onClick={clearShiftSelection} style={{ background: 'transparent', border: 'none', color: 'rgba(42,37,32,0.5)', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>Clear</button>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gap: '0.5rem', maxHeight: 260, overflowY: 'auto', marginBottom: '1rem', border: `1px solid ${CARD_BORDER}`, borderRadius: 4, padding: '0.5rem' }}>
+                    {orders.filter(isActiveOrderForCalendar).map(o => {
+                      const checked = !!selectedShiftCustomers[o._id];
+                      return (
+                        <label key={o._id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', borderRadius: 3, background: checked ? 'rgba(107,117,96,0.08)' : CREAM_2, cursor: 'pointer' }}>
+                          <input type="checkbox" checked={checked} onChange={() => toggleShiftCustomer(o._id)} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '0.86rem', fontWeight: 600, color: INK }}>{o.user?.firstName} {o.user?.lastName}</div>
+                            <div style={{ fontSize: '0.74rem', color: 'rgba(42,37,32,0.55)' }}>{o.membershipId} · {o.subscription?.plan || '—'}</div>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button onClick={applyDateRangeShift} disabled={shiftApplying} style={{ ...primaryBtn, padding: '0.6rem 1.2rem', opacity: shiftApplying ? 0.5 : 1 }}>
+                  {shiftApplying ? 'Applying…' : 'Apply to Date Range'}
+                </button>
+                <button onClick={revertDateRangeShift} disabled={shiftApplying} style={{ ...ghostBtn, padding: '0.6rem 1.2rem' }}>
+                  Reset Range to Default
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div style={{ ...cardStyle }}>
@@ -4512,29 +4811,31 @@ const handleSendTicketReply = async (ticketId) => {
                     const inMonth = d.getMonth() === month;
                     const key = calendarDateKey(d);
                     const entry = calendarMeals[key];
-                    const isToday = d.toDateString() === today.toDateString();
+                   const isToday = d.toDateString() === today.toDateString();
                     const isPast = d < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                    const isEditable = inMonth && !entry?.outOfRange;
                     return (
                       <div
                         key={i}
-                        onClick={() => inMonth && openCalendarDayEditor(key, entry)}
+                        onClick={() => isEditable && openCalendarDayEditor(key, entry)}
                         style={{
                           minHeight: 100, padding: '0.6rem', borderRight: `1px solid ${CARD_BORDER}`, borderBottom: `1px solid ${CARD_BORDER}`,
-                          opacity: inMonth ? 1 : 0.35, background: isToday ? 'rgba(107,117,96,0.08)' : 'transparent',
-                          cursor: inMonth ? 'pointer' : 'default',
+                          opacity: !inMonth ? 0.35 : entry?.outOfRange ? 0.4 : 1,
+                          background: isToday ? 'rgba(107,117,96,0.08)' : entry?.outOfRange ? CREAM_2 : 'transparent',
+                          cursor: isEditable ? 'pointer' : 'default',
                         }}
                       >
                         <div style={{
                           fontSize: '0.82rem', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           background: isToday ? INK : 'transparent', color: isToday ? CREAM : INK, fontWeight: isToday ? 700 : 400,
                         }}>{d.getDate()}</div>
-                        <div style={{
+                           <div style={{
                           fontSize: '0.72rem', marginTop: '0.4rem', lineHeight: 1.3, fontFamily: 'Inter, sans-serif',
-                          color: entry?.restDay ? 'rgba(42,37,32,0.45)' : INK, fontStyle: entry?.restDay ? 'italic' : 'normal',
+                          color: (entry?.restDay || entry?.outOfRange) ? 'rgba(42,37,32,0.45)' : INK, fontStyle: (entry?.restDay || entry?.outOfRange) ? 'italic' : 'normal',
                         }}>
-                          {entry?.restDay ? 'Rest day' : (entry?.name || (inMonth ? '— no menu set —' : ''))}
+                          {entry?.outOfRange ? 'Outside plan' : entry?.restDay ? 'Rest day' : (entry?.name || (inMonth ? '— no menu set —' : ''))}
                         </div>
-                        {inMonth && !entry?.restDay && entry?.name && (
+                        {inMonth && !entry?.restDay && !entry?.outOfRange && entry?.name && (
                           <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '0.4rem' }}>
                             <span style={{
                               display: 'inline-block', fontSize: '0.62rem', padding: '0.15rem 0.45rem', borderRadius: 2,

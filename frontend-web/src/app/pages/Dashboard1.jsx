@@ -1471,7 +1471,7 @@ const statusColor = statusColors[finalStatus] || "#666";
                         const beforeStart    = currentDate < activationDate;
                         const afterEnd       = currentDate > endDate;
 
-                      const diffDays   = Math.floor((currentDate.getTime() - activationDate.getTime()) / 86400000);
+                     const diffDays   = Math.floor((currentDate.getTime() - activationDate.getTime()) / 86400000);
 const wkNum      = Math.floor(diffDays / 7) + 1;
 const menu       = WEEKLY_MENU[basePlan]?.[(((wkNum - 1) % 4) + 1)] || {};
 const dayName    = DAY_NAMES[currentDate.getDay()];
@@ -1483,7 +1483,12 @@ const meal = override
   ? (override.restDay ? null : override.meal)
   : (!beforeStart && !afterEnd && !isSunday ? menu[dayName] : null);
 
-const isRestOverride = !!override?.restDay;
+// FIX: when an admin override exists for this date, it fully decides
+// rest-day status — no longer forced true just because it's a Sunday.
+// This is what makes a shifted "Custom Schedule" range (e.g. Sunday
+// becoming a working day) actually show up correctly for the customer.
+const isRestDay = override ? !!override.restDay : isSunday;
+const isCustomDay = !!override; // any saved override = admin-adjusted day
 
 // NEW — is this specific day inside a pause window?
 const isPaused = !beforeStart && !afterEnd && isPausedDate(currentDate, subscription.pause?.history);
@@ -1505,8 +1510,15 @@ return (
       <div style={{ fontSize: "0.62rem", color: "#8b6914", fontWeight: 600, textAlign: "center", marginTop: 3, display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
         <Pause size={9} /> Paused
       </div>
-    )  : !beforeStart && !afterEnd && (isSunday || isRestOverride) ? (
-      <div style={{ fontSize: "0.62rem", color: "rgba(42,37,32,0.38)", fontStyle: "italic", textAlign: "center", marginTop: 3 }}>Rest day</div>
+    ) : !beforeStart && !afterEnd && isRestDay ? (
+      <>
+        <div style={{ fontSize: "0.62rem", color: "rgba(42,37,32,0.38)", fontStyle: "italic", textAlign: "center", marginTop: 3 }}>Rest day</div>
+        {isCustomDay && (
+          <div style={{ textAlign: "center" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", background: "rgba(176,137,79,0.16)", color: "#9a6a2e", padding: "2px 7px", fontSize: "0.58rem", fontWeight: 600, letterSpacing: "0.06em" }}>Adjusted</span>
+          </div>
+        )}
+      </>
     ) : (
       <>
         {meal && (
@@ -1515,10 +1527,11 @@ return (
           </div>
         )}
         {!beforeStart && !afterEnd && (
-          <div>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
             {isPast   && <span style={{ display: "inline-flex", alignItems: "center", gap: 2, background: "rgba(139,149,121,0.15)", color: SAGE_DARK, padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em" }}>Done</span>}
             {isToday  && <span style={{ display: "inline-flex", alignItems: "center", background: `rgba(212,175,55,0.18)`, color: "#854F0B", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em" }}>Today</span>}
             {isFuture && <span style={{ display: "inline-flex", alignItems: "center", background: CREAM_2, color: "rgba(42,37,32,0.45)", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em", border: `1px solid ${CARD_BORDER}` }}>Upcoming</span>}
+            {isCustomDay && <span style={{ display: "inline-flex", alignItems: "center", background: "rgba(176,137,79,0.16)", color: "#9a6a2e", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em" }}>Adjusted</span>}
           </div>
         )}
       </>
