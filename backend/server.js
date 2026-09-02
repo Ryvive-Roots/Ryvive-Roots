@@ -21,6 +21,7 @@ import { activateQueuedPlansJob } from "./cron/Activatequeuedplans.js";
 import deliveryLogRoutes from "./routes/deliveryLogRoutes.js";
 import ticketRoutes from "./routes/ticketRoutes.js";
 import ticketAdminRoutes from "./routes/ticketAdminRoutes.js";
+import customerMenuRoutes from "./routes/customerMenuRoutes.js";
 
 // App Config
 const app = express();
@@ -54,6 +55,7 @@ app.use("/api/subscription", subscriptionRoutes);
 app.use("/api/admin-auth", adminAuthRoutes);
 app.use("/api/user", ticketRoutes);      
 app.use("/api/admin/tickets", ticketAdminRoutes);
+app.use("/api", customerMenuRoutes);
 app.use(
   "/api/admin",
   auditRoutes
