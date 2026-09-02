@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import axios from 'axios';
+import { CREAM, CREAM_2, DARK, DARK_2, INK, SAGE, SAGE_DARK } from '../theme';
 import {
   Users, MessageSquare, Plus, Lock, Eye, Edit, Clock, Activity,
-  Mail, Search, X, Send, Package, Calendar,
+  Mail, Search, X, Send, Package, Calendar, CalendarDays,
   DollarSign, PauseCircle, BarChart3,
   AlertCircle, RefreshCcw, CalendarClock, ChevronRight,
   FileText, Download, Truck, CheckCircle2, ClipboardList,
-} from 'lucide-react';
-import axios from 'axios';
-import { CREAM, CREAM_2, DARK, DARK_2, INK, SAGE, SAGE_DARK } from '../theme';
+} from 'lucide-react'; 
 
 // ── CONSTANTS ──────────────────────────────────────────────────────────────
 
@@ -333,6 +333,63 @@ const ADD_ON_FEATURES = [
   },
 ];
 
+// ── LIVE WEEKLY MENU (same rotating template the customer dashboard uses) ──
+const WEEKLY_MENU = {
+  PLATINUM: {
+    1: { Mon: "High Protein Paneer Salad", Tue: "Dragon Delight + Beetroot Cheese Wrap", Wed: "The Pesto Zoodle Hour + Pomegranate Delight", Thu: "Mexican Avocado Salad", Fri: "Orange Pine Twist + Sweet Potato & PEA", Sat: "Green Garden Bowl" },
+    2: { Mon: "Broccoli Cashew Cream", Tue: "O-Juice + Paneer Crunch Wrap", Wed: "The Zoodle Flame + Libido Booster", Thu: "Chickpea Paneer Fusion", Fri: "Dragon Pine + Corn N' Cheese", Sat: "Thai Mushroom Salad" },
+    3: { Mon: "Chilli Lime Soya Salad", Tue: "Dragon Delight + Beetroot Cheese Wrap", Wed: "The Pesto Zoodle Hour + Pomegranate Delight", Thu: "Signature Twin Plus", Fri: "Orange Pine Twist + Sweet Potato & PEA", Sat: "Sweet Potato Bliss" },
+    4: { Mon: "Creamy Double Chickpea", Tue: "Avocado Smoothie + Paneer Crunch Wrap", Wed: "The Zoodle Flame + Libido Booster", Thu: "Rajma Paneer Power Lean", Fri: "Bright Eyes + Corn N' Cheese", Sat: "Chilli Crunch Salad" },
+  },
+  GOLD: {
+    1: { Mon: "Classic Veggie Bowl", Tue: "Immuni Boost Plus + High-Protein Soya Cheese Wrap", Wed: "Dragon Pine", Thu: "Roasted Zucchini Bowl", Fri: "Stamina Booster + Corn N' Cheese", Sat: "Avocado Paneer Royal Grill" },
+    2: { Mon: "Creamy Double Chickpea", Tue: "Calm Cucumber + Paneer Crunch Cheese Wrap", Wed: "Libido Booster", Thu: "Rajma Paneer Power Lean", Fri: "For Skin Sake + Sweet N' Fresh Corn", Sat: "The Pesto Zoodle Hour" },
+    3: { Mon: "Mexican Avocado Salad", Tue: "Red Ryvive + Chickpea Avocado Cheese Wrap", Wed: "Pomegranate Delight", Thu: "Broccoli Cashew Cream", Fri: "Happy Gut + Sweet Potato & Pea", Sat: "Garlic Mushroom & Veggie Melt" },
+    4: { Mon: "High Protein Black Chana", Tue: "Orange Pine Twist + High Protein Soya Cheese Wrap", Wed: "Dragon Delight", Thu: "Green Garden Bowl", Fri: "Ryvive Carrot + Sweet N' Fresh Corn", Sat: "The Zoodle Flame" },
+  },
+  SILVER: {
+    1: { Mon: "Healthy Heart", Tue: "Chilli Crunch Salad", Wed: "Paneer Crunch Wrap + Orange Pine Twist", Thu: "Chickpea Paneer Fusion", Fri: "Corn N' Cheese Chaat", Sat: "Veg Protein Supreme Wrap + Golden Pine" },
+    2: { Mon: "Stamina Booster", Tue: "Creamy Double Chickpea", Wed: "Beetroot Cheese Wrap + Calm Cucumber", Thu: "Rajma Paneer Power Lean", Fri: "Soya Protein Wrap + Ryvive Carrot", Sat: "Immuni Boost Plus" },
+    3: { Mon: "Red Ryvive", Tue: "Corn Paneer Balance Bowl", Wed: "Sprout Energy Wrap + Dr. Carrot", Thu: "Roasted Zucchini Bowl", Fri: "Sprout Supreme Chaat", Sat: "Spinach Corn Cheese Wrap + Beet Blend" },
+    4: { Mon: "APB Shake", Tue: "High Protein Paneer Salad", Wed: "Spinach Corn Cheese Wrap + Beet Blend", Thu: "Chilli Lime Soya Salad", Fri: "Soya Protein Wrap + Ryvive Carrot", Sat: "Sweet Potato & Pea Chaat" },
+  },
+};
+
+const DAY_NAMES_CAL = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// Reads the plan tier out of a plan string, e.g. "GOLD_3MONTH_ADDON" -> "GOLD"
+const getPlanTierFromPlan = (planString) => {
+  const base = planString?.split('_')[0]?.toUpperCase();
+  return ["SILVER", "GOLD", "PLATINUM"].includes(base) ? base : null;
+};
+
+// Resolves the LIVE scheduled meal for a date, mirroring the customer
+// dashboard's week-cycle math exactly (activation-anchored, 4-week rotation).
+const getLiveMenuForDate = (date, basePlan, activationDate) => {
+  const dayName = DAY_NAMES_CAL[date.getDay()];
+  if (dayName === "Sun") return { name: "", restDay: true };
+  if (!basePlan || !activationDate || !WEEKLY_MENU[basePlan]) return { name: "", restDay: false };
+
+  const activation = new Date(activationDate);
+  activation.setHours(0, 0, 0, 0);
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.floor((d - activation) / 86400000);
+  const wkNum = Math.floor(diffDays / 7) + 1;
+  const cycleWeek = (((wkNum - 1) % 4) + 4) % 4 + 1; // always 1-4, even before activation
+
+  const meal = WEEKLY_MENU[basePlan]?.[cycleWeek]?.[dayName];
+  return { name: meal || "", restDay: false };
+};
+
+// An order counts as "active" for calendar/delivery purposes if it isn't
+// cancelled, expired, or still under process — matches activeOrdersForDelivery.
+const isActiveOrderForCalendar = (o) => {
+  const st = o.subscription?.status;
+  return st !== 'CANCELLED' && st !== 'EXPIRED' && st !== 'UNDER_PROCESS';
+};
+
 // ── THEME HELPERS ──────────────────────────────────────────────────────────
 
 const CARD_BORDER = 'rgba(42,37,32,0.08)';
@@ -472,6 +529,138 @@ const [ticketUpdating, setTicketUpdating] = useState({});
 
 const [openAddonSections, setOpenAddonSections] = useState({});
 const [openAddonSubMenus, setOpenAddonSubMenus] = useState({});
+
+// ── Meal Calendar state ──
+const [calendarCustomer, setCalendarCustomer] = useState(null); // selected order
+const [calendarSearch, setCalendarSearch] = useState('');
+const [calendarMonth, setCalendarMonth] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+const [calendarMeals, setCalendarMeals] = useState({}); // { 'YYYY-MM-DD': { name, restDay, isCustom } }
+const [calendarLoading, setCalendarLoading] = useState(false);
+const [calendarSaving, setCalendarSaving] = useState(false);
+const [editingCalendarDate, setEditingCalendarDate] = useState(null);
+const [calendarDraftName, setCalendarDraftName] = useState('');
+const [calendarDraftRest, setCalendarDraftRest] = useState(false);
+
+
+const calendarDateKey = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+const fetchCustomerCalendar = async (order, year, month) => {
+  setCalendarLoading(true);
+  const basePlan = getPlanTierFromPlan(order.subscription?.plan);
+  const activationDate = order.subscription?.activationAt || order.subscription?.startDate;
+
+  // 1. Seed every day of the visible month with the LIVE scheduled menu
+  const map = {};
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = new Date(year, month, day);
+    const key = calendarDateKey(d);
+    const live = getLiveMenuForDate(d, basePlan, activationDate);
+    map[key] = { ...live, isCustom: false };
+  }
+
+  // 2. Overlay any admin-saved overrides — these win over the live menu
+  try {
+    const res = await fetch(
+      `https://api.ryviveroots.com/api/admin/customer-menu?membershipId=${order.membershipId}&year=${year}&month=${month + 1}`
+    );
+    const data = await res.json();
+    (data.entries || []).forEach((e) => {
+      map[e.date] = { name: e.meal || "", restDay: !!e.restDay, isCustom: true };
+    });
+  } catch (err) {
+    console.error("Failed to fetch custom menu overrides", err);
+  }
+
+  setCalendarMeals(map);
+  setCalendarLoading(false);
+};
+
+const saveCalendarEntry = async () => {
+  if (!calendarCustomer || !editingCalendarDate) return;
+  setCalendarSaving(true);
+  const payload = {
+    membershipId: calendarCustomer.membershipId,
+    date: editingCalendarDate,
+    meal: calendarDraftRest ? "" : calendarDraftName.trim(),
+    restDay: calendarDraftRest,
+  };
+  try {
+    const res = await fetch("https://api.ryviveroots.com/api/admin/customer-menu", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || "Failed to save menu");
+
+    setCalendarMeals((prev) => ({
+      ...prev,
+      [editingCalendarDate]: { name: payload.meal, restDay: payload.restDay, isCustom: true },
+    }));
+
+    createAuditLog({
+      customerName: `${calendarCustomer.user?.firstName} ${calendarCustomer.user?.lastName}`,
+      action: "MENU_UPDATED",
+      details: `${editingCalendarDate}: ${payload.restDay ? "Marked as rest day" : payload.meal}`,
+      performedBy: "Admin",
+    });
+
+    setEditingCalendarDate(null);
+  } catch (err) {
+    alert(err.message || "Failed to save menu day");
+  } finally {
+    setCalendarSaving(false);
+  }
+};
+
+const openCalendarForCustomer = (order) => {
+  setCalendarCustomer(order);
+  setActiveView("calendar");
+  const m = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  setCalendarMonth(m);
+  fetchCustomerCalendar(order, m.getFullYear(), m.getMonth());
+};
+
+const goCalendarMonth = (delta) => {
+  const next = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + delta, 1);
+  setCalendarMonth(next);
+  if (calendarCustomer) fetchCustomerCalendar(calendarCustomer, next.getFullYear(), next.getMonth());
+};
+
+const openCalendarDayEditor = (key, entry) => {
+  setEditingCalendarDate(key);
+  setCalendarDraftName(entry?.name || "");
+  setCalendarDraftRest(!!entry?.restDay);
+};
+
+// Reset a day back to the live scheduled menu (removes the admin override)
+const resetCalendarEntryToLive = async () => {
+  if (!calendarCustomer || !editingCalendarDate) return;
+  setCalendarSaving(true);
+  try {
+    await fetch(
+      `https://api.ryviveroots.com/api/admin/customer-menu?membershipId=${calendarCustomer.membershipId}&date=${editingCalendarDate}`,
+      { method: "DELETE" }
+    );
+  } catch (err) {
+    console.error("Failed to reset menu day", err);
+  }
+  const d = new Date(editingCalendarDate + "T00:00:00");
+  const basePlan = getPlanTierFromPlan(calendarCustomer.subscription?.plan);
+  const activationDate = calendarCustomer.subscription?.activationAt || calendarCustomer.subscription?.startDate;
+  const live = getLiveMenuForDate(d, basePlan, activationDate);
+  setCalendarMeals((prev) => ({ ...prev, [editingCalendarDate]: { ...live, isCustom: false } }));
+  createAuditLog({
+    customerName: `${calendarCustomer.user?.firstName} ${calendarCustomer.user?.lastName}`,
+    action: "MENU_RESET",
+    details: `${editingCalendarDate}: Reset to live ${basePlan || ""} menu`,
+    performedBy: "Admin",
+  });
+  setCalendarSaving(false);
+  setEditingCalendarDate(null);
+};
 
 const toggleAddonSection = (heading) => {
   setOpenAddonSections(prev => ({
@@ -2196,6 +2385,7 @@ const handleSendTicketReply = async (ticketId) => {
     { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
     { id: 'customers', icon: Users, label: 'Customers' },
     { id: 'history', icon: FileText, label: 'Client History' },
+    { id: 'calendar', icon: CalendarDays, label: 'Meal Calendar' },
     { id: 'delivery', icon: Truck, label: 'Daily Delivery Log' },
     { id: 'pending', icon: DollarSign, label: 'Pending Payments', badge: pendingCustomers.length },
     { id: 'pause', icon: PauseCircle, label: 'Pause Requests' },
@@ -2428,6 +2618,12 @@ const handleSendTicketReply = async (ticketId) => {
                                   <button onClick={() => openInvoices(order)} style={{ ...ghostBtn, padding: '0.45rem 0.9rem', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><FileText size={13} /> Invoice</button>
                                   <button onClick={() => openHistory(order)} style={{ ...ghostBtn, padding: '0.45rem 0.9rem', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><Activity size={13} /> History</button>
                                   <button onClick={() => { setImpersonateTarget(order); setShowImpersonateConfirm(true); }} style={{ background: 'rgba(45,80,22,0.08)', color: SAGE_DARK, border: `1px solid ${SAGE}`, padding: '0.45rem 0.9rem', borderRadius: 2, fontSize: '0.72rem', fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontFamily: 'Inter, sans-serif' }}><Lock size={13} /> Login as Client</button>
+                                  <button
+  onClick={() => openCalendarForCustomer(order)}
+  style={{ ...ghostBtn, padding: '0.45rem 0.9rem', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+>
+  <CalendarDays size={13} /> Calendar
+</button>
                                 </div>
                               </td>
                             </tr>
@@ -4198,6 +4394,217 @@ const handleSendTicketReply = async (ticketId) => {
             </motion.div>
           )}
 
+          {/* ── MEAL CALENDAR ── */}
+{activeView === 'calendar' && (
+  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+    <div style={{ marginBottom: '1.5rem' }}>
+      <div style={eyebrowStyle}>— Menus</div>
+      <h2 className="font-serif" style={{ ...h2Style, marginTop: '0.5rem' }}>Meal Calendar</h2>
+      <p style={{ margin: '0.35rem 0 0', color: 'rgba(42,37,32,0.6)', fontSize: '0.9rem' }}>
+        {calendarCustomer ? `Editing menu for ${calendarCustomer.user?.firstName} ${calendarCustomer.user?.lastName}` : 'Select an active customer to view or edit their daily schedule'}
+      </p>
+    </div>
+
+    {/* ── customer picker (active customers only) ── */}
+    {!calendarCustomer && (
+      <>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: CREAM, padding: '0.7rem 1.1rem', borderRadius: 3, border: `1px solid ${CARD_BORDER}`, maxWidth: 400, marginBottom: '1.5rem' }}>
+          <Search size={18} color={SAGE_DARK} />
+          <input
+            type="text"
+            placeholder="Search by name, phone, or ID…"
+            value={calendarSearch}
+            onChange={e => setCalendarSearch(e.target.value)}
+            style={{ border: 'none', outline: 'none', fontSize: '0.9rem', flex: 1, background: 'transparent', color: INK }}
+          />
+        </div>
+        <div style={{ ...cardStyle, overflow: 'hidden' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 500 }}>
+              <thead>
+                <tr style={{ background: CREAM_2 }}>
+                  {['Membership ID', 'Full Name', 'Plan', ''].map(h => (
+                    <th key={h} style={{ padding: '0.95rem 1rem', textAlign: 'left', fontSize: '0.68rem', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, color: SAGE_DARK }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {orders
+                  .filter(o => isActiveOrderForCalendar(o))
+                  .filter(o => {
+                    const t = calendarSearch.toLowerCase();
+                    if (!t) return true;
+                    return o.membershipId?.toLowerCase().includes(t)
+                      || `${o.user?.firstName} ${o.user?.lastName}`.toLowerCase().includes(t)
+                      || o.user?.phone?.includes(t);
+                  })
+                  .map((order, idx, arr) => (
+                    <tr key={order._id} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${CARD_BORDER}` : 'none', cursor: 'pointer' }} onClick={() => openCalendarForCustomer(order)}>
+                      <td style={{ padding: '1rem', fontWeight: 600, color: INK, fontSize: '0.88rem' }}>{order.membershipId}</td>
+                      <td style={{ padding: '1rem' }}>
+                        <div style={{ fontWeight: 600, color: INK, fontSize: '0.9rem' }}>{order.user?.firstName} {order.user?.lastName}</div>
+                        <div style={{ fontSize: '0.78rem', color: 'rgba(42,37,32,0.5)' }}>{order.user?.phone}</div>
+                      </td>
+                      <td style={{ padding: '1rem' }}>
+                        <span style={{ background: 'rgba(107,117,96,0.12)', color: SAGE_DARK, padding: '0.25rem 0.7rem', borderRadius: 3, fontSize: '0.75rem', fontWeight: 600 }}>{order.subscription?.plan || '—'}</span>
+                      </td>
+                      <td style={{ padding: '1rem', textAlign: 'right' }}>
+                        <span style={{ ...ghostBtn, padding: '0.4rem 0.9rem', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                          <CalendarDays size={13} /> Open Calendar
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                {orders.filter(isActiveOrderForCalendar).length === 0 && <tr><td colSpan={4} style={{ padding: '3rem', textAlign: 'center', color: 'rgba(42,37,32,0.5)' }}>No active customers found.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </>
+    )}
+
+    {/* ── selected customer's calendar ── */}
+    {calendarCustomer && (
+      <>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+          <div style={{ ...cardStyle, padding: '0.85rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ width: 38, height: 38, borderRadius: '50%', background: SAGE, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, color: DARK_2, fontFamily: "'Cormorant Garamond', serif" }}>
+              {calendarCustomer.user?.firstName?.charAt(0) || '?'}
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, color: INK, fontSize: '0.92rem' }}>{calendarCustomer.user?.firstName} {calendarCustomer.user?.lastName}</div>
+              <div style={{ fontSize: '0.78rem', color: 'rgba(42,37,32,0.55)' }}>{calendarCustomer.membershipId} · {calendarCustomer.subscription?.plan}</div>
+            </div>
+          </div>
+          <button onClick={() => { setCalendarCustomer(null); setCalendarMeals({}); }} style={ghostBtn}>
+            ← Choose Different Customer
+          </button>
+        </div>
+
+        <div style={{ ...cardStyle }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.1rem 1.4rem', borderBottom: `1px solid ${CARD_BORDER}` }}>
+            <button onClick={() => goCalendarMonth(-1)} className="font-serif" style={{ background: 'none', border: 'none', fontSize: '1.3rem', color: INK, cursor: 'pointer' }}>‹</button>
+            <span className="font-serif" style={{ fontSize: '1.2rem', color: INK }}>
+              {calendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </span>
+            <button onClick={() => goCalendarMonth(1)} className="font-serif" style={{ background: 'none', border: 'none', fontSize: '1.3rem', color: INK, cursor: 'pointer' }}>›</button>
+          </div>
+
+          {calendarLoading ? (
+            <p style={{ padding: '2rem', textAlign: 'center', color: 'rgba(42,37,32,0.5)' }}>Loading menu…</p>
+          ) : (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: `1px solid ${CARD_BORDER}` }}>
+                {['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'].map(w => (
+                  <div key={w} style={{ textAlign: 'center', padding: '0.6rem 0', fontSize: '0.68rem', letterSpacing: '0.12em', color: SAGE_DARK, fontWeight: 700, fontFamily: 'Inter, sans-serif' }}>{w}</div>
+                ))}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+                {(() => {
+                  const year = calendarMonth.getFullYear();
+                  const month = calendarMonth.getMonth();
+                  const gridStart = new Date(year, month, 1);
+                  gridStart.setDate(gridStart.getDate() - gridStart.getDay());
+                  const today = new Date();
+                  return Array.from({ length: 42 }, (_, i) => {
+                    const d = new Date(gridStart);
+                    d.setDate(gridStart.getDate() + i);
+                    const inMonth = d.getMonth() === month;
+                    const key = calendarDateKey(d);
+                    const entry = calendarMeals[key];
+                    const isToday = d.toDateString() === today.toDateString();
+                    const isPast = d < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                    return (
+                      <div
+                        key={i}
+                        onClick={() => inMonth && openCalendarDayEditor(key, entry)}
+                        style={{
+                          minHeight: 100, padding: '0.6rem', borderRight: `1px solid ${CARD_BORDER}`, borderBottom: `1px solid ${CARD_BORDER}`,
+                          opacity: inMonth ? 1 : 0.35, background: isToday ? 'rgba(107,117,96,0.08)' : 'transparent',
+                          cursor: inMonth ? 'pointer' : 'default',
+                        }}
+                      >
+                        <div style={{
+                          fontSize: '0.82rem', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: isToday ? INK : 'transparent', color: isToday ? CREAM : INK, fontWeight: isToday ? 700 : 400,
+                        }}>{d.getDate()}</div>
+                        <div style={{
+                          fontSize: '0.72rem', marginTop: '0.4rem', lineHeight: 1.3, fontFamily: 'Inter, sans-serif',
+                          color: entry?.restDay ? 'rgba(42,37,32,0.45)' : INK, fontStyle: entry?.restDay ? 'italic' : 'normal',
+                        }}>
+                          {entry?.restDay ? 'Rest day' : (entry?.name || (inMonth ? '— no menu set —' : ''))}
+                        </div>
+                        {inMonth && !entry?.restDay && entry?.name && (
+                          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '0.4rem' }}>
+                            <span style={{
+                              display: 'inline-block', fontSize: '0.62rem', padding: '0.15rem 0.45rem', borderRadius: 2,
+                              background: isToday ? SAGE : 'rgba(42,37,32,0.06)', color: isToday ? DARK_2 : 'rgba(42,37,32,0.5)', fontWeight: 600, fontFamily: 'Inter, sans-serif',
+                            }}>
+                              {isToday ? 'Today' : isPast ? 'Delivered' : 'Upcoming'}
+                            </span>
+                            <span style={{
+                              display: 'inline-block', fontSize: '0.62rem', padding: '0.15rem 0.45rem', borderRadius: 2,
+                              background: entry.isCustom ? 'rgba(176,137,79,0.16)' : 'rgba(107,117,96,0.12)',
+                              color: entry.isCustom ? '#9a6a2e' : SAGE_DARK, fontWeight: 600, fontFamily: 'Inter, sans-serif',
+                            }}>
+                              {entry.isCustom ? 'Custom' : 'Live'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </>
+          )}
+        </div>
+      </>
+    )}
+  </motion.div>
+)}
+
+{/* ── EDIT CALENDAR DAY MODAL ── */}
+<AnimatePresence>
+  {editingCalendarDate && (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={overlayStyle}>
+      <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }} style={{ ...modalStyle, maxWidth: 420 }}>
+        <div style={{ fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: SAGE_DARK, fontWeight: 600, marginBottom: '0.35rem' }}>
+          {new Date(editingCalendarDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+        </div>
+        <h3 className="font-serif" style={{ margin: '0 0 1.25rem', fontSize: '1.35rem', fontWeight: 400, color: INK }}>Edit Menu Day</h3>
+
+        <label style={labelStyle}>Meal Name</label>
+        <input
+          value={calendarDraftName}
+          disabled={calendarDraftRest}
+          onChange={e => setCalendarDraftName(e.target.value)}
+          placeholder="e.g. Beetroot Cheese Wrap + Calm Cucumber"
+          style={{ ...inputStyle, marginBottom: '1rem', background: calendarDraftRest ? 'rgba(42,37,32,0.04)' : CREAM }}
+        />
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: INK, marginBottom: '1.5rem', cursor: 'pointer' }}>
+          <input type="checkbox" checked={calendarDraftRest} onChange={e => setCalendarDraftRest(e.target.checked)} />
+          Mark as rest day (no delivery)
+        </label>
+
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button onClick={saveCalendarEntry} disabled={calendarSaving} style={{ ...primaryBtn, flex: 1, justifyContent: 'center', padding: '0.85rem', opacity: calendarSaving ? 0.5 : 1 }}>
+            {calendarSaving ? 'Saving…' : 'Save Changes'}
+          </button>
+          <button onClick={() => setEditingCalendarDate(null)} style={{ ...ghostBtn, flex: 1, padding: '0.85rem' }}>Cancel</button>
+        </div>
+
+        {calendarMeals[editingCalendarDate]?.isCustom && (
+          <button onClick={resetCalendarEntryToLive} disabled={calendarSaving} style={{ ...ghostBtn, width: '100%', marginTop: '0.75rem', fontSize: '0.72rem' }}>
+            ↺ Reset to Live Menu
+          </button>
+        )}
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
         </main>
       </div>
 
@@ -4680,6 +5087,8 @@ const handleSendTicketReply = async (ticketId) => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      
 
     </div>
   );

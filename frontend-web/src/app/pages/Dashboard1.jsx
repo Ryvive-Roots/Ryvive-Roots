@@ -360,8 +360,9 @@ export default function Dashboard1() {
   const [renewDuration, setRenewDuration]   = useState("3");
   const [selectedPlan, setSelectedPlan]     = useState(null);
 
-  const [calendarDate, setCalendarDate] = useState(new Date());
-  const [selectedWeek, setSelectedWeek] = useState(1);
+ const [calendarDate, setCalendarDate] = useState(new Date());
+const [selectedWeek, setSelectedWeek] = useState(1);
+const [menuOverrides, setMenuOverrides] = useState({});
 
   // ── Support tickets state (Doc3 feature) ────────────────────────────────
   // NOTE: this state + its useEffect must live up here, ABOVE the early
@@ -477,6 +478,23 @@ export default function Dashboard1() {
     const wk = getCurrentWeekNumber(order.subscription?.activationAt, order.subscription?.endDate);
     setSelectedWeek(wk);
   }, [order]);
+
+  useEffect(() => {
+  if (!order) return;
+  const mid = localStorage.getItem("membershipId");
+  const year = calendarDate.getFullYear();
+  const month = calendarDate.getMonth() + 1;
+  fetch(`https://api.ryviveroots.com/api/user/customer-menu?membershipId=${mid}&year=${year}&month=${month}`)
+    .then((r) => r.json())
+    .then((data) => {
+      if (data.success) {
+        const map = {};
+        data.entries.forEach((e) => { map[e.date] = e; });
+        setMenuOverrides(map);
+      }
+    })
+    .catch((err) => console.error("Failed to fetch menu overrides", err));
+}, [order, calendarDate]);
 
   // ── Lock body scroll when modals or mobile nav open ───────────────────────
   useEffect(() => {
@@ -1453,11 +1471,19 @@ const statusColor = statusColors[finalStatus] || "#666";
                         const beforeStart    = currentDate < activationDate;
                         const afterEnd       = currentDate > endDate;
 
-                       const diffDays   = Math.floor((currentDate.getTime() - activationDate.getTime()) / 86400000);
+                      const diffDays   = Math.floor((currentDate.getTime() - activationDate.getTime()) / 86400000);
 const wkNum      = Math.floor(diffDays / 7) + 1;
 const menu       = WEEKLY_MENU[basePlan]?.[(((wkNum - 1) % 4) + 1)] || {};
 const dayName    = DAY_NAMES[currentDate.getDay()];
-const meal       = !beforeStart && !afterEnd && !isSunday ? menu[dayName] : null;
+
+const dateKey  = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(currentDate.getDate()).padStart(2, "0")}`;
+const override = menuOverrides[dateKey];
+
+const meal = override
+  ? (override.restDay ? null : override.meal)
+  : (!beforeStart && !afterEnd && !isSunday ? menu[dayName] : null);
+
+const isRestOverride = !!override?.restDay;
 
 // NEW — is this specific day inside a pause window?
 const isPaused = !beforeStart && !afterEnd && isPausedDate(currentDate, subscription.pause?.history);
@@ -1479,7 +1505,7 @@ return (
       <div style={{ fontSize: "0.62rem", color: "#8b6914", fontWeight: 600, textAlign: "center", marginTop: 3, display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
         <Pause size={9} /> Paused
       </div>
-    ) : !beforeStart && !afterEnd && isSunday ? (
+    )  : !beforeStart && !afterEnd && (isSunday || isRestOverride) ? (
       <div style={{ fontSize: "0.62rem", color: "rgba(42,37,32,0.38)", fontStyle: "italic", textAlign: "center", marginTop: 3 }}>Rest day</div>
     ) : (
       <>
