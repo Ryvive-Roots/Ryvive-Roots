@@ -1453,18 +1453,18 @@ const statusColor = statusColors[finalStatus] || "#666";
 
 <div style={{ background: CREAM, border: `1px solid ${CARD_BORDER}`, overflow: "hidden" }}>
   {/* Dietician Notice — highlighted banner */}
-  <div
-    className="flex items-center gap-3 px-6 py-3.5"
-    style={{
-      background: "linear-gradient(90deg, rgba(212,175,55,0.16), rgba(212,175,55,0.08))",
-      borderBottom: `1px solid rgba(212,175,55,0.35)`,
-    }}
-  >
-    <Bell size={16} color="#8b6914" style={{ flexShrink: 0 }} />
-    <p style={{ margin: 0, fontSize: ".85rem", fontWeight: 600, color: "#8b6914", letterSpacing: "0.01em" }}>
-      Meal plan is subject to upgrade as per dietician's weekly instructions.
-    </p>
-  </div>
+                    <div
+                      className="flex items-start sm:items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3.5"
+                      style={{
+                        background: "linear-gradient(90deg, rgba(212,175,55,0.16), rgba(212,175,55,0.08))",
+                        borderBottom: `1px solid rgba(212,175,55,0.35)`,
+                      }}
+                    >
+                      <Bell size={15} color="#8b6914" style={{ flexShrink: 0, marginTop: 2 }} />
+                      <p style={{ margin: 0, fontSize: "clamp(0.72rem, 3.2vw, 0.85rem)", fontWeight: 600, color: "#8b6914", letterSpacing: "0.01em", lineHeight: 1.4 }}>
+                        Meal plan is subject to upgrade as per dietician's weekly instructions.
+                      </p>
+                    </div>
 
   {/* Calendar header */}
   <div className="flex justify-between items-center px-6 py-4" style={{ borderBottom: `1px solid ${CARD_BORDER}` }}>
@@ -1476,15 +1476,19 @@ const statusColor = statusColors[finalStatus] || "#666";
                       <button onClick={handleNextMonth} disabled={!canGoNext} style={{ width: 34, height: 34, border: `1px solid ${CARD_BORDER}`, background: CREAM_2, cursor: canGoNext ? "pointer" : "default", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", color: INK, opacity: canGoNext ? 1 : 0.28 }}>›</button>
                     </div>
 
-                    {/* Day headers */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", borderBottom: `1px solid ${CARD_BORDER}` }}>
-                      {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
-                        <div key={d} style={{ textAlign: "center", fontWeight: 500, color: SAGE_DARK, padding: "10px 0", fontSize: "0.72rem", letterSpacing: "0.18em", textTransform: "uppercase" }}>{d}</div>
-                      ))}
-                    </div>
+                                      {/* Scrollable wrapper — keeps all 7 columns at a readable width on mobile */}
+                    <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+                      <div style={{ minWidth: 640 }}>
 
-                    {/* Calendar grid — with correct activation-month start (Doc2 fix) */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)" }}>
+                        {/* Day headers */}
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", borderBottom: `1px solid ${CARD_BORDER}` }}>
+                          {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
+                            <div key={d} style={{ textAlign: "center", fontWeight: 500, color: SAGE_DARK, padding: "10px 0", fontSize: "0.72rem", letterSpacing: "0.14em", textTransform: "uppercase" }}>{d}</div>
+                          ))}
+                        </div>
+
+                        {/* Calendar grid — with correct activation-month start (Doc2 fix) */}
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)" }}>
                       {Array.from({ length: 42 }).map((_, index) => {
                         let gridStartDate;
                         if (currentMonth === activationDate.getMonth() && currentYear === activationDate.getFullYear()) {
@@ -1530,15 +1534,15 @@ const isCustomDay = !!override; // any saved override = admin-adjusted day
 const isPaused = !beforeStart && !afterEnd && isPausedDate(currentDate, subscription.pause?.history);
 
 return (
-  <div key={index} style={{
-    minHeight: 108, padding: "10px 8px 8px",
+     <div key={index} style={{
+    minHeight: 100, padding: "10px 8px 8px", padding: "clamp(6px,2vw,10px) clamp(4px,1.6vw,8px) clamp(5px,1.5vw,8px)",
     borderRight: `1px solid ${CARD_BORDER}`, borderBottom: `1px solid ${CARD_BORDER}`,
-    display: "flex", flexDirection: "column", gap: 6,
+    display: "flex", flexDirection: "column", gap: 4,
     background: isPaused ? "rgba(212,175,55,0.08)" : isToday ? "rgba(139,149,121,0.08)" : afterEnd ? CREAM_2 : "transparent",
     opacity: beforeStart ? 0.18 : !isCurrentMonth ? 0.38 : afterEnd ? 0.45 : 1,
     pointerEvents: beforeStart ? "none" : "auto",
   }}>
-    <div style={{ width: 24, height: 24, borderRadius: "50%", background: isToday ? DARK : "transparent", color: isToday ? CREAM : isCurrentMonth ? INK : "rgba(42,37,32,0.35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.78rem", fontWeight: isToday ? 500 : 400, flexShrink: 0 }}>
+        <div style={{ width: 24, height: 24, borderRadius: "50%", background: isToday ? DARK : "transparent", color: isToday ? CREAM : isCurrentMonth ? INK : "rgba(42,37,32,0.35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.78rem", fontWeight: isToday ? 500 : 400, flexShrink: 0 }}>
       {currentDate.getDate()}
     </div>
 
@@ -1548,7 +1552,7 @@ return (
       </div>
     ) : !beforeStart && !afterEnd && isRestDay ? (
       <>
-        <div style={{ fontSize: "0.62rem", color: "rgba(42,37,32,0.38)", fontStyle: "italic", textAlign: "center", marginTop: 3 }}>Rest day</div>
+               <div style={{ fontSize: "clamp(0.5rem, 2vw, 0.62rem)", color: "rgba(42,37,32,0.38)", fontStyle: "italic", textAlign: "center", marginTop: 3 }}>Rest day</div>
         {isCustomDay && (
           <div style={{ textAlign: "center" }}>
             <span style={{ display: "inline-flex", alignItems: "center", background: "rgba(176,137,79,0.16)", color: "#9a6a2e", padding: "2px 7px", fontSize: "0.58rem", fontWeight: 600, letterSpacing: "0.06em" }}>Adjusted</span>
@@ -1557,14 +1561,14 @@ return (
       </>
     ) : (
       <>
-        {meal && (
-          <div style={{ fontSize: "0.63rem", color: isToday ? INK : isCurrentMonth ? "rgba(42,37,32,0.65)" : "rgba(42,37,32,0.32)", lineHeight: 1.45, flex: 1 }}>
+                       {meal && (
+          <div style={{ fontSize: "0.63rem", color: isToday ? INK : isCurrentMonth ? "rgba(42,37,32,0.65)" : "rgba(42,37,32,0.32)", lineHeight: 1.4, flex: 1, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" }}>
             {meal}
           </div>
         )}
-               {!beforeStart && !afterEnd && (
-          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-            {isPast   && <span style={{ display: "inline-flex", alignItems: "center", gap: 2, background: "rgba(139,149,121,0.15)", color: SAGE_DARK, padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em" }}>Done</span>}
+        {!beforeStart && !afterEnd && (
+          <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+                       {isPast   && <span style={{ display: "inline-flex", alignItems: "center", gap: 2, background: "rgba(139,149,121,0.15)", color: SAGE_DARK, padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em" }}>Done</span>}
             {isToday  && <span style={{ display: "inline-flex", alignItems: "center", background: `rgba(212,175,55,0.18)`, color: "#854F0B", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em" }}>Today</span>}
             {isFuture && <span style={{ display: "inline-flex", alignItems: "center", background: CREAM_2, color: "rgba(42,37,32,0.45)", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em", border: `1px solid ${CARD_BORDER}` }}>Upcoming</span>}
           </div>
@@ -1573,14 +1577,16 @@ return (
     )}
   </div>
 );
-                      })}
+                                             })}
+                        </div>
+                      </div>
                     </div>
 
                     {/* Legend */}
-                    <div className="flex gap-5 flex-wrap px-6 py-4" style={{ borderTop: `1px solid ${CARD_BORDER}` }}>
+                                        <div className="flex gap-3 sm:gap-5 flex-wrap px-4 sm:px-6 py-3 sm:py-4" style={{ borderTop: `1px solid ${CARD_BORDER}` }}>
                       {[{ color: DARK, label: "Today" }, { color: "#c8860f", label: "Paused" }, { color: SAGE_DARK, label: "Done" }, { color: "#854F0B", label: "Current" }, { color: CARD_BORDER, label: "Upcoming" }].map(({ color, label }) => (
-                        <div key={label} className="flex items-center gap-2" style={{ fontSize: "11px", color: "rgba(42,37,32,0.55)", letterSpacing: "0.1em" }}>
-                          <div style={{ width: 7, height: 7, borderRadius: "50%", background: color }} /> {label}
+                        <div key={label} className="flex items-center gap-2" style={{ fontSize: "10.5px", color: "rgba(42,37,32,0.55)", letterSpacing: "0.06em" }}>
+                          <div style={{ width: 6, height: 6, borderRadius: "50%", background: color, flexShrink: 0 }} /> {label}
                         </div>
                       ))}
                     </div>
