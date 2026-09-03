@@ -1448,12 +1448,27 @@ const statusColor = statusColors[finalStatus] || "#666";
               return (
                 <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                   <div style={labelStyle} className="mb-2">— Calendar</div>
-                  <h2 className="font-serif mb-1" style={{ fontSize: "clamp(24px,3vw,34px)", color: INK, fontWeight: 300 }}>My Daily Schedule</h2>
-                  <p style={{ fontSize: "13px", color: "rgba(42,37,32,0.6)", marginBottom: "2rem" }}>Meal calendar overview</p>
+                 <h2 className="font-serif mb-1" style={{ fontSize: "clamp(24px,3vw,34px)", color: INK, fontWeight: 300 }}>My Daily Schedule</h2>
+<p style={{ fontSize: "13px", color: "rgba(42,37,32,0.6)", marginBottom: "2rem" }}>Meal calendar overview</p>
 
-                  <div style={{ background: CREAM, border: `1px solid ${CARD_BORDER}`, overflow: "hidden" }}>
-                    {/* Calendar header */}
-                    <div className="flex justify-between items-center px-6 py-4" style={{ borderBottom: `1px solid ${CARD_BORDER}` }}>
+<div style={{ background: CREAM, border: `1px solid ${CARD_BORDER}`, overflow: "hidden" }}>
+  {/* Dietician Notice — highlighted banner */}
+  <div
+    className="flex items-center gap-3 px-6 py-3.5"
+    style={{
+      background: "linear-gradient(90deg, rgba(212,175,55,0.16), rgba(212,175,55,0.08))",
+      borderBottom: `1px solid rgba(212,175,55,0.35)`,
+    }}
+  >
+    <Bell size={16} color="#8b6914" style={{ flexShrink: 0 }} />
+    <p style={{ margin: 0, fontSize: ".85rem", fontWeight: 600, color: "#8b6914", letterSpacing: "0.01em" }}>
+      Meal plan is subject to upgrade as per dietician's weekly instructions.
+    </p>
+  </div>
+
+  {/* Calendar header */}
+  <div className="flex justify-between items-center px-6 py-4" style={{ borderBottom: `1px solid ${CARD_BORDER}` }}>
+    
                       <button onClick={handlePrevMonth} disabled={!canGoPrev} style={{ width: 34, height: 34, border: `1px solid ${CARD_BORDER}`, background: CREAM_2, cursor: canGoPrev ? "pointer" : "default", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", color: INK, opacity: canGoPrev ? 1 : 0.28 }}>‹</button>
                       <span className="font-serif" style={{ fontSize: "1rem", fontWeight: 300, color: INK, letterSpacing: "0.06em" }}>
                         {calendarDate.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}
@@ -1547,12 +1562,11 @@ return (
             {meal}
           </div>
         )}
-        {!beforeStart && !afterEnd && (
+               {!beforeStart && !afterEnd && (
           <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
             {isPast   && <span style={{ display: "inline-flex", alignItems: "center", gap: 2, background: "rgba(139,149,121,0.15)", color: SAGE_DARK, padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em" }}>Done</span>}
             {isToday  && <span style={{ display: "inline-flex", alignItems: "center", background: `rgba(212,175,55,0.18)`, color: "#854F0B", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em" }}>Today</span>}
             {isFuture && <span style={{ display: "inline-flex", alignItems: "center", background: CREAM_2, color: "rgba(42,37,32,0.45)", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em", border: `1px solid ${CARD_BORDER}` }}>Upcoming</span>}
-            {isCustomDay && <span style={{ display: "inline-flex", alignItems: "center", background: "rgba(176,137,79,0.16)", color: "#9a6a2e", padding: "2px 7px", fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em" }}>Adjusted</span>}
           </div>
         )}
       </>
