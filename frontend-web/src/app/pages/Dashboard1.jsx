@@ -422,43 +422,136 @@ const [menuOverrides, setMenuOverrides] = useState({});
   }, [activeTab]);
 
   // ── Fetch dashboard data from real API ────────────────────────────────────
-  useEffect(() => {
-    const fetchDashboard = async () => {
+ useEffect(() => {
+  const initializeDashboard = async () => {
+    // --------------------------------------------------
+    // 1. Read impersonation details from URL
+    // --------------------------------------------------
+    const params = new URLSearchParams(window.location.search);
+
+    const urlToken = params.get("token");
+    const urlMembershipId = params.get("membershipId");
+    const force = params.get("force");
+
+    // --------------------------------------------------
+    // 2. If Admin opened this dashboard as a client,
+    //    ALWAYS use the membershipId from the URL.
+    // --------------------------------------------------
+    if (force === "1" && urlMembershipId) {
+      console.log("🔐 Impersonation detected");
+      console.log("Membership ID:", urlMembershipId);
+      console.log("Token received:", !!urlToken);
+
+      localStorage.setItem("membershipId", urlMembershipId);
+
+      if (urlToken) {
+        localStorage.setItem("impersonationToken", urlToken);
+      }
+
+      localStorage.setItem("membershipId_impersonated", "true");
+    }
+
+    // --------------------------------------------------
+    // 3. Now get the membership ID AFTER URL processing
+    // --------------------------------------------------
+    const membershipId = localStorage.getItem("membershipId");
+
+    if (!membershipId) {
+      window.location.replace("/login");
+      return;
+    }
+
+    console.log("📋 Dashboard loading for:", membershipId);
+
+    // --------------------------------------------------
+    // 4. Fetch dashboard data
+    // --------------------------------------------------
+    try {
+      const res = await fetch(
+        `https://api.ryviveroots.com/api/user/orders?membershipId=${encodeURIComponent(
+          membershipId
+        )}`
+      );
+
+      const data = await res.json();
+
+      console.log("Dashboard API response:", data);
+
+      if (data.success && data.orders?.length > 0) {
+        const active = getActiveOrder(data.orders);
+        const upcoming = getUpcomingOrder(data.orders, active);
+
+        setOrder(active || data.orders[0]);
+        setUpcomingOrder(upcoming);
+        setOrders(data.orders);
+      } else {
+        console.error("No orders found for:", membershipId);
+      }
+    } catch (err) {
+      console.error("Dashboard fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  initializeDashboard();
+
+  // --------------------------------------------------
+  // Notifications
+  // --------------------------------------------------
+  const fetchNotifications = async () => {
+    try {
       const membershipId = localStorage.getItem("membershipId");
-      if (!membershipId) { window.location.replace("/login"); return; }
-      try {
-        const res  = await fetch(`https://api.ryviveroots.com/api/user/orders?membershipId=${membershipId}`);
-        const data = await res.json();
-        if (data.success && data.orders.length > 0) {
-          const active   = getActiveOrder(data.orders);
+
+      if (!membershipId) return;
+
+      const res = await fetch(
+        `https://api.ryviveroots.com/api/user/notifications?membershipId=${encodeURIComponent(
+          membershipId
+        )}`
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setNotifications(data.notifications || []);
+      }
+    } catch (err) {
+      console.log("Notification fetch error:", err);
+    }
+  };
+
+  fetchNotifications();
+
+  // Refresh dashboard
+  const interval = setInterval(() => {
+    const membershipId = localStorage.getItem("membershipId");
+
+    if (!membershipId) return;
+
+    fetch(
+      `https://api.ryviveroots.com/api/user/orders?membershipId=${encodeURIComponent(
+        membershipId
+      )}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.orders?.length > 0) {
+          const active = getActiveOrder(data.orders);
           const upcoming = getUpcomingOrder(data.orders, active);
+
           setOrder(active || data.orders[0]);
           setUpcomingOrder(upcoming);
           setOrders(data.orders);
         }
-      } catch (err) {
-        console.error("Dashboard fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      })
+      .catch((err) => {
+        console.error("Dashboard refresh error:", err);
+      });
+  }, 30000);
 
-    const fetchNotifications = async () => {
-      try {
-        const membershipId = localStorage.getItem("membershipId");
-        const res  = await fetch(`https://api.ryviveroots.com/api/user/notifications?membershipId=${membershipId}`);
-        const data = await res.json();
-        if (data.success) setNotifications(data.notifications || []);
-      } catch (err) {
-        console.log("Notification fetch error:", err);
-      }
-    };
-
-    fetchDashboard();
-    fetchNotifications();
-    const interval = setInterval(fetchDashboard, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  return () => clearInterval(interval);
+}, []);
 
   // ── Sync formData when order loads ────────────────────────────────────────
   useEffect(() => {
