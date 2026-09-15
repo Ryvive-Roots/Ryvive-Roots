@@ -3,7 +3,6 @@ import { Layout } from './components/Layout';
 import Home from './pages/Home';
 import Story from './pages/Story';
 import Menu from './pages/Menu';
-import Subscription from './pages/Subscription';
 import Franchise from './pages/Franchise';
 import Career from './pages/Career';
 import Contact from './pages/Contact';

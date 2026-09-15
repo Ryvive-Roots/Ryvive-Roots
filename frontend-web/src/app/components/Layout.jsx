@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { SiteHeader } from './SiteHeader';
 import { SiteFooter } from './SiteFooter';
 import { CREAM, DARK, SAGE } from '../theme';
+import SEO from './SEO';
 
 export function Layout() {
     const location = useLocation();
@@ -20,6 +21,7 @@ export function Layout() {
     }, [location.pathname, location.hash]);
     return (<div style={{ background: DARK }} className="min-h-screen overflow-x-hidden relative">
       <SiteHeader />
+      <SEO />
       <Outlet />
       <SiteFooter />
 

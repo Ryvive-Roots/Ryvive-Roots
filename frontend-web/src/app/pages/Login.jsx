@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { CREAM, CREAM_2, DARK, INK, SAGE_DARK } from '../theme';
+import SEO from '../components/SEO';
 export default function Login() {
       const [membershipId, setMembershipId] = useState("");
       const [identifier, setIdentifier] = useState(""); // email or phone
@@ -108,7 +109,10 @@ useEffect(() => {
         color: SAGE_DARK,
         fontWeight: 600,
     };
-    return (<section className="relative min-h-screen flex items-center justify-center overflow-hidden" style={{ background: DARK }}>
+    return (
+      <>
+      <SEO />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden" style={{ background: DARK }}>
       <div className="absolute inset-0">
         <ImageWithFallback src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=2000&q=80" alt="Café" className="w-full h-full object-cover" style={{ filter: 'blur(8px) brightness(0.55)' }}/>
         <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(20,17,15,0.55) 0%, rgba(20,17,15,0.7) 100%)' }}/>
@@ -213,5 +217,6 @@ useEffect(() => {
          
         </form>
       </motion.div>
-    </section>);
+    </section> 
+    </>);
 }

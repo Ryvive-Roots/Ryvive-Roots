@@ -870,25 +870,39 @@ const statusColor = statusColors[finalStatus] || "#666";
     : null;
 
   // ── Real API renew payment ─────────────────────────────────────────────────
-  const handleRenewPayment = async () => {
-    if (!selectedPlan) { alert("Please select a plan"); return; }
-    const planPrices = RENEWAL_PRICING[selectedPlan]?.[renewDuration];
-    if (!planPrices) return;
-    try {
-      const res = await fetch("https://api.ryviveroots.com/api/payment/easebuzz/initiate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstname: user.firstName, email: user.email, phone: user.phone,
-          plan: `${selectedPlan}_${renewDuration}MONTH`,
-          isRenewal: true, membershipId: order.membershipId,
-        }),
-      });
-      const data = await res.json();
-      if (!data.success || !data.access_key) { alert("Payment initiation failed"); return; }
-      window.location.href = `https://pay.easebuzz.in/pay/${data.access_key}`;
-    } catch (error) { console.error("Renew payment error:", error); alert("Something went wrong"); }
-  };
+const handleRenewPayment = async () => {
+  if (!selectedPlan) { alert("Please select a plan"); return; }
+  const planPrices = RENEWAL_PRICING[selectedPlan]?.[renewDuration];
+  if (!planPrices) return;
+
+  // Strip any suffix so this renewal order is tagged with the SAME base ID
+  // that Purchase History fetches orders by — otherwise the new invoice
+  // never appears after renewing.
+  const baseMembershipId = order.membershipId?.includes("-")
+    ? order.membershipId.split("-")[0]
+    : order.membershipId;
+
+  try {
+    const res = await fetch("https://api.ryviveroots.com/api/payment/easebuzz/initiate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstname: user.firstName,
+        email: user.email,
+        phone: user.phone,
+        plan: `${selectedPlan}_${renewDuration}MONTH`,
+        isRenewal: true,
+        membershipId: baseMembershipId,   // ✅ now consistent
+      }),
+    });
+    const data = await res.json();
+    if (!data.success || !data.access_key) { alert("Payment initiation failed"); return; }
+    window.location.href = `https://pay.easebuzz.in/pay/${data.access_key}`;
+  } catch (error) {
+    console.error("Renew payment error:", error);
+    alert("Something went wrong");
+  }
+};
 
   // ── Real API save profile ─────────────────────────────────────────────────
   const saveProfile = async () => {
