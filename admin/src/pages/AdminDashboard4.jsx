@@ -21,10 +21,10 @@ const allowedPincodes = [
 ];
 
 const teamMembers = [
-  { id: 'saurabh', name: 'Saurabh Sir', role: 'Senior Manager' },
-  { id: 'yashwant', name: 'Yashwant', role: 'Team Lead' },
-  { id: 'shravani', name: 'Shravani', role: 'Web Developer' },
-  { id: 'sakshi', name: 'Sakshi', role: 'Operations Associate' }
+  { id: 'saurabh', name: 'Saurabh Sir', role: 'Founder' },
+
+  { id: 'shravani', name: 'Shravani', role: 'IT, Backend' },
+
 ];
 
 const PLAN_PRICES = {
