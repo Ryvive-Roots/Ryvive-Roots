@@ -3,9 +3,9 @@ import { useLocation } from "react-router-dom";
 
 const seoData = {
   "/": {
-    title: "Ryvive Roots | Healthy Food & Diet Meals in Mumbai",
+    title: "Ryvive Roots | Healthy Food & Diet Meals in Dombivali",
     description:
-      "Ryvive Roots serves fresh, nutritious and delicious healthy meals in Mumbai for a balanced and healthier lifestyle.",
+      "Ryvive Roots serves fresh, nutritious and delicious healthy meals in Dombivali for a balanced and healthier lifestyle.",
     index: true,
   },
 
@@ -17,14 +17,14 @@ const seoData = {
   },
 
   "/menu": {
-    title: "Healthy Food Menu in Mumbai | Ryvive Roots",
+    title: "Healthy Food Menu in Dombivali | Ryvive Roots",
     description:
-      "Explore the Ryvive Roots menu featuring fresh, nutritious and delicious healthy meals in Mumbai.",
+      "Explore the Ryvive Roots menu featuring fresh, nutritious and delicious healthy meals in Dombivali.",
     index: true,
   },
 
   "/subscription": {
-    title: "Healthy Meal Subscription in Mumbai | Ryvive Roots",
+    title: "Healthy Meal Subscription in Dombivali | Ryvive Roots",
     description:
       "Explore healthy meal subscriptions, office lunch plans, high-protein meals and customized diet meal plans from Ryvive Roots.",
     index: true,
@@ -45,7 +45,7 @@ const seoData = {
   },
 
   "/contact": {
-    title: "Contact Ryvive Roots | Healthy Food in Mumbai",
+    title: "Contact Ryvive Roots | Healthy Food in Dombivali",
     description:
       "Contact Ryvive Roots for healthy meals, subscriptions, customized diet plans and other enquiries.",
     index: true,
