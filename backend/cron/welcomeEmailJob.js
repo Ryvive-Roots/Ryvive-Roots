@@ -38,7 +38,7 @@ const getPlanDetails = (plan, durationMonths, order) => {
         "Easy-to-digest recipes free from refined sugar and preservatives",
         "Weekly variety to keep your meals exciting and balanced",
         "Functional detox and immunity juices",
-        "No calorie counting — just clean, honest food",
+       
       ],
       pauseInfo: durationMonths === 1
         ? "Please note: Pause is not available on the Silver 1-Month plan."
@@ -250,7 +250,6 @@ ${
 
 <ul>
   <li>${description.pauseInfo}</li>
-  <li>Seamless automatic resumption after each pause period</li>
   <li>Dedicated support from our customer care team</li>
   <li>Access to your personal wellness dashboard at ryviveroots.com</li>
 </ul>
