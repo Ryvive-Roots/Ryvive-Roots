@@ -1559,19 +1559,7 @@ const handleRenewPayment = async () => {
 <p style={{ fontSize: "13px", color: "rgba(42,37,32,0.6)", marginBottom: "2rem" }}>Meal calendar overview</p>
 
 <div style={{ background: CREAM, border: `1px solid ${CARD_BORDER}`, overflow: "hidden" }}>
-  {/* Dietician Notice — highlighted banner */}
-                    <div
-                      className="flex items-start sm:items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3.5"
-                      style={{
-                        background: "linear-gradient(90deg, rgba(212,175,55,0.16), rgba(212,175,55,0.08))",
-                        borderBottom: `1px solid rgba(212,175,55,0.35)`,
-                      }}
-                    >
-                      <Bell size={15} color="#8b6914" style={{ flexShrink: 0, marginTop: 2 }} />
-                      <p style={{ margin: 0, fontSize: "clamp(0.72rem, 3.2vw, 0.85rem)", fontWeight: 600, color: "#8b6914", letterSpacing: "0.01em", lineHeight: 1.4 }}>
-                        Meal plan is subject to upgrade as per dietician's weekly instructions.
-                      </p>
-                    </div>
+  
 
   {/* Calendar header */}
   <div className="flex justify-between items-center px-6 py-4" style={{ borderBottom: `1px solid ${CARD_BORDER}` }}>
