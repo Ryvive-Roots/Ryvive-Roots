@@ -1556,7 +1556,7 @@ const handleRenewPayment = async () => {
                 <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                   <div style={labelStyle} className="mb-2">— Calendar</div>
                  <h2 className="font-serif mb-1" style={{ fontSize: "clamp(24px,3vw,34px)", color: INK, fontWeight: 300 }}>My Daily Schedule</h2>
-<p style={{ fontSize: "13px", color: "rgba(42,37,32,0.6)", marginBottom: "2rem" }}>Meal calendar overview</p>
+
 
 <div style={{ background: CREAM, border: `1px solid ${CARD_BORDER}`, overflow: "hidden" }}>
   
