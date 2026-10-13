@@ -13,8 +13,8 @@ const contactDetails = [
         icon: Phone,
         label: 'Call Us',
         lines: [
-            { text: '+91 90760 00468', href: 'tel:+919076000468' },
-            { text: '+91 97656 00701', href: 'tel:+919765600701' },
+            { text: '+91 96199 87275', href: 'tel:+919619987275' },
+            { text: '+91 88286 75229', href: 'tel:+918828675229' },
         ],
     },
     {

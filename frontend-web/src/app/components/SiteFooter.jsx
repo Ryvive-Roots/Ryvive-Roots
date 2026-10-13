@@ -24,7 +24,7 @@ const socialLinks = [
   },
   {
     icon: Phone,
-    href: "tel:+919765600701",
+    href: "tel:+919619987275",
   },
 ];
 export function SiteFooter() {
@@ -212,7 +212,7 @@ export function SiteFooter() {
                 CONTACT
               </div>
               <ul className="space-y-3" style={{ color: 'rgba(244,239,230,0.85)', fontSize: '13px', fontWeight: 500 }}>
-                <li data-footer-contact-item>+91 9076000468 / 9765600701</li>
+                <li data-footer-contact-item>+91 96199 87275 / 88286 75229</li>
                 <li data-footer-contact-item>customersupport@ryviveroots.com</li>
                 <li data-footer-contact-item>Dombivli East, Maharashtra (421201).</li>
               </ul>
