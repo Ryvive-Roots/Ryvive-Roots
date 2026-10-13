@@ -6,7 +6,11 @@ import sendEmail from "../utils/sendEmail.js";
 import generateInvoice from "../utils/generateInvoice.js";
 import generateReceiptNumber from "../utils/generateReceiptNumber.js";
 import generateMembershipId from "../utils/generateMembershipId.js";
-import { PLANS } from "../utils/planConfig.js";
+import {
+  PLANS,
+  ADD_ON_FEATURE_PLANS,
+  getAddOnPlanConfig,
+} from "../utils/planConfig.js";
 import User from "../models/User.js";
 import { rebuildExcelFromMongo } from "../utils/excelHelper.js";
 import path from "path";
@@ -123,7 +127,25 @@ router.get("/orders", async (req, res) => {
 =========================== */
 router.post("/manual-order", async (req, res) => {
   try {
-    const { user, address, plan, slot, paymentMethod, healthInfo, remarks, totalPrice } = req.body;
+    const {
+      user,
+      address,
+      plan,
+      slot,
+      paymentMethod,
+      healthInfo,
+      remarks,
+      totalPrice,
+
+      // NEW CUSTOM PACKAGE FIELDS
+      customPackagePrice,
+      additionalDurationDays,
+      addOnFeatures,
+    } = req.body;
+
+    // =====================================================
+    // BASIC VALIDATION
+    // =====================================================
 
     if (!user?.firstName || !user?.phone) {
       return res.status(400).json({
@@ -146,16 +168,148 @@ router.post("/manual-order", async (req, res) => {
       });
     }
 
-    const selectedPlan = PLANS[plan];
-    if (!selectedPlan) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid plan selected",
-      });
+    // =====================================================
+    // ADD-ON / CUSTOMIZED PACKAGE DETECTION
+    // =====================================================
+
+    const isAddon = String(plan || "").endsWith("_ADDON");
+
+    // Strip the "_ADDON" suffix so subscription.plan always
+    // stores one of the 6 clean enum values that the Order
+    // schema's subscription.plan enum accepts.
+    const basePlanKey = isAddon ? plan.replace("_ADDON", "") : plan;
+
+    // =====================================================
+    // PLAN CONFIGURATION
+    // =====================================================
+
+    let selectedPlan = null;
+    let addonPlanConfig = null;
+
+    if (isAddon) {
+      addonPlanConfig = getAddOnPlanConfig(plan);
+
+      if (!addonPlanConfig) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid add-on package selected",
+        });
+      }
+
+      selectedPlan = PLANS[addonPlanConfig.basePlan];
+
+      if (!selectedPlan) {
+        return res.status(400).json({
+          success: false,
+          message: "Base plan configuration not found",
+        });
+      }
+    } else {
+      selectedPlan = PLANS[plan];
+
+      if (!selectedPlan) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid plan selected",
+        });
+      }
     }
 
-    // ✅ Find existing customer — guard against empty-string phone/email
-    // both being "" and accidentally matching each other
+    // =====================================================
+    // ADD-ON FEATURES
+    // =====================================================
+
+    const selectedAddOnFeatures =
+      isAddon && Array.isArray(addOnFeatures) ? addOnFeatures : [];
+
+    // =====================================================
+    // BASE PLAN PRICE
+    // =====================================================
+
+    const basePlanPrice = isAddon
+      ? Number(addonPlanConfig.basePlanPrice || selectedPlan.price || 0)
+      : Number(selectedPlan.price || 0);
+
+    // =====================================================
+    // CUSTOM PACKAGE PRICE
+    // =====================================================
+
+    const finalCustomPackagePrice = isAddon
+      ? Math.max(0, Number(customPackagePrice || 0))
+      : 0;
+
+    // =====================================================
+    // ADDITIONAL DURATION
+    // =====================================================
+
+    const finalAdditionalDurationDays = isAddon
+      ? Math.max(0, Number(additionalDurationDays || 0))
+      : 0;
+
+    // =====================================================
+    // BASE DURATION
+    // =====================================================
+
+    const baseDurationDays = isAddon
+      ? Number(addonPlanConfig.durationDays) ||
+        Number(selectedPlan.durationDays) ||
+        Number(selectedPlan.durationMonths || 1) * 24
+      : Number(selectedPlan.durationDays) ||
+        Number(selectedPlan.durationMonths || 1) * 24;
+
+    // =====================================================
+    // DURATION MONTHS
+    // =====================================================
+
+    const months = isAddon
+      ? Number(addonPlanConfig.durationMonths) || 1
+      : Number(selectedPlan.durationMonths) || 1;
+
+    // =====================================================
+    // FINAL DURATION
+    // =====================================================
+
+    const durationDays = baseDurationDays + finalAdditionalDurationDays;
+
+    // =====================================================
+    // FINAL AMOUNT
+    // =====================================================
+
+    const amount = isAddon
+      ? basePlanPrice + finalCustomPackagePrice
+      : totalPrice || selectedPlan.price;
+
+    // =====================================================
+    // ADD-ON VALIDATION
+    // =====================================================
+
+    if (isAddon) {
+      if (basePlanPrice <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Base plan price is invalid",
+        });
+      }
+
+      if (finalCustomPackagePrice < 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Custom package price cannot be negative",
+        });
+      }
+
+      if (durationDays <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid package duration",
+        });
+      }
+    }
+
+    // =====================================================
+    // FIND EXISTING CUSTOMER
+    // =====================================================
+
     const existingUser = await User.findOne({
       $or: [
         ...(user.phone ? [{ phone: user.phone }] : []),
@@ -164,11 +318,17 @@ router.post("/manual-order", async (req, res) => {
     });
 
     let existingOrder = null;
+
     if (existingUser?.membershipId) {
-      existingOrder = await Order.findOne({ membershipId: existingUser.membershipId });
+      existingOrder = await Order.findOne({
+        membershipId: existingUser.membershipId,
+      });
     }
 
-    // 🛑 Prevent accidental duplicate order (double click protection)
+    // =====================================================
+    // PREVENT ACCIDENTAL DUPLICATE ORDER
+    // =====================================================
+
     const tenSecondsAgo = new Date(Date.now() - 10 * 1000);
 
     if (existingOrder) {
@@ -176,6 +336,7 @@ router.post("/manual-order", async (req, res) => {
         membershipId: existingOrder.membershipId,
         updatedAt: { $gte: tenSecondsAgo },
       });
+
       if (recentOrder) {
         return res.status(429).json({
           success: false,
@@ -184,12 +345,10 @@ router.post("/manual-order", async (req, res) => {
       }
     }
 
-    const durationDays =
-      Number(selectedPlan.durationDays) || (Number(selectedPlan.durationMonths) || 1) * 24;
-    const months = Number(selectedPlan.durationMonths) || 1;
-    const amount = totalPrice || selectedPlan.price;
+    // =====================================================
+    // CALCULATE ACTIVATION / START DATE
+    // =====================================================
 
-    // ✅ Calculate activation/start dates (same rule for both branches)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -200,7 +359,9 @@ router.post("/manual-order", async (req, res) => {
     if (req.body.startDate) {
       startDate = new Date(req.body.startDate);
       startDate.setHours(0, 0, 0, 0);
+
       activationAt = new Date(startDate);
+
       status = startDate <= today ? "ACTIVE" : "UNDER_PROCESS";
     } else {
       activationAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
@@ -208,14 +369,18 @@ router.post("/manual-order", async (req, res) => {
       status = "UNDER_PROCESS";
     }
 
+    // =====================================================
+    // ORDER VARIABLES
+    // =====================================================
+
     let order;
     let isRenewal = false;
 
+    // =====================================================
+    // EXISTING CUSTOMER
+    // =====================================================
+
     if (existingOrder) {
-      /* =====================================
-         ♻️ EXISTING CLIENT — reuse SAME Order document
-         Record the old subscription into renewalHistory
-      ===================================== */
       isRenewal = true;
 
       const oldPlan = existingOrder.subscription.plan;
@@ -225,14 +390,19 @@ router.post("/manual-order", async (req, res) => {
       const oldActivationAt = existingOrder.subscription.activationAt;
       const oldEndDate = existingOrder.subscription.endDate;
 
-      // Extend from whichever is later: existing endDate or new activation
-      const baseEndDate = oldEndDate ? new Date(oldEndDate) : new Date(activationAt);
+      const baseEndDate = oldEndDate
+        ? new Date(oldEndDate)
+        : new Date(activationAt);
+
       const extendFrom = baseEndDate > activationAt ? baseEndDate : activationAt;
+
       const newEndDate = addMealDays(extendFrom, durationDays);
 
       const receiptNumber = await generateReceiptNumber(Order);
 
-      existingOrder.subscription.renewalHistory = existingOrder.subscription.renewalHistory || [];
+      existingOrder.subscription.renewalHistory =
+        existingOrder.subscription.renewalHistory || [];
+
       existingOrder.subscription.renewalHistory.push({
         date: new Date(),
         plan: oldPlan,
@@ -244,11 +414,19 @@ router.post("/manual-order", async (req, res) => {
         endDate: oldEndDate,
       });
 
-      // 🔄 Apply the new plan on top of the same document
-      existingOrder.subscription.plan = plan;
+      existingOrder.subscription.plan = basePlanKey;
       existingOrder.subscription.amount = amount;
       existingOrder.subscription.originalAmount = amount;
       existingOrder.subscription.durationMonths = months;
+
+      existingOrder.subscription.isAddon = isAddon;
+      existingOrder.subscription.basePlanPrice = basePlanPrice;
+      existingOrder.subscription.customPackagePrice = finalCustomPackagePrice;
+      existingOrder.subscription.addOnFeatures = selectedAddOnFeatures;
+      existingOrder.subscription.baseDurationDays = baseDurationDays;
+      existingOrder.subscription.additionalDurationDays = finalAdditionalDurationDays;
+      existingOrder.subscription.durationDays = durationDays;
+
       existingOrder.subscription.activationAt = activationAt;
       existingOrder.subscription.startDate = startDate;
       existingOrder.subscription.endDate = newEndDate;
@@ -257,47 +435,63 @@ router.post("/manual-order", async (req, res) => {
       existingOrder.subscription.renewalTriggeredBy = "ADMIN";
 
       if (status === "ACTIVE") {
-        existingOrder.subscription.pause = { used: 0, history: existingOrder.subscription.pause?.history || [] };
+        existingOrder.subscription.pause = {
+          used: 0,
+          history: existingOrder.subscription.pause?.history || [],
+        };
       }
 
       existingOrder.receiptNumber = receiptNumber;
       existingOrder.paymentMethod = paymentMethod || "CASH";
       existingOrder.paymentStatus = "PAID";
 
-      // Update contact / address / health info with whatever was submitted
       existingOrder.user.firstName = user.firstName;
-      existingOrder.user.lastName = user.lastName || existingOrder.user.lastName || "";
+      existingOrder.user.lastName =
+        user.lastName || existingOrder.user.lastName || "";
       existingOrder.user.phone = user.phone;
       existingOrder.user.email = user.email || existingOrder.user.email || "";
-      if (user.dob) existingOrder.user.dob = user.dob;
+
+      if (user.dob) {
+        existingOrder.user.dob = user.dob;
+      }
 
       existingOrder.address = {
         pincode: address.pincode,
         house: address.house,
         street: address.street,
-        landmark: address.landmark || existingOrder.address?.landmark || "",
+        landmark:
+          address.landmark || existingOrder.address?.landmark || "",
         city: address.city || existingOrder.address?.city || "Dombivli",
-        state: address.state || existingOrder.address?.state || "Maharashtra",
+        state:
+          address.state || existingOrder.address?.state || "Maharashtra",
       };
 
       existingOrder.healthInfo = {
-        allergies: healthInfo?.allergies || existingOrder.healthInfo?.allergies || "N/A",
+        allergies:
+          healthInfo?.allergies || existingOrder.healthInfo?.allergies || "N/A",
         medicalConditions:
-          healthInfo?.medicalConditions || existingOrder.healthInfo?.medicalConditions || "N/A",
+          healthInfo?.medicalConditions ||
+          existingOrder.healthInfo?.medicalConditions ||
+          "N/A",
       };
 
       existingOrder.remarks = remarks || existingOrder.remarks || "";
       existingOrder.deliverySlot = slot;
 
       await existingOrder.save();
+
       order = existingOrder;
 
-      console.log("♻️ EXISTING CLIENT RENEWED VIA MANUAL ORDER:", order.membershipId);
+      console.log(
+        "Existing client renewed via manual order:",
+        order.membershipId
+      );
     } else {
-      /* =====================================
-         🆕 TRUE NEW CUSTOMER — create a fresh Order document
-      ===================================== */
-      const membershipId = await generateMembershipId(Order, totalPrice);
+      // =====================================================
+      // TRUE NEW CUSTOMER
+      // =====================================================
+
+      const membershipId = await generateMembershipId(Order, amount);
       const receiptNumber = await generateReceiptNumber(Order);
       const endDate = addMealDays(startDate, durationDays);
 
@@ -332,32 +526,51 @@ router.post("/manual-order", async (req, res) => {
         deliverySlot: slot,
 
         subscription: {
-          plan,
-          amount,
+          plan: basePlanKey,
+          amount: amount,
           originalAmount: amount,
+
+          isAddon: isAddon,
+          basePlanPrice: basePlanPrice,
+          customPackagePrice: finalCustomPackagePrice,
+          addOnFeatures: selectedAddOnFeatures,
+
           durationMonths: months,
-          activationAt,
-          startDate,
-          endDate,
+          baseDurationDays: baseDurationDays,
+          additionalDurationDays: finalAdditionalDurationDays,
+          durationDays: durationDays,
+
+          activationAt: activationAt,
+          startDate: startDate,
+          endDate: endDate,
+
           pause: { used: 0, history: [] },
-          status,
+
+          status: status,
         },
+
         paymentStatus: "PAID",
         paymentMethod: paymentMethod || "CASH",
       });
 
-      console.log("✅ NEW MANUAL ORDER SAVED:", order.membershipId);
+      console.log("New manual order saved:", order.membershipId);
     }
 
-    // 📊 Rebuild Excel
+    // =====================================================
+    // REBUILD EXCEL
+    // =====================================================
+
     try {
       await rebuildExcelFromMongo();
-      console.log("📊 Excel updated successfully");
+      console.log("Excel updated successfully");
     } catch (err) {
-      console.error("❌ Excel rebuild failed:", err.message);
+      console.error("Excel rebuild failed:", err.message);
     }
 
-    // 🔗 Sync User collection (upsert on membershipId either way)
+    // =====================================================
+    // SYNC USER COLLECTION
+    // =====================================================
+
     await User.findOneAndUpdate(
       { membershipId: order.membershipId },
       {
@@ -370,129 +583,413 @@ router.post("/manual-order", async (req, res) => {
       { upsert: true, new: true }
     );
 
-    // 📄 Generate Invoice PDF
+    // =====================================================
+    // GENERATE INVOICE PDF
+    // =====================================================
+
     const invoicePath = await generateInvoice(order);
     order.invoiceUrl = invoicePath;
     await order.save();
 
+    // =====================================================
+    // EXCEL PATH
+    // =====================================================
+
     const excelPath = path.join(__dirname, "..", "exports", "members.xlsx");
 
-    // 📩 SEND CUSTOMER EMAIL
+    // =====================================================
+    // SHARED EMAIL FOOTER (matches easebuzzSuccess format)
+    // =====================================================
+
+    const emailFooter = `
+<style>
+@media only screen and (max-width:600px) {
+  .footer-table td {
+    display:block !important;
+    width:100% !important;
+    text-align:center !important;
+    margin-bottom:15px;
+  }
+
+  .footer-icons img{
+    margin:0 6px !important;
+  }
+}
+</style>
+
+<table style="width:100%; background:#f3f3f3; padding:25px; font-family:Arial, sans-serif; border-spacing:0;">
+
+<tr>
+<td align="center">
+
+<table style="text-align:center; border-spacing:0;">
+
+<tr>
+<td style="padding:6px 0;">
+<img src="https://ryviveroots.com/Ryvive.png" width="180" alt="Ryvive Roots Logo" style="border:none;">
+</td>
+</tr>
+
+<tr>
+<td style="padding:6px 0; font-size:13px; color:#333; line-height:1.5; text-align:center;">
+You are receiving this email because you recently activated a Ryvive Roots membership.<br>
+If you have any concerns, please contact us at
+<a href="mailto:customersupport@ryviveroots.com" style="text-decoration:none;">
+customersupport@ryviveroots.com
+</a>.
+</td>
+</tr>
+
+<tr>
+<td style="padding:8px 0; text-align:center;">
+<a href="https://www.instagram.com/ryvive_roots/" style="margin-right:12px; text-decoration:none;">
+<img src="https://cdn-icons-png.flaticon.com/512/1400/1400829.png" width="22" alt="Instagram" style="vertical-align:middle; border:none;">
+</a>
+
+<a href="https://www.linkedin.com/in/ryvive-roots-750b533a7/" style="text-decoration:none;">
+<img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" width="22" alt="LinkedIn" style="vertical-align:middle; border:none;">
+</a>
+</td>
+</tr>
+
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
++91 96199 87275 / 88286 75229
+</td>
+</tr>
+
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
+<a href="https://www.ryviveroots.com" style="text-decoration:none;">
+www.ryviveroots.com
+</a>
+</td>
+</tr>
+
+<tr>
+<td style="padding:6px 0; text-align:center;">
+<a href="https://ryviveroots.com/privacy-policy" style="text-decoration:none;">
+Privacy Policy
+</a>
+</td>
+</tr>
+
+<tr>
+<td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
+Dombivli East, Maharashtra 421201, India
+</td>
+</tr>
+
+<tr>
+<td style="padding-top:10px; font-size:13px; color:#333; text-align:center;">
+© 2026 RYVIVE ROOTS All Rights Reserved.
+</td>
+</tr>
+
+</table>
+
+</td>
+</tr>
+
+</table>
+`;
+
+    // =====================================================
+    // CUSTOMER EMAIL
+    // =====================================================
+
     if (order.user.email) {
       const rawPlan = order.subscription?.plan || "";
-      const formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
+
+      let formattedPlan = `RYVIVE ${rawPlan.split("_")[0]}`;
+
+      if (order.subscription?.isAddon) {
+        const emailBasePlanKey = rawPlan.replace("_ADDON", "");
+        const baseParts = emailBasePlanKey.split("_");
+        const basePlanName = baseParts[0] || "RYVIVE";
+        const baseDuration = baseParts[1] || "";
+
+        formattedPlan = `RYVIVE ${basePlanName} ${baseDuration.replace(
+          "MONTH",
+          " MONTH"
+        )}`;
+      }
+
+      const subscription = order.subscription || {};
+      const emailIsAddon = Boolean(subscription.isAddon);
+      const emailAddOnFeatures = Array.isArray(subscription.addOnFeatures)
+        ? subscription.addOnFeatures
+        : [];
+
+      const addOnFeaturesHtml =
+        emailAddOnFeatures.length > 0
+          ? emailAddOnFeatures.map((feature) => `• ${feature}`).join("<br>")
+          : "None";
 
       await sendEmail({
         to: order.user.email,
+
         subject: isRenewal
-          ? "You're Back, And We're Glad 🌿"
-          : "Payment successful for RYVIVE ROOTS LLP",
+          ? emailIsAddon
+            ? "Your Customized Package Has Been Renewed"
+            : "Your Membership Has Been Renewed"
+          : emailIsAddon
+          ? "Your Customized RYVIVE ROOTS Package Is Confirmed"
+          : "Payment Confirmation: RYVIVE ROOTS LLP",
+
+        // =====================================================
+        // EMAIL BODY - professional, colorless, receipt-style
+        // =====================================================
         html: isRenewal
           ? `
-<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+<div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a1a;">
 
-  <h2>Hi ${order.user.firstName},</h2>
-
-  <p><b>Welcome back. We're glad you stayed.</b></p>
-
-  <p>
-    Thank you for continuing your wellness journey with us.
-    Here's your subscription summary for your records:
+  <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 400; margin: 0 0 4px;">
+    Dear ${order.user.firstName},
   </p>
 
-  <table style="border-collapse: collapse; margin-top: 10px;">
-    <tr>
-      <td style="padding: 6px 10px;"><b>Receipt Number</b></td>
-      <td style="padding: 6px 10px;">: ${order.receiptNumber}</td>
-    </tr>
-    <tr>
-      <td style="padding: 6px 10px;"><b>Plan</b></td>
-      <td style="padding: 6px 10px;">: ${formattedPlan}</td>
-    </tr>
-    <tr>
-      <td style="padding: 6px 10px;"><b>Amount Paid</b></td>
-      <td style="padding: 6px 10px;">: ₹${order.subscription.amount}</td>
-    </tr>
-    <tr>
-      <td style="padding: 6px 10px;"><b>Payment Date</b></td>
-      <td style="padding: 6px 10px;">: ${new Date().toLocaleDateString("en-IN")}</td>
-    </tr>
-    <tr>
-      <td style="padding: 6px 10px;"><b>New Expiry Date</b></td>
-      <td style="padding: 6px 10px;">: ${new Date(order.subscription.endDate).toLocaleDateString("en-IN")}</td>
-    </tr>
+  <p style="font-size: 15px; font-weight: 600; margin: 0 0 18px; letter-spacing: 0.2px;">
+    ${
+      emailIsAddon
+        ? "Your customized package has been renewed successfully."
+        : "Your Ryvive Roots membership has been renewed successfully."
+    }
+  </p>
+
+  <p style="font-size: 14px; line-height: 1.7; color: #444; margin: 0 0 24px;">
+    Thank you for continuing your wellness journey with us. Please find your updated subscription summary below for your records.
+  </p>
+
+  <!-- RECEIPT CARD -->
+  <table style="width: 100%; border-collapse: collapse; border: 1px solid #e0e0e0; margin-bottom: 24px;">
+    <tbody>
+      <tr>
+        <td colspan="2" style="padding: 14px 18px; border-bottom: 1px solid #e0e0e0; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #888;">
+          Subscription Summary
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Receipt Number</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">${order.receiptNumber}</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Plan</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">${formattedPlan}</td>
+      </tr>
+
+      ${
+        emailIsAddon
+          ? `
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Package Type</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">Customized Package</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Base Plan Price</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">₹${Number(
+          subscription.basePlanPrice || 0
+        ).toLocaleString("en-IN")}</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Customized Package Price</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">₹${Number(
+          subscription.customPackagePrice || 0
+        ).toLocaleString("en-IN")}</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666; vertical-align: top;">Add-on Features</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right; line-height: 1.6;">${addOnFeaturesHtml}</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Base Duration</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">${
+          subscription.baseDurationDays || 0
+        } days</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Additional Duration</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">+${
+          subscription.additionalDurationDays || 0
+        } days</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Final Duration</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">${
+          subscription.durationDays || 0
+        } days</td>
+      </tr>
+      `
+          : ""
+      }
+
+      <tr style="border-top: 1px solid #e0e0e0;">
+        <td style="padding: 14px 18px; font-size: 14px; font-weight: 700;">Amount Paid</td>
+        <td style="padding: 14px 18px; font-size: 15px; font-weight: 700; text-align: right;">₹${Number(
+          order.subscription.amount || 0
+        ).toLocaleString("en-IN")}</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Payment Date</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">${new Date().toLocaleDateString(
+          "en-IN"
+        )}</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">New Expiry Date</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">${new Date(
+          order.subscription.endDate
+        ).toLocaleDateString("en-IN")}</td>
+      </tr>
+    </tbody>
   </table>
 
-  <br/>
-
-  <p>Your membership ID remains <b>${order.membershipId}</b>.</p>
-
-  <p>
-    If you ever have a question or concern, reach out anytime at
-    customersupport@ryviveroots.com.
+  <p style="font-size: 13px; color: #666; margin: 0 0 4px;">
+    Your membership ID remains <strong style="color:#111;">${order.membershipId}</strong>.
   </p>
 
-  <p>Warmly,<br/><b>Team Ryvive Roots</b></p>
+  <p style="font-size: 13px; line-height: 1.7; color: #666; margin: 16px 0;">
+    Should you have any questions or concerns, please contact us at
+    <a href="mailto:customersupport@ryviveroots.com" style="color:#111; text-decoration: underline;">customersupport@ryviveroots.com</a>.
+  </p>
+
+  <p style="font-size: 14px; margin: 24px 0 0;">
+    Regards,<br/>
+    <strong>Team Ryvive Roots</strong>
+  </p>
+
+${emailFooter}
+
 </div>
 `
           : `
-<div style="font-family: Arial, sans-serif; line-height: 1.6;">
+<div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a1a;">
 
-<h2 style="font-family: Georgia, 'Times New Roman', serif;  font-size:16px; margin-bottom:2px;">
-  Dear ${order.user.firstName},
-</h2>
-
-  <p font-family: Arial, 'Times New Roman', serif; font-weight: bold; font-size:22px; margin-bottom:10px;>
-    We just wanted to say thank you so much! We're genuinely thrilled to have you as part of the 
-    <b>Ryvive Roots family</b>, and we can't wait to walk alongside you on this wonderful wellness journey.
+  <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 400; margin: 0 0 6px;">
+    Dear ${order.user.firstName},
   </p>
 
-  <p>
-    Your payment has gone through successfully and everything is all set on our end. 
-    Here's a quick summary for your records:
+  <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 17px; font-weight: 600; line-height: 1.55; margin: 0 0 20px;">
+    Welcome to Ryvive Roots. We are pleased to confirm your membership and look forward to supporting you on your wellness journey.
   </p>
 
-<table style="font-family: Arial, 'Times New Roman', serif;  font-size:15px; margin-bottom:10px;">
-  <tr>
-    <td><b>Receipt Number</b></td>
-    <td>: <b>${order.receiptNumber}</b></td>
-  </tr>
-  <tr>
-    <td><b>Your Plan</b></td>
-    <td>: <b>${formattedPlan}</b></td>
-  </tr>
-  <tr>
-    <td><b>Amount Paid</b></td>
-    <td>: <b>₹${order.subscription.amount}</b></td>
-  </tr>
-  <tr>
-    <td><b>Payment Date</b></td>
-    <td>: <b>${order.createdAt.toLocaleDateString("en-IN")}</b></td>
-  </tr>
-</table>
-
-  <br/>
-
-  <p>
-    Keep an eye on your inbox. You'll be hearing from us shortly with your 
-    <b>membership number</b> and all the details to get you started. 
-    The good stuff is just around the corner.
+  <p style="font-size: 14px; line-height: 1.7; color: #444; margin: 0 0 20px;">
+    Your payment has been received successfully and your order is now confirmed. Please find the order summary below for your records.
   </p>
 
-  <p>
-  And hey, if you ever have a question, a concern, or just want to say hello, we're always here for you. Reach out anytime at customersupport@ryviveroots.com and we'll get back to you with a smile.
+  ${
+    emailIsAddon
+      ? `
+  <p style="font-size: 13px; color: #666; margin: 0 0 20px;">
+    Your <strong style="color:#111;">Customized RYVIVE ROOTS Package</strong> has been created successfully.
+  </p>
+  `
+      : ""
+  }
+
+  <!-- RECEIPT CARD -->
+  <table style="width: 100%; border-collapse: collapse; border: 1px solid #e0e0e0; margin-bottom: 24px;">
+    <tbody>
+      <tr>
+        <td colspan="2" style="padding: 14px 18px; border-bottom: 1px solid #e0e0e0; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #888;">
+          Order Summary
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Receipt Number</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">${order.receiptNumber}</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Your Plan</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">${formattedPlan}</td>
+      </tr>
+
+      ${
+        emailIsAddon
+          ? `
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Package Type</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">Customized Package</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Base Plan Price</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">₹${Number(
+          subscription.basePlanPrice || 0
+        ).toLocaleString("en-IN")}</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Customized Package Price</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">₹${Number(
+          subscription.customPackagePrice || 0
+        ).toLocaleString("en-IN")}</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666; vertical-align: top;">Add-on Features</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right; line-height: 1.6;">${addOnFeaturesHtml}</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Base Duration</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">${
+          subscription.baseDurationDays || 0
+        } days</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Additional Duration</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">+${
+          subscription.additionalDurationDays || 0
+        } days</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Final Duration</td>
+        <td style="padding: 10px 18px; font-size: 13px; font-weight: 600; text-align: right;">${
+          subscription.durationDays || 0
+        } days</td>
+      </tr>
+      `
+          : ""
+      }
+
+      <tr style="border-top: 1px solid #e0e0e0;">
+        <td style="padding: 14px 18px; font-size: 14px; font-weight: 700;">Amount Paid</td>
+        <td style="padding: 14px 18px; font-size: 15px; font-weight: 700; text-align: right;">₹${Number(
+          order.subscription.amount || 0
+        ).toLocaleString("en-IN")}</td>
+      </tr>
+      <tr style="background: #fafafa;">
+        <td style="padding: 10px 18px; font-size: 13px; color: #666;">Payment Date</td>
+        <td style="padding: 10px 18px; font-size: 13px; text-align: right;">${
+          order.createdAt
+            ? order.createdAt.toLocaleDateString("en-IN")
+            : new Date().toLocaleDateString("en-IN")
+        }</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="font-size: 14px; line-height: 1.7; color: #444; margin: 0 0 16px;">
+    You will receive a separate communication shortly confirming your <strong style="color:#111;">membership number</strong> along with the details required to get started.
   </p>
 
-  <p>
-    Here's to a healthier, happier you. We're so glad you're here!
+  <p style="font-size: 13px; line-height: 1.7; color: #666; margin: 0 0 16px;">
+    For any questions or assistance, please write to us at
+    <a href="mailto:customersupport@ryviveroots.com" style="color:#111; text-decoration: underline;">customersupport@ryviveroots.com</a> and our team will be glad to help.
   </p>
 
-  <p>
-    Warmly,<br/>
-    <b>Team Ryvive Roots</b>
+  <p style="font-size: 14px; line-height: 1.7; margin: 0 0 20px;">
+    We look forward to being part of your wellness journey.
   </p>
+
+  <p style="font-size: 14px; margin: 0;">
+    Regards,<br/>
+    <strong>Team Ryvive Roots</strong>
+  </p>
+
+${emailFooter}
+
 </div>
 `,
+
         attachments: [
           {
             filename: `invoice-${order.receiptNumber}.pdf`,
@@ -503,39 +1000,82 @@ router.post("/manual-order", async (req, res) => {
 
       order.subscription.thankYouEmailSentAt = new Date();
       order.subscription.welcomeEmailSent = false;
+
       await order.save();
     }
 
-    // 📩 SEND COMPANY EMAIL
+    // =====================================================
+    // COMPANY EMAIL
+    // =====================================================
+
     await sendEmail({
       to: process.env.COMPANY_EMAIL,
+
       subject: isRenewal
-        ? `🔁 Manual Renewal - ${order.membershipId}`
-        : `🧾 Manual Membership Added - ${order.membershipId}`,
+        ? `Manual Renewal - ${order.membershipId}`
+        : `Manual Membership Added - ${order.membershipId}`,
+
       html: `
-        <h2>${isRenewal ? "Existing Member Renewed (Manual)" : "New Walk-in Member Added"}</h2>
+<h2>${isRenewal ? "Existing Member Renewed (Manual)" : "New Walk-in Member Added"}</h2>
 
-        <p><b>Name:</b> ${order.user.firstName} ${order.user.lastName}</p>
-        <p><b>Phone:</b> ${order.user.phone}</p>
-        <p><b>Email:</b> ${order.user.email || "N/A"}</p>
-        <p><b> Allergies:</b> ${order.healthInfo?.allergies || "N/A"}</p>
-        <p><b> Medical Conditions:</b> ${order.healthInfo?.medicalConditions || "N/A"}</p>
-        <p><b>📝 Remarks:</b> ${order.remarks || "—"}</p>
+<p><b>Name:</b> ${order.user.firstName} ${order.user.lastName}</p>
 
-        <p><b>Plan:</b> ${order.subscription.plan}</p>
-        <p><b>Amount:</b> ₹${order.subscription.amount}</p>
-        <p><b>Slot:</b> ${order.deliverySlot}</p>
-        <p><b>Membership ID:</b> ${order.membershipId}</p>
-        <p><b>Receipt:</b> ${order.receiptNumber}</p>
+<p><b>Phone:</b> ${order.user.phone}</p>
 
-        <p><b>Address:</b><br/>
-          ${order.address.house}, ${order.address.street}<br/>
-          ${order.address.landmark}<br/>
-          ${order.address.city} - ${order.address.pincode}
-        </p>
+<p><b>Email:</b> ${order.user.email || "N/A"}</p>
 
-        <p>🕒 Created: ${new Date().toLocaleString("en-IN")}</p>
-      `,
+<p><b>Allergies:</b> ${order.healthInfo?.allergies || "N/A"}</p>
+
+<p><b>Medical Conditions:</b> ${order.healthInfo?.medicalConditions || "N/A"}</p>
+
+<p><b>Remarks:</b> ${order.remarks || "None"}</p>
+
+<p><b>Plan:</b> ${order.subscription.plan}</p>
+
+${
+  order.subscription?.isAddon
+    ? `
+<p><b>Package Type:</b> Customized Package</p>
+
+<p><b>Base Plan Price:</b> ₹${Number(order.subscription.basePlanPrice || 0).toLocaleString(
+        "en-IN"
+      )}</p>
+
+<p><b>Customized Package Price:</b> ₹${Number(
+        order.subscription.customPackagePrice || 0
+      ).toLocaleString("en-IN")}</p>
+
+<p><b>Add-on Features:</b> ${
+        order.subscription.addOnFeatures?.length
+          ? order.subscription.addOnFeatures.join(", ")
+          : "None"
+      }</p>
+
+<p><b>Base Duration:</b> ${order.subscription.baseDurationDays || 0} days</p>
+
+<p><b>Additional Duration:</b> +${order.subscription.additionalDurationDays || 0} days</p>
+
+<p><b>Final Duration:</b> ${order.subscription.durationDays || 0} days</p>
+`
+    : ""
+}
+
+<p><b>Amount:</b> ₹${Number(order.subscription.amount || 0).toLocaleString("en-IN")}</p>
+
+<p><b>Slot:</b> ${order.deliverySlot}</p>
+
+<p><b>Membership ID:</b> ${order.membershipId}</p>
+
+<p><b>Receipt:</b> ${order.receiptNumber}</p>
+
+<p><b>Address:</b><br/>
+${order.address.house}, ${order.address.street}<br/>
+${order.address.landmark}<br/>
+${order.address.city} - ${order.address.pincode}</p>
+
+<p>Created: ${new Date().toLocaleString("en-IN")}</p>
+`,
+
       attachments: [
         {
           filename: "members.xlsx",
@@ -548,16 +1088,23 @@ router.post("/manual-order", async (req, res) => {
       ],
     });
 
+    // =====================================================
+    // SUCCESS RESPONSE
+    // =====================================================
+
     return res.json({
       success: true,
       order,
       renewed: isRenewal,
     });
   } catch (error) {
-    console.error("❌ MANUAL ORDER ERROR:", error);
+    console.error("Manual order error:", error);
+
     return res.status(500).json({
       success: false,
-      message: "Failed to create manual order",
+      // TEMP: surfacing error.message helps debugging from the
+      // browser Network tab / alert. Remove once confirmed stable.
+      message: error.message || "Failed to create manual order",
     });
   }
 });
@@ -743,7 +1290,7 @@ await sendEmail({
       ? `
       <li>
         <b>Name:</b>
-        ${oldFirstName} ${oldLastName}
+        ${oldOrder.user.firstName} ${oldOrder.user.lastName}
         →
         ${order.user.firstName} ${order.user.lastName}
       </li>
@@ -756,7 +1303,7 @@ await sendEmail({
       ? `
       <li>
         <b>Phone Number:</b>
-        ${oldPhone}
+        ${oldOrder.user.phone}
         →
         ${order.user.phone}
       </li>
@@ -769,7 +1316,7 @@ await sendEmail({
       ? `
       <li>
         <b>Email Address:</b>
-        ${oldEmail || "N/A"}
+        ${oldOrder.user.email || "N/A"}
         →
         ${order.user.email}
       </li>
@@ -896,7 +1443,7 @@ customersupport@ryviveroots.com
 
 <tr>
 <td style="padding:3px 0; font-size:13px; color:#333; text-align:center;">
-+91 9076000468 / 97656 00701
++91 96199 87275 / 88286 75229
 </td>
 </tr>
 
